@@ -1,0 +1,11 @@
+{% extends "inventario/base.html" %}
+{% block title %}Software por ativo · Sauron{% endblock %}
+{% block content %}
+<section class="page-heading"><div><span class="kicker">O QUE FOI REGISTRADO POR ATIVO</span><h1>Software por ativo</h1><p>PURL identifica pacote e versão; CPE atende à consulta NVD. Registros importados são declarações: confira instalação, atualidade e escopo nos documentos de origem.</p></div></section>
+{% if perms.inventario.view_ativo and perms.inventario.view_vulnerabilidade and perms.inventario.view_incidencia %}<p><a href="{% url 'documentos' %}">Importar e consultar SBOM/VEX</a></p>{% endif %}
+<article class="panel"><h2>Como preencher o CPE</h2><p>Exemplo: <code>cpe:2.3:a:apache:log4j:2.14.1:*:*:*:*:*:*:*</code>. “a” significa aplicação; depois vêm fabricante, produto e versão. Copie a identificação correta do dicionário NVD. O campo é opcional.</p><p>A rotina consulta o CPE e cria SUGERIDA. Confirme versão, configuração e aplicabilidade antes de marcar ABERTA. Resultados parciais ou sem CVSS 3.x aparecem no resumo da rotina.</p></article>
+{% if perms.inventario.add_software %}<form class="panel form" method="post">{% csrf_token %}{{ form.as_p }}<button class="button" type="submit">Cadastrar software</button></form>{% endif %}
+<form class="panel filters" method="get"><label for="busca">Buscar software</label><input id="busca" name="q" value="{{ filtros.q }}"><button class="button">Buscar</button></form>
+<article class="panel"><div class="table-wrap"><table><thead><tr><th>Ativo</th><th>Software</th><th>Versão</th><th>Fornecedor</th><th>PURL / CPE</th><th>Ações</th></tr></thead><tbody>{% for item in softwares %}<tr><td>{{ item.ativo_id }}</td><td>{{ item.nome }}</td><td>{{ item.versao }}</td><td>{{ item.fornecedor }}</td><td><code>{{ item.purl|default:"Identidade PURL não informada" }}</code><br><code>{{ item.cpe23|default:"Não cadastrado" }}</code></td><td>{% if perms.inventario.change_software %}<a href="{% url 'editar_software' item.pk %}">Editar</a>{% endif %} {% if perms.inventario.delete_software %}<a href="{% url 'remover_software' item.pk %}">Excluir</a>{% endif %}</td></tr>{% empty %}<tr><td colspan="5">Nenhum software cadastrado.</td></tr>{% endfor %}</tbody></table></div></article>
+{% include 'inventario/paginacao.html' %}
+{% endblock %}

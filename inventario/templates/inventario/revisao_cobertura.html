@@ -1,0 +1,7 @@
+{% extends "inventario/base.html" %}
+{% block title %}Revisão de cobertura #{{ r.pk }} — Sauron{% endblock %}
+{% block content %}
+<section class="page-heading"><div><h1>Revisão #{{ r.pk }} · {{ r.get_resultado_display }}</h1><p>{{ r.ativo_id }} · {{ r.perimetro.nome }} · {{ r.tipo }} {{ r.principal }}</p></div></section>
+<p><a href="{% url 'qualidade_relacoes' %}?perimetro={{ r.perimetro_id }}&amp;tipo={{ r.tipo|urlencode }}&amp;principal={{ r.principal|urlencode }}">Consultar estado atual do recorte</a></p>
+<article class="panel"><p>Registro histórico de {{ r.por.username }} em {{ r.criada_em|date:"d/m/Y H:i" }}. Observação declarada: {{ r.observada_em|date:"d/m/Y" }} · revisar em {{ r.revisar_em|date:"d/m/Y" }}.</p><h2>Evidência e limitações declaradas</h2><p>{{ r.evidencia|linebreaksbr }}</p><p>SHA-256 do contexto: <code>{{ r.contexto_sha256 }}</code>.</p><p>Na ocasião: {{ r.resumo.contagens.ELEGIVEL }} vínculos elegíveis; {{ r.resumo.vigentes }} vigentes; {{ r.resumo.pendentes }} pendentes.</p><p>Este resultado não é um certificado de segurança. Pode ter vencido ou ter sido substituído por nova revisão. Alterações de contexto são indicadas no painel atual; o registro histórico não é reescrito.</p></article>
+{% endblock %}

@@ -1,0 +1,19 @@
+target-version = "py312"
+line-length = 100
+extend-exclude = ["inventario/migrations", "dados", ".venv"]
+[lint]
+select = ["E4", "E7", "E9", "F"]
+ignore = ["E731"] # Lambdas locais fazem parte do estilo do projeto.
+[lint.per-file-ignores]
+"**/__init__.py" = ["F401"]
+"inventario/aplicacao/servicos.py" = ["F401"]
+"inventario/aplicacao/operacao.py" = ["E402", "F401"]
+"inventario/web/views.py" = ["E402", "F401"]
+"inventario/web/views_paginas.py" = ["E402", "F401"]
+"inventario/models/ativos.py" = ["E402"]
+
+
+"inventario/cli_operacional.py" = ["E402"]
+"inventario/web/views_analises.py" = ["E402"]
+"sauron.py" = ["E402"]
+"sauron_web/settings.py" = ["E402"]

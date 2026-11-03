@@ -1,0 +1,9 @@
+{% extends "inventario/base.html" %}
+{% block title %}Importar ativos · Sauron{% endblock %}
+{% block content %}
+<section class="page-heading"><div><span class="kicker">CADASTRO EM LOTE</span><h1>Importar ativos</h1><p>Primeiro valide. Depois envie o mesmo arquivo com “Gravar” marcado.</p></div></section>
+<article class="panel"><h2>Formato do arquivo</h2><p>UTF-8, separador vírgula, no máximo 500 registros e 1 MB. As salas precisam existir. IDs e hostnames são gerados pelo sistema. Esta importação cadastra ativos novos.</p><pre>tipo,nome,fabricante,sala,responsavel,ip,contato
+2,Notebook,Dell,SALA-ADM-01,Ana,10.1.1.1,ana@exemplo.org</pre><p>Tipos: 1 servidor · 2 notebook · 3 estação · 4 switch · 5 roteador · 6 impressora · 7 aplicação web · 8 banco · 9 software licenciado.</p><p>Colunas opcionais: ip, contato, criticidade, confidencialidade, integridade, disponibilidade, exposto_internet, zona_rede, portas_servicos. Classificações: 1 a 4. Para JSON em CSV, use aspas duplicadas dentro do campo.</p></article>
+<form class="panel form" method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.as_p }}<button class="button" type="submit">Validar ou importar</button></form>
+{% if resultado %}<article class="panel"><h2>{% if resultado.dry_run %}Prévia: nada foi gravado{% else %}Resultado da importação{% endif %}</h2><p>{{ resultado.validos }} linhas válidas · {{ resultado.gravados }} ativos gravados.</p>{% for erro in resultado.erros %}<p class="error">Linha {{ erro.linha }}: {{ erro.mensagem }}</p>{% empty %}<p>Lote sem erros. A gravação revalida o banco e usa uma transação única.</p>{% endfor %}</article>{% endif %}
+{% endblock %}

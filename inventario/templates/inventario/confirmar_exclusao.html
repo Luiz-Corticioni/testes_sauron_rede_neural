@@ -1,0 +1,9 @@
+{% extends "inventario/base.html" %}
+{% block content %}
+<section class="page-heading"><h1>Confirmar exclusão</h1></section>
+<article class="panel"><h2>{{ rotulo }}: {{ objeto }}</h2>
+<p>A exclusão é definitiva e será registrada na auditoria. Verifique o cadastro antes de continuar.</p>
+{% if cascata %}<p>As incidências, dependências, certificados e softwares deste ativo serão removidos junto com ele. Incidentes, alertas e decisões protegidas podem bloquear a exclusão. O histórico e a auditoria permanecem.</p>{% else %}<p>Referências protegidas podem impedir a exclusão. Nesse caso, revise os vínculos; o sistema preservará os registros.</p>{% endif %}
+{% if erro %}<p class="error" role="alert">{{ erro }}</p>{% endif %}
+<form method="post">{% csrf_token %}<p><label><input type="checkbox" name="confirmar" value="sim" required> Li as consequências e confirmo a exclusão.</label></p><button class="button danger" type="submit">Excluir definitivamente</button> <a class="button secondary" href="{{ cancelar_url }}">Cancelar</a></form></article>
+{% endblock %}

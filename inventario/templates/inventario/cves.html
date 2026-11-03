@@ -1,0 +1,19 @@
+{% extends "inventario/base.html" %}
+{% load static %}
+{% block title %}CVE / KEV — Sauron{% endblock %}
+{% block content %}
+<section class="page-heading"><div><span class="kicker">INTELIGÊNCIA EXTERNA</span><h1>Consultar vulnerabilidades</h1><p>Encontre uma CVE por código ou produto e confira a fonte e o CVSS.</p></div></section>
+{% if ativo_contexto %}<article class="panel"><h2>Pesquisa para {{ ativo_contexto.hostname }}</h2><p>Ativo #{{ ativo_contexto.id_numerico }} · {{ ativo_contexto.id }}. A consulta não confirma que este equipamento é afetado.</p><a href="{% url 'detalhe_ativo' ativo_contexto.pk %}">Voltar à ficha do ativo</a></article>{% endif %}
+<form id="cve-search-form" data-comparar-url="{% url 'comparar_cvss' %}" class="panel form" method="post" action="{% url 'api_consultar_cves' %}" {% if ativo_contexto %}{% if perms.inventario.add_vulnerabilidade and perms.inventario.add_incidencia %}data-cadastrar-url="{% url 'cadastrar_vulnerabilidade_ativo' ativo_contexto.pk %}" data-ativo="{{ ativo_contexto.pk }}"{% endif %}{% elif perms.inventario.add_vulnerabilidade %}data-cadastrar-url="{% url 'criar_vulnerabilidade' %}"{% endif %}>
+  {% csrf_token %}
+  <div class="field"><label for="cve-search">CVE ou nome de produto</label><input id="cve-search" name="termo" data-autocomplete-cve maxlength="120" required minlength="2" placeholder="CVE-2021-44228, Log4Shell, Apache Log4j…"><small>Também aceita “2021 44228”. As sugestões são locais; o botão consulta a NVD.</small></div>
+  <label class="checkbox-label"><input type="checkbox" id="cve-force" name="forcar" checked> Atualizar pela internet, mesmo que exista cache</label>
+  <button class="button" id="cve-search-button" type="submit">Consultar NVD</button>
+</form>
+<p id="cve-search-status" class="muted" role="status" aria-live="polite">Escolher uma sugestão não cadastra nem confirma uma vulnerabilidade.</p>
+<div id="cve-search-results" class="kev-grid"></div>
+<section class="panel nomenclature"><h2>Como ler um identificador</h2><div class="cve-anatomy"><b>CVE</b><b>2026</b><b>12345</b></div><div class="cve-explain"><span>padrão internacional</span><span>ano do registro</span><span>sequência única</span></div><p>O identificador não contém severidade. A gravidade é calculada separadamente pelo CVSS.</p></section>
+<section class="page-heading"><div><h2>15 adições recentes ao KEV</h2><p>O KEV reúne falhas com exploração conhecida. Esta lista não é um ranking das CVEs “mais usadas”.</p></div><button class="button secondary" id="load-kev" type="button">Ler catálogo local</button></section>
+<div id="kev-status" class="muted" role="status" aria-live="polite">A origem e a data do cache serão exibidas. Para atualizar o KEV: terminal, menu 11 → opção 5.</div><div id="kev-list" class="kev-grid"></div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'inventario/cves.js' %}" defer></script>{% endblock %}

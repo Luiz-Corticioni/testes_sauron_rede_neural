@@ -1,0 +1,5 @@
+{
+  "conectividade_externa": "nao_comprovada",
+  "motivo": "Falha de rede ou formato da fonte externa.",
+  "causa": "URLError"
+}

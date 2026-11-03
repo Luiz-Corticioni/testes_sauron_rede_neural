@@ -1,0 +1,15 @@
+Homologação visual local — 03/11/2026
+Navegador real, servidor restrito ao loopback, DEBUG=1, SQLite e base inteiramente sintética.
+Login por senha e TOTP confirmado; renovação MFA confirmada após expiração da reautenticação.
+A expiração impediu POST /api/montecarlo/; a interface limpa resultados e apresenta link Confirmar MFA.
+Conferidos resumo, gráficos SVG, tabelas financeiras, ajuda contextual e roteiros do guia por responsabilidade.
+Com EPSS sintético 0,1 e 20.000 cenários/seed 42: média R$ 409.967, P95 R$ 3.790.981 e frequência de perda 9,8% (valores arredondados da interface; não dados reais).
+Seleção da CVE na comparação: média após correção R$ 0; média atual preservada. A incidência continuou ABERTA no banco.
+Ao remover EPSS apenas da base sintética: mensagem de dados insuficientes com ativo/CVE; zero gráficos e zero linhas de estatísticas. Não mostrou perda zero como resultado do dado ausente.
+Ajuda financeira expandida: objetivo, exemplo, interpretação e próximo passo visíveis.
+Guia: roteiros do responsável pelo negócio, analista de segurança e mantenedor do inventário visíveis.
+Nenhum erro JavaScript registrado no console durante a comparação e a apresentação de dados insuficientes.
+Prévia visual entregue em arquivo separado: previa-sauron-fase6.jpg, apenas com dados sintéticos.
+Servidores e aba temporários encerrados após a verificação.
+Não houve validação móvel completa, teste de usabilidade com usuários reais ou certificação WCAG.
+Esta verificação não certifica TLS/SMTP/PostgreSQL reais ou integrações FIRST/NVD em rede. A integração DEBUG=0 está descrita em PRODUCAO_SMOKE.txt.

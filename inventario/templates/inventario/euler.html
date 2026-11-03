@@ -1,0 +1,33 @@
+{% extends "inventario/base.html" %}
+{% block title %}Modo Euler — Sauron{% endblock %}
+{% block content %}
+<section class="page-heading"><div><span class="kicker">CÁLCULO NUMÉRICO</span><h1>Modo Euler</h1><p>Funções seguras, derivadas centrais e integração por Simpson.</p></div></section>
+{% if perms.inventario.view_ativo and perms.inventario.view_relacaoativos and perms.inventario.view_perimetrorelacoes and perms.inventario.view_revisaocobertura %}<article class="panel"><h2>Cobertura das evidências</h2><p>Compare ativos com vínculos elegíveis e ativos com revisão completa declarada. O denominador é o perímetro escolhido; percentuais não representam probabilidade ou segurança.</p><a href="{% url 'qualidade_relacoes' %}">Consultar cobertura, validade e lacunas</a></article>{% endif %}
+{% if perms.inventario.view_ativo and perms.inventario.view_relacaoativos %}<article class="panel"><h2>Grafos do inventário</h2><p>Alcance dirigido, menor caminho em saltos, ciclos e cenário de retirada de uma relação/ativo. Cada análise usa uma única camada e escopo; não estima probabilidade de ataque.</p><a class="button" href="{% url 'grafo_relacoes' %}">Analisar relações de rede, identidade ou negócio</a></article>{% endif %}
+<section class="grid two">
+<form class="panel form" method="post">{% csrf_token %}<div class="field"><label for="euler-expressao">Função f(x)</label><input id="euler-expressao" name="expressao" value="{{ dados.expressao|default:'x^2 + 2*x + 1' }}" required></div><div class="field"><label for="euler-operacao">Operação</label><select id="euler-operacao" name="operacao"><option value="derivada">Derivada central</option><option value="segunda">Derivada segunda</option><option value="integral">Integral de Simpson</option></select></div><div class="field"><label for="euler-x">Ponto x</label><input type="number" step="any" id="euler-x" name="x" value="{{ dados.x|default:1 }}"></div><div class="split"><div class="field"><label for="euler-a">Início a</label><input type="number" step="any" id="euler-a" name="a" value="{{ dados.a|default:0 }}"></div><div class="field"><label for="euler-b">Fim b</label><input type="number" step="any" id="euler-b" name="b" value="{{ dados.b|default:1 }}"></div><div class="field"><label for="euler-n">Subintervalos pares</label><input type="number" step="2" id="euler-n" name="n" value="{{ dados.n|default:100 }}"></div></div><button class="button">Calcular</button>{% if erro %}<div class="alert danger" role="alert">{{ erro }}</div>{% endif %}{% if resultado %}<div class="result"><span>{{ resultado.operacao }} · {{ resultado.tipo_funcao }}</span><strong>{{ resultado.valor|floatformat:8 }}</strong></div>{% endif %}</form>
+<article class="panel guide"><span class="kicker">GUIA DE NOTAÇÃO</span><h2>Como escrever</h2><p><code>x^2</code> ou <code>x**2</code> — potência</p><p><code>sin(x)</code>, <code>cos(x)</code>, <code>tan(x)</code> — trigonométricas</p><p><code>exp(x)</code>, <code>log(x)</code>, <code>sqrt(x)</code> — exponencial, logaritmo e raiz</p><p><code>pi</code> e <code>e</code> — constantes</p><hr><p class="muted">A derivada central compara valores simétricos em torno de x. Simpson aproxima a área por parábolas e exige número par de subintervalos.</p></article>
+</section>
+<section class="panel">
+  <h2>Euler aplicado ao inventário</h2>
+  <p>Usa snapshots do perfil puro. A derivada mede a taxa no último intervalo;
+     a integral estima a exposição acumulada em pontos de risco × dias.</p>
+  <form method="get" class="form">
+    <label for="inicio-historico">Início ISO com fuso (opcional)</label>
+    <input id="inicio-historico" name="inicio" placeholder="2026-10-06T12:00:00-03:00">
+    <label for="fim-historico">Fim ISO com fuso (opcional)</label>
+    <input id="fim-historico" name="fim" placeholder="2026-10-08T12:00:00-03:00">
+    <button class="button" type="submit">Analisar período</button>
+  </form>
+  {% if historico.disponivel %}
+    {% if historico.contem_simulacao %}<p class="message">Esta série contém amostras fictícias do cenário acadêmico.</p>{% endif %}
+    <p>Risco-dia: {{ historico.risco_dia }} · taxa: {{ historico.taxa_por_dia }} pontos/dia.</p>
+    <p>{{ historico.metodo }}</p>
+    {% for alerta in historico.alertas %}
+      <p class="alert danger" role="alert">{{ alerta.tipo }}: {{ alerta.mensagem }}</p>
+    {% endfor %}
+  {% else %}<p role="status">{{ historico.mensagem }}</p>{% endif %}
+  <p>Entre snapshots, o sistema mantém o último valor observado (degrau à esquerda). Correções abruptas exigem
+     cautela ao interpretar essa área; o aviso de tendência é informativo.</p>
+</section>
+{% endblock %}

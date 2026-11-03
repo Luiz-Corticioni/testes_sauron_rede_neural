@@ -1,0 +1,202 @@
+{
+  "rotulo": "depois-fase7-final",
+  "data_utc": "2026-11-03T19:33:19.769543+00:00",
+  "ambiente": {
+    "python": "3.12.14",
+    "django": "5.2.17",
+    "sistema": "Windows-11-10.0.26200-SP0",
+    "cpus_logicas": 20,
+    "banco": "SQLite/WAL",
+    "debug": false,
+    "servidor": "WSGI local com threads; apenas teste",
+    "transporte": "HTTP/loopback, sem TLS",
+    "cache": "FileBasedCache",
+    "usuarios": 100,
+    "administradores": 4,
+    "comuns_somente_leitura": 96,
+    "ativos": 100,
+    "vulnerabilidades": 10,
+    "incidencias": 100,
+    "dependencias": 99,
+    "senhas": "PBKDF2 real, sem diminuir custo",
+    "rede_externa": false
+  },
+  "etapas": [
+    {
+      "etapa": "login_senha_totp_gradual_mesmo_ip",
+      "fluxos": 100,
+      "concorrencia_cliente": 10,
+      "sucessos": 100,
+      "status": {
+        "302": 100
+      },
+      "duracao_s": 28.815,
+      "fluxos_s": 3.47,
+      "p50_ms": 2203.14,
+      "p95_ms": 7113.45,
+      "max_ms": 17107.87,
+      "pico": 10,
+      "sql": 7695,
+      "escritas_sessao": 300
+    },
+    {
+      "etapa": "painel_frio_100",
+      "fluxos": 100,
+      "concorrencia_cliente": 100,
+      "sucessos": 99,
+      "status": {
+        "200": 99,
+        "503": 1
+      },
+      "duracao_s": 0.827,
+      "fluxos_s": 120.92,
+      "p50_ms": 515.96,
+      "p95_ms": 609.81,
+      "max_ms": 623.09,
+      "pico": 99,
+      "sql": 826,
+      "escritas_sessao": 0
+    },
+    {
+      "etapa": "painel_aquecido_100",
+      "fluxos": 100,
+      "concorrencia_cliente": 100,
+      "sucessos": 100,
+      "status": {
+        "200": 100
+      },
+      "duracao_s": 0.793,
+      "fluxos_s": 126.15,
+      "p50_ms": 398.38,
+      "p95_ms": 552.77,
+      "max_ms": 567.33,
+      "pico": 41,
+      "sql": 792,
+      "escritas_sessao": 0
+    },
+    {
+      "etapa": "api_risco_100",
+      "fluxos": 100,
+      "concorrencia_cliente": 100,
+      "sucessos": 100,
+      "status": {
+        "200": 100
+      },
+      "duracao_s": 0.62,
+      "fluxos_s": 161.21,
+      "p50_ms": 338.35,
+      "p95_ms": 441.37,
+      "max_ms": 449.6,
+      "pico": 42,
+      "sql": 1294,
+      "escritas_sessao": 1
+    },
+    {
+      "etapa": "lista_ativos_100",
+      "fluxos": 100,
+      "concorrencia_cliente": 100,
+      "sucessos": 100,
+      "status": {
+        "200": 100
+      },
+      "duracao_s": 1.273,
+      "fluxos_s": 78.53,
+      "p50_ms": 932.37,
+      "p95_ms": 1059.88,
+      "max_ms": 1098.13,
+      "pico": 100,
+      "sql": 1598,
+      "escritas_sessao": 3
+    },
+    {
+      "etapa": "isolamento_administracao_100",
+      "fluxos": 100,
+      "concorrencia_cliente": 100,
+      "sucessos": 100,
+      "status": {
+        "200": 4,
+        "403": 96
+      },
+      "duracao_s": 2.012,
+      "fluxos_s": 49.7,
+      "p50_ms": 873.62,
+      "p95_ms": 1684.08,
+      "max_ms": 1842.56,
+      "pico": 92,
+      "sql": 1306,
+      "escritas_sessao": 9
+    },
+    {
+      "etapa": "quatro_administradores_escrevendo",
+      "fluxos": 4,
+      "concorrencia_cliente": 4,
+      "sucessos": 4,
+      "status": {
+        "200": 4
+      },
+      "duracao_s": 0.109,
+      "fluxos_s": 36.76,
+      "p50_ms": 86.12,
+      "p95_ms": 94.32,
+      "max_ms": 106.97,
+      "pico": 4,
+      "sql": 164,
+      "escritas_sessao": 0
+    },
+    {
+      "etapa": "misto_quatro_admins_escrevem_96_comuns_leem",
+      "fluxos": 100,
+      "concorrencia_cliente": 100,
+      "sucessos": 100,
+      "status": {
+        "200": 100
+      },
+      "duracao_s": 0.866,
+      "fluxos_s": 115.52,
+      "p50_ms": 576.47,
+      "p95_ms": 644.62,
+      "max_ms": 652.63,
+      "pico": 100,
+      "sql": 953,
+      "escritas_sessao": 3
+    },
+    {
+      "etapa": "escrita_negada_96_comuns",
+      "fluxos": 96,
+      "concorrencia_cliente": 96,
+      "sucessos": 96,
+      "status": {
+        "403": 96
+      },
+      "duracao_s": 1.89,
+      "fluxos_s": 50.79,
+      "p50_ms": 946.75,
+      "p95_ms": 1729.39,
+      "max_ms": 1875.24,
+      "pico": 96,
+      "sql": 2049,
+      "escritas_sessao": 7
+    },
+    {
+      "etapa": "rajada_senha_100_mesmo_ip_sem_mudar_limites",
+      "fluxos": 100,
+      "concorrencia_cliente": 100,
+      "sucessos": 85,
+      "status": {
+        "302": 85,
+        "429": 15
+      },
+      "duracao_s": 2.744,
+      "fluxos_s": 36.45,
+      "p50_ms": 1248.66,
+      "p95_ms": 2313.57,
+      "max_ms": 2662.66,
+      "pico": 99,
+      "sql": 4195,
+      "escritas_sessao": 85
+    }
+  ],
+  "auditoria_integra": true,
+  "cache_commit_rollback_aprovado": true,
+  "funcional_aprovado": false
+}

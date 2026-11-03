@@ -1,0 +1,1 @@
+5 cenários HTTP JavaScript aprovados: JSON, MFA expirado, login expirado, erro JSON e erro HTML.

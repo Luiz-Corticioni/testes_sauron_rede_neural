@@ -1,0 +1,20 @@
+{% extends "inventario/base.html" %}
+{% load static %}
+{% block title %}Auditoria — Sauron{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Trilha de auditoria</h1>
+  <p>Os hashes detectam mudanças nos elos registrados. A verificação não impede SQL direto.</p>
+  <button class="button" id="verify-audit" type="button">Verificar integridade da cadeia</button>
+  <p id="audit-result" role="status" aria-live="polite"></p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Quando</th><th>Usuário</th><th>Ação</th><th>Objeto</th><th>Hash</th></tr></thead>
+    <tbody>{% for registro in registros %}<tr>
+      <td>{{ registro.ocorrido_em }}</td><td>{{ registro.usuario|default:"Sistema" }}</td>
+      <td>{{ registro.acao }}</td><td>{{ registro.entidade }} {{ registro.entidade_id }}</td>
+      <td><code>{{ registro.hash|slice:":16" }}</code></td>
+    </tr>{% empty %}<tr><td colspan="5">Nenhuma alteração registrada.</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{% static 'inventario/auditoria.js' %}" defer></script>{% endblock %}

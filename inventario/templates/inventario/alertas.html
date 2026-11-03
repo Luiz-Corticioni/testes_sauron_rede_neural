@@ -1,0 +1,50 @@
+{% extends "inventario/base.html" %}
+{% block title %}Alertas e decisões · Sauron{% endblock %}
+{% block content %}
+<section class="page-heading"><div><span class="kicker">VIGILÂNCIA COM CONTEXTO</span>
+<h1>Alertas e decisões</h1><p><a href="?pendentes=1">Fila de aprovações pendentes</a> · <a href="?">Todas as incidências</a></p><p>Reconhecer registra ciência. A correção acontece no ativo ou na incidência.</p></div></section>
+{% if contem_simulacao %}<div class="message">Cenário acadêmico: a série histórica e o aceite demonstrativo são simulados. Não comprovam monitoramento ou decisões reais.</div>{% endif %}
+<section class="metrics">
+<article class="metric"><small>Tempo médio de correção</small><strong>{{ mttr.dias|default_if_none:"—" }}</strong><span>dias · {{ mttr.correcoes }} ciclos concluídos</span></article>
+<article class="metric"><small>Última rotina</small><strong>{{ rotina.status|default:"Pendente" }}</strong><span>{{ rotina.finalizada_em|default:"Execute rotinas pelo terminal" }}</span></article>
+</section>
+<article class="panel"><div class="panel-title"><h2>Ocorrências</h2>
+<a class="panel-link" href="?todos=1">Incluir reconhecidos</a></div>
+<p><a href="{% url 'exportar_colecao_csv' 'alertas' %}">Exportar alertas CSV</a> ·
+<a href="{% url 'exportar_colecao_csv' 'vulnerabilidades' %}">Vulnerabilidades CSV</a> ·
+<a href="{% url 'exportar_colecao_csv' 'risco' %}">Risco puro CSV</a></p>
+{% if rotina.erros %}<p class="error">Rotina parcial: {{ rotina.erros }}. As demais etapas continuaram.</p>{% endif %}
+{% if rotina.etapas.software.avisos %}<p class="error">Revisão de software: {{ rotina.etapas.software.avisos }}</p>{% endif %}
+<div class="table-wrap"><table><thead><tr><th>Tipo</th><th>Nível 1–4</th><th>Ativo</th><th>Mensagem</th><th>Ciência</th></tr></thead><tbody>
+{% for alerta in alertas %}<tr><td>{{ alerta.tipo }}</td><td>{{ alerta.severidade }}</td><td>{{ alerta.ativo_id|default:"Infraestrutura" }}</td><td>{{ alerta.mensagem }}</td>
+<td>{% if alerta.reconhecido_em %}{{ alerta.reconhecido_por }} · {{ alerta.reconhecido_em }}{% elif perms.inventario.reconhecer_alerta %}
+<form method="post" action="{% url 'reconhecer_alerta' alerta.pk %}">{% csrf_token %}<button class="button" type="submit">Reconhecer</button></form>{% else %}Pendente{% endif %}</td></tr>
+{% empty %}<tr><td colspan="5">Nenhum alerta nesta seleção. A rotina faz as verificações.</td></tr>{% endfor %}</tbody></table></div>
+</article>
+<article class="panel"><div class="panel-title"><div><h2>Prazos e decisões de risco</h2><p>ACEITA continua no risco. Exige gerente, justificativa e validade; SUGERIDA aguarda confirmação.</p></div></div>
+{% for incidencia in incidencias %}<details class="decision"><summary>{{ incidencia.id }} · {{ incidencia.ativo_id }} · {{ incidencia.vulnerabilidade }} · {{ incidencia.status }}{% if incidencia.decisao_pendente %} · Aguardando segundo usuário: {{ incidencia.decisao_pendente }}{% endif %}</summary>
+<p>Prazo de correção: {{ incidencia.prazo_correcao|default:"Após confirmar" }}.
+{% if incidencia.aceita_ate %}Último aceite: {{ incidencia.aceita_por }} até {{ incidencia.aceita_ate }}. Motivo: {{ incidencia.justificativa }}.{% endif %}</p>
+{% if incidencia.decisao_pendente %}
+<p>Solicitado por {{ incidencia.solicitada_por }}. Evidência: {{ incidencia.evidencia|default:"Não se aplica ao aceite" }}.</p>
+{% if perms.inventario.change_incidencia and request.user.pk != incidencia.solicitada_por_id %}
+{% if incidencia.decisao_pendente != "ACEITA" or perms.inventario.aprovar_aceite_risco %}
+<form method="post" action="{% url 'decidir_pendencia' incidencia.pk %}">{% csrf_token %}
+<button class="button" name="acao" value="aprovar">Aprovar decisão</button>
+<label for="devolucao-{{ incidencia.id }}">Motivo para devolver à revisão</label>
+<textarea id="devolucao-{{ incidencia.id }}" name="motivo" maxlength="4000"></textarea>
+<button class="button" name="acao" value="devolver">Devolver para revisão</button>
+</form>
+{% endif %}{% endif %}{% endif %}
+{% if perms.inventario.change_incidencia %}<form class="form" method="post" action="{% url 'status_incidencia_web' incidencia.pk %}">{% csrf_token %}
+<label for="status-{{ incidencia.id }}">Novo status</label><select id="status-{{ incidencia.id }}" name="status">
+<option value="ABERTA">ABERTA — confirmar/abrir</option><option value="TRATAMENTO">TRATAMENTO</option><option value="CORRIGIDA">CORRIGIDA</option><option value="MITIGADA">MITIGADA</option><option value="SUGERIDA">SUGERIDA</option>
+{% if perms.inventario.aceitar_risco %}<option value="ACEITA">ACEITA — decisão com prazo</option>{% endif %}</select>
+{% if perms.inventario.aceitar_risco %}<label for="just-{{ incidencia.id }}">Justificativa (para ACEITA)</label><input id="just-{{ incidencia.id }}" name="justificativa" maxlength="4000"><label for="ate-{{ incidencia.id }}">Aceita até</label><input id="ate-{{ incidencia.id }}" name="aceita_ate" type="date">{% endif %}
+<label for="evidencia-{{ incidencia.id }}">Evidência da correção/mitigação</label><textarea id="evidencia-{{ incidencia.id }}" name="evidencia" maxlength="8000"></textarea>
+<button class="button" type="submit">Registrar decisão / confirmar como segundo usuário</button></form>{% endif %}</details>{% empty %}<p>Sem incidências.</p>{% endfor %}
+{% if pagina_decisoes.has_previous %}<a href="?pendentes={{ somente_pendentes|yesno:'1,0' }}&amp;pagina_decisoes={{ pagina_decisoes.previous_page_number }}">Decisões anteriores</a>{% endif %}
+<span>Página {{ pagina_decisoes.number }} de {{ pagina_decisoes.paginator.num_pages }}</span>
+{% if pagina_decisoes.has_next %}<a href="?pendentes={{ somente_pendentes|yesno:'1,0' }}&amp;pagina_decisoes={{ pagina_decisoes.next_page_number }}">Próximas decisões</a>{% endif %}
+</article>
+{% endblock %}

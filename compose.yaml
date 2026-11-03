@@ -1,0 +1,53 @@
+x-base: &base
+  build: .
+  restart: unless-stopped
+  init: true
+  read_only: true
+  env_file: .env
+  environment:
+    SAURON_DEBUG: "0"
+    SAURON_DB_PATH: /app/dados/sauron.sqlite3
+    SAURON_DATA_DIR: /app/dados
+  volumes:
+    - sauron_dados:/app/dados
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=128m,mode=1777
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "3"
+services:
+  preparar:
+    <<: *base
+    restart: "no"
+    command: ["preparar"]
+    healthcheck:
+      disable: true
+  sauron:
+    <<: *base
+    command: ["web"]
+    depends_on:
+      preparar:
+        condition: service_completed_successfully
+    ports: ["127.0.0.1:8000:8000"]
+    shm_size: 64m
+    mem_limit: 512m
+    cpus: 1.0
+  agendador:
+    <<: *base
+    command: ["agendador"]
+    depends_on:
+      preparar:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "scripts/healthcheck.py", "--somente-rotina"]
+      interval: 30s
+      start_period: 330s
+      timeout: 5s
+      retries: 3
+volumes:
+  sauron_dados:
+

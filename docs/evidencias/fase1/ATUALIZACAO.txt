@@ -1,0 +1,1 @@
+APROVADO: schema 0021 com vulnerabilidade legada; backup cifrado antes da migração; migração 0022; valor/data preservados; origem não inventada. Banco descartável.

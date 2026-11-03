@@ -1,0 +1,21 @@
+{% extends 'inventario/base.html' %}{% load static %}
+{% block title %}Mapa de dependências · Sauron{% endblock %}
+{% block content %}
+<section class="page-heading"><div><span class="kicker">CONEXÕES QUE TRANSPORTAM RISCO</span><h1>Mapa de dependências</h1><p>Veja onde uma falha pode repercutir na infraestrutura.</p></div><a class="button secondary" href="{% url 'dependencias' %}">Gerenciar vínculos</a></section>
+{% include 'inventario/componentes/perfil.html' %}
+<article class="panel"><div class="panel-title"><div><h2>O caminho da propagação</h2><p>A seta vai do fornecedor j ao dependente i. Quanto mais espessa, maior A[i,j]. Passe o mouse ou use Tab para destacar os ativos alcançáveis.</p></div><span class="pill">{{ grafo.total|default:0 }} ativos</span></div>
+<div class="graph-legend"><span class="pill baixo">Índice 0–24</span><span class="pill medio">25–49</span><span class="pill alto">50–74</span><span class="pill critico">75–100</span></div>
+<p class="muted">Cada nó mostra x, o risco efetivo. A cor usa sua escala monótona 0–100. Essas faixas visuais são distintas da severidade CVSS.</p>
+{% if grafo.ciclico %}<p class="message">Há um ciclo. Os nós usam uma grade para exibição; o modelo continua validado pelo raio espectral.</p>{% endif %}
+{% if grafo.limitado %}<p class="message">Janela dos primeiros 60 ativos. A consulta de dependentes abaixo percorre o inventário completo; a API de risco fornece todas as matrizes.</p>{% endif %}
+<div class="graph-scroll" id="dependency-graph" aria-label="Grafo de propagação"></div>
+<p id="graph-status" role="status" aria-live="polite">Selecione um ativo para explorar seu alcance.</p>
+<div class="table-wrap"><table><caption>Vínculos de propagação exibidos</caption><thead><tr><th>Fornecedor j</th><th>Dependente i</th><th>A[i,j]</th></tr></thead><tbody>{% for a in grafo.arestas %}<tr><td><a href="{% url 'detalhe_ativo' a.origem %}">{{ a.origem }}</a></td><td><a href="{% url 'detalhe_ativo' a.destino %}">{{ a.destino }}</a></td><td>{{ a.peso }}</td></tr>{% empty %}<tr><td colspan="3">Cadastre ativos e dependências para desenhar as conexões. Ativos sem vínculos também aparecem no grafo.</td></tr>{% endfor %}</tbody></table></div>
+</article>{{ grafo|json_script:'graph-data' }}
+<article class="panel"><h2>Dependentes diretos e indiretos</h2><p>Esta consulta percorre o inventário completo, inclusive ativos fora da janela de 60 nós do desenho. A fila FIFO encontra um caminho com o menor número de saltos; não escolhe o caminho de maior risco.</p>
+<form method="get" class="filters"><input type="hidden" name="perfil" value="{{ perfil }}"><label for="origem-impacto">Fornecedor de origem</label><input id="origem-impacto" name="origem" maxlength="100" required value="{{ termo_impacto }}" placeholder="ID numérico, código, hostname ou nome exato"><button class="button" type="submit">Consultar dependentes</button></form>
+{% if erro_impacto %}<p class="alert danger" role="alert">{{ erro_impacto }}</p>{% endif %}
+{% if impacto %}<p><b>{{ impacto.ativo.hostname }}</b> alcança {{ impacto.total_dependentes }} outro(s) ativo(s), em {{ impacto.total_ativos }} cadastrados. {{ impacto.aviso }}</p>{% if impacto.limitado %}<p class="message">A análise foi completa; exibidos os primeiros {{ impacto.limite }} caminhos.</p>{% endif %}
+<div class="table-wrap"><table><caption>Caminhos das dependências com peso positivo</caption><thead><tr><th>Ativo</th><th>Saltos mínimos</th><th>Um caminho</th></tr></thead><tbody>{% for item in impacto.itens %}<tr><td><a href="{% url 'detalhe_ativo' item.id %}">#{{ item.id_numerico }} · {{ item.hostname }}</a></td><td>{{ item.saltos }}</td><td>{{ item.caminho_nomes|join:' → ' }}</td></tr>{% empty %}<tr><td colspan="3">Nenhum outro ativo é alcançável pelas dependências cadastradas. Isso não comprova isolamento físico da rede.</td></tr>{% endfor %}</tbody></table></div>{% endif %}</article>
+{% endblock %}
+{% block scripts %}<script src="{% static 'inventario/grafo.js' %}" defer></script>{% endblock %}

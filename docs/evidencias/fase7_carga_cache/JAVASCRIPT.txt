@@ -1,0 +1,1 @@
+12 cenários JavaScript aprovados: sete de saúde/cache e cinco de HTTP/autenticação.

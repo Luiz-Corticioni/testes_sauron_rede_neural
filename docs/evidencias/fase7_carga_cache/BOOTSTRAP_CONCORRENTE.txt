@@ -1,0 +1,3 @@
+SQLite/WAL em arquivo e banco descartável: duas tentativas concorrentes de primeiro administrador.
+Resultado: um criado, um bloqueado; total de superusuários = 1; nenhum MFA exigido/criado para cadastro; auditoria íntegra.
+Nenhum dado ou segredo real foi utilizado.

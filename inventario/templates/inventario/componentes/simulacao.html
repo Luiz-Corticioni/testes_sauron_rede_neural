@@ -1,0 +1,9 @@
+<form class="panel form" id="{% if montecarlo_financeiro %}simulacao-montecarlo{% else %}simulacao-risco{% endif %}" action="{% if montecarlo_financeiro %}{% url 'api_montecarlo' %}{% else %}{% url 'api_simular_risco' %}{% endif %}" method="post">
+  {% csrf_token %}<h2>Laboratório de correções</h2>
+  <label for="incidencias-simuladas">IDs de incidências separados por vírgula</label>
+  <input id="incidencias-simuladas" name="incidencias" placeholder="INC-0001,INC-0002" {% if not montecarlo_financeiro %}required{% endif %} aria-describedby="simulacao-ajuda">
+  <input type="hidden" name="perfil" value="{{ perfil }}">
+  <p id="simulacao-ajuda">Use os códigos da lista de incidências, ou o botão do ranking. O cálculo compara dois cenários; a simulação preserva os cadastros.</p>
+  <div class="actions"><button class="button" type="submit">Simular correção</button><button class="button secondary" id="reset-simulation" type="button">Voltar ao cenário atual</button></div>
+  <pre id="resultado-simulacao" role="status" aria-live="polite" aria-atomic="true">Aguardando uma simulação.</pre>
+</form>

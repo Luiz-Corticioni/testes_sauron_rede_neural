@@ -1,0 +1,1 @@
+APROVADO: banco SQLite descartável no schema 0025 com ativos, relação tipada, PURL, SBOM e CVE; backup cifrado antes das tabelas de cobertura; atualização 0026 preserva conteúdo/hash, identidade e relação; nenhum perímetro ou revisão inferido; backup anterior restaurado no schema atual com auditoria validada.

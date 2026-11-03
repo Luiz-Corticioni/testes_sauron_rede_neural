@@ -1,0 +1,33 @@
+{% extends "inventario/base.html" %}
+{% block title %}Entrar — Sauron{% endblock %}
+{% block eyebrow %}Acesso ao inventário{% endblock %}
+{% block content %}
+<section class="panel login-panel">
+  <span class="kicker">AUTENTICAÇÃO</span>
+  <h1>Acesso ao Sauron</h1>
+  <p>Entre com sua conta de operador ou gerente. A administração é reservada à equipe autorizada.</p>
+  <form method="post" action="{% url 'entrar' %}">
+    {% csrf_token %}
+    {% if erro_bloqueio %}<div class="alert danger" role="alert">{{ erro_bloqueio }}</div>{% endif %}
+    {% if form.non_field_errors %}
+      <div class="alert danger" role="alert">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <div class="form-grid">
+      <p>
+        <label for="id_username">Usuário</label>
+        <input type="text" name="username" id="id_username" autocomplete="username"
+               value="{{ form.username.value|default_if_none:'' }}" required autofocus>
+        {{ form.username.errors }}
+      </p>
+      <p>
+        <label for="id_password">Senha</label>
+        <input type="password" name="password" id="id_password"
+               autocomplete="current-password" required>
+        {{ form.password.errors }}
+      </p>
+    </div>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="button" type="submit">Entrar no inventário</button>
+  </form>
+</section>
+{% endblock %}

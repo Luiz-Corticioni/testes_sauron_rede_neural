@@ -1,0 +1,10 @@
+HTTP redireciona HTTPS: 301
+Senha sozinha: bloqueada por MFA
+Senha + TOTP e dashboard em DEBUG=0: 200
+Coleta simulada -> banco -> lista EPSS em producao: aprovado
+Historico, percentil e origem EPSS em producao: aprovado
+SSVC com DEBUG=0: formulario, registro, contexto e historico aprovados; status/SLA preservados
+SSVC com DEBUG=0: mudanca de contexto pede reavaliacao sem apagar decisao
+WhiteNoise/estaticos de producao: 200
+Cookies seguros, manifest de estaticos e CSP: verificados
+Verificador de implantacao com configuracao sintetica completa: aprovado; infraestrutura externa nao certificada

@@ -1,0 +1,5 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<p>Ativo {{ ativo }}. A declaração exige evidência de scan; ausência de falhas cadastradas não comprova saúde.</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Registrar declaração / revogação</button></form>
+{% endblock %}

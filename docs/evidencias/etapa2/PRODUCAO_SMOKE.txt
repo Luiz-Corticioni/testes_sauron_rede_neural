@@ -1,0 +1,6 @@
+HTTP redireciona HTTPS: 301
+Senha sozinha: bloqueada por MFA
+Senha + TOTP e dashboard em DEBUG=0: 200
+WhiteNoise/estaticos de producao: 200
+Cookies seguros, manifest de estaticos e CSP: verificados
+Verificador de implantacao com configuracao sintetica completa: aprovado; infraestrutura externa nao certificada

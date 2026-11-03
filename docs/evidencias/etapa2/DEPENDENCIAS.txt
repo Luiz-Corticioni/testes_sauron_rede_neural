@@ -1,0 +1,2 @@
+pip check: aprovado.
+pip-audit: consulta nao concluida. pypi.org nao foi resolvido pelo DNS neste ambiente. Nenhuma conclusao sobre vulnerabilidades atualizadas foi emitida.

@@ -1,0 +1,16 @@
+Creating test database for alias 'default'...
+
+....................................................................................................2026-11-02 01:48:37,228 WARNING inventario.aplicacao.mfa_email [-]: Envio MFA por e-mail falhou: OSError
+............................2026-11-02 01:48:50,940 ERROR django.request [71bc3f36c2dc406b]: Service Unavailable: /api/cves/kev/
+2026-11-02 01:48:50,942 ERROR django.request [4af666ff2fc045c7]: Service Unavailable: /api/cves/CVE-2021-44228/
+.................................................................................................................................
+----------------------------------------------------------------------
+Ran 257 tests in 94.990s
+
+OK
+Destroying test database for alias 'default'...
+
+Found 257 test(s).
+System check identified no issues (0 silenced).
+<WORKSPACE>\work\tmp\sauron-testes-xw7avkw0\inventario-completo.json
+Benchmark R14: 5000 ativos, 1 vulnerabilidade, 4999 arestas: 9.2 ms

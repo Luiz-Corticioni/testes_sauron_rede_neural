@@ -1,0 +1,21 @@
+HTTP redireciona HTTPS: 301
+Senha sozinha: bloqueada por MFA
+Senha + TOTP e dashboard em DEBUG=0: 200
+Coleta simulada -> banco -> lista EPSS em producao: aprovado
+Historico, percentil e origem EPSS em producao: aprovado
+SSVC com DEBUG=0: formulario, registro, contexto e historico aprovados; status/SLA preservados
+SSVC com DEBUG=0: mudanca de contexto pede reavaliacao sem apagar decisao
+SBOM/PURL: upload -> componentes -> achados -> documento/download com DEBUG=0 aprovados
+VEX: declaração preservada, sem fechar incidência ou suprimir risco automaticamente
+Grafo DEBUG=0: formulário com CSRF real -> relações SQL -> API e caminhos HTML -> evidência individual: aprovado
+Cenário de retirada calcula perda de alcance sem mudar cadastro; revogação explícita altera a próxima análise: aprovado
+Camada identidade e principal isolados da camada rede; nenhuma permissão de usuário alterada: aprovado
+Qualidade DEBUG=0 com CSRF: perímetro explícito -> membros SQL -> grafo limitado ao perímetro: aprovado
+Prévia -> revisão histórica -> detalhe -> painel/API: denominador 2, revisão completa 1, cobertura declarada 50%: aprovado
+Mudança de evidência sinaliza contexto alterado e retira revisão do numerador, preservando histórico e incidência: aprovado
+Monte Carlo DEBUG=0 com CSRF: EPSS -> 30 dias -> média positiva -> correção hipotética zera perdas sem gravar; contrato anual removido: aprovado
+Orientações de tarefa e guia renderizados com DEBUG=0: aprovado
+Reautenticação expirada bloqueia POST financeiro em DEBUG=0: aprovado
+WhiteNoise/estaticos de producao: 200
+Cookies seguros, manifest de estaticos e CSP: verificados
+Verificador de implantacao com configuracao sintetica completa: aprovado; infraestrutura externa nao certificada

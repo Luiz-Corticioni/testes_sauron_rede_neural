@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="pt-br">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ status }} — Sauron</title></head>
+<body>
+  <main><h1>Sauron · {{ status }}</h1><p role="alert">{{ erro }}</p>
+    {% if request_id %}<p>Código da requisição: <code>{{ request_id }}</code></p>{% endif %}
+    <p><a href="/entrar/">Voltar ao acesso</a></p>
+  </main>
+</body>
+</html>

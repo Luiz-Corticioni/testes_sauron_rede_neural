@@ -1,0 +1,3 @@
+<form class="panel filters" method="get"><label for="perfil-risco">Perfil do cálculo</label><select id="perfil-risco" name="perfil"><option value="puro" {% if perfil == 'puro' %}selected{% endif %}>Puro · modelo acadêmico</option><option value="operacional" {% if perfil == 'operacional' %}selected{% endif %}>Operacional · exposição e KEV</option></select><button class="button" type="submit">Atualizar visão</button></form>
+<p class="muted">O índice 0–100 é uma escala de apresentação, sem representar probabilidade. Criticidade e C-I-A ponderam o relatório.</p>
+{% if erro_risco %}<p class="alert danger" role="alert">{{ erro_risco }}</p>{% endif %}

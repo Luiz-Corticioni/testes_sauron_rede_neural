@@ -1,0 +1,15 @@
+{
+  "id": "certcc-deployer-snapshot-2026-11-02",
+  "source": "https://certcc.github.io/SSVC/howto/deployer_tree/",
+  "retrieved": "2026-11-02",
+  "decision_points": {
+    "exploitation": "ssvc:E:1.1.0",
+    "exposure": "ssvc:EXP:1.0.1",
+    "automatable": "ssvc:A:2.0.0",
+    "human_impact": "ssvc:HI:2.0.2"
+  },
+  "outcome": "ssvc:DSOI:1.0.0",
+  "combinacoes": 72,
+  "sha256": "b84a3585d789a2382cc3219a9ebd018fe94f25d3263c77b624870ac8a753155f",
+  "referencia_testada": "tests/fixtures/ssvc_deployer_referencia.csv"
+}

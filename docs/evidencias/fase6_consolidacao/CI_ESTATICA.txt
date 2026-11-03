@@ -1,0 +1,3 @@
+YAML carregado; 6 usos de Actions fixados em SHAs de 40 caracteres; permissões contents:read preservadas.
+Referências consultadas na API oficial: ACTIONS_REFERENCIAS.json.
+Validação estática local; não executa workflow, build Docker, Trivy ou runners Linux/Windows.

@@ -1,0 +1,7 @@
+{% if pagina %}
+<nav class="pagination panel" aria-label="Paginação">
+  <span>{{ pagina.paginator.count }} registros · Página {{ pagina.number }} de {{ pagina.paginator.num_pages }} · 25 por página</span>
+  {% if pagina.has_previous %}<a class="button secondary" href="?{{ parametros }}&amp;page={{ pagina.previous_page_number }}">Anterior</a>{% endif %}
+  {% if pagina.has_next %}<a class="button secondary" href="?{{ parametros }}&amp;page={{ pagina.next_page_number }}">Próxima</a>{% endif %}
+</nav>
+{% endif %}

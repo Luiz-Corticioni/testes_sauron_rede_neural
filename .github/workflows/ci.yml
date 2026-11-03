@@ -1,0 +1,79 @@
+name: Sauron — testes e segurança
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+# Actions fixadas em commits verificados na API oficial em 03/11/2026.
+# Dependabot acompanha atualizações; o pin não equivale a uma auditoria do fornecedor.
+jobs:
+  validacao:
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    env:
+      SAURON_DEBUG: "1"
+      SAURON_DATA_DIR: ${{ runner.temp }}/sauron-testes
+      SAURON_ROTINAS_SEM_REDE: "1"
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements.txt -r requirements-dev.txt
+      - run: python manage.py check
+      - run: python manage.py makemigrations --check
+      - run: python manage.py migrate --noinput
+      - run: python manage.py test
+      - run: ruff check .
+      - run: bandit -r inventario sauron_web -x inventario/migrations
+      - run: pip-audit -r requirements.txt
+      - run: cyclonedx-py requirements requirements.txt -o sbom.cdx.json
+      - run: python scripts/check_producao.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: sbom-${{ matrix.os }}
+          path: sbom.cdx.json
+  imagem:
+    needs: validacao
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - run: docker build -t sauron:ci .
+      - uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # v0.28.0
+        with:
+          image-ref: sauron:ci
+          format: table
+          exit-code: "1"
+          severity: CRITICAL,HIGH
+          ignore-unfixed: false
+
+
+  instalacao-linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - imagem: fedora:latest
+            pacotes: python3.12
+          - imagem: rockylinux:9
+            pacotes: python3.12 python3.12-pip
+    container:
+      image: ${{ matrix.imagem }}
+    steps:
+      - name: Preparar container descartável
+        run: dnf install -y git tar gzip shadow-utils ca-certificates ${{ matrix.pacotes }}
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Executar como usuário comum
+        shell: bash
+        run: |
+          useradd -m sauronci
+          chown -R sauronci:sauronci "$GITHUB_WORKSPACE"
+          runuser -u sauronci -- bash scripts/test_instalador_linux.sh
+          runuser -u sauronci -- bash instalar_linux.sh --sem-pacotes
+          runuser -u sauronci -- bash instalar_linux.sh --sem-pacotes
+          runuser -u sauronci -- bash instalar_linux.sh --verificar
+          runuser -u sauronci -- env SAURON_DEBUG=1 .venv-linux/bin/python manage.py test

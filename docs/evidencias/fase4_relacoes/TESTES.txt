@@ -1,0 +1,16 @@
+Found 290 test(s).
+System check identified no issues (0 silenced).
+<WORKSPACE>\work\tmp\sauron-testes-35_5p9iu\inventario-completo.json
+Benchmark R14: 5000 ativos, 1 vulnerabilidade, 4999 arestas: 9.7 ms
+Creating test database for alias 'default'...
+
+....................................................................................................2026-11-02 02:47:05,631 WARNING inventario.aplicacao.mfa_email [-]: Envio MFA por e-mail falhou: OSError
+............................2026-11-02 02:47:18,972 ERROR django.request [c28089a7f1cd4dee]: Service Unavailable: /api/cves/kev/
+2026-11-02 02:47:18,974 ERROR django.request [18b484f09db94856]: Service Unavailable: /api/cves/CVE-2021-44228/
+..................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 290 tests in 108.538s
+
+OK
+Destroying test database for alias 'default'...
+

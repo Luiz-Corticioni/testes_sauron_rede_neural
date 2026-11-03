@@ -1,0 +1,26 @@
+COMANDO: ruff.exe check .
+All checks passed!
+
+exit_code=0
+
+COMANDO: python.exe -m pip check
+No broken requirements found.
+
+exit_code=0
+
+COMANDO: python.exe manage.py makemigrations --check --dry-run
+No changes detected
+
+exit_code=0
+
+COMANDO: python.exe scripts/check_producao.py
+System check identified no issues (0 silenced).
+
+exit_code=0
+
+COMANDO: python.exe manage.py collectstatic --noinput
+
+0 static files copied to '<WORKSPACE>\work\sauron-documentacao\staticfiles', 145 unmodified.
+
+exit_code=0
+

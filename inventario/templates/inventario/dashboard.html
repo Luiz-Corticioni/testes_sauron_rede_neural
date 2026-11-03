@@ -1,0 +1,58 @@
+{% extends "inventario/base.html" %}
+{% load static %}
+{% block title %}Sauron — Dashboard{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-copy"><span class="kicker"><i></i>PANORAMA OPERACIONAL</span><h1>Veja as conexões.<br><em>Antecipe o impacto.</em></h1><p>O risco próprio nasce no equipamento. O risco efetivo percorre as dependências da infraestrutura — e o Sauron observa ambos.</p><div class="hero-actions"><a class="button" href="{% url 'prioridades' %}">Explorar prioridades <span aria-hidden="true">→</span></a><a class="text-link" href="{% url 'api_risco' %}">Inspecionar modelo matemático</a></div></div>
+  <div class="all-seeing">{% include 'inventario/componentes/olho.html' with olho_id='painel' %}<div class="vision-caption"><span class="kicker">ÍNDICE GLOBAL</span><p><strong data-global-index>{{ indice_medio|floatformat:1 }}</strong><span> / 100</span></p><small data-eye-caption>Média dos índices · cenário atual</small></div></div>
+</section>
+{% include 'inventario/componentes/perfil.html' %}
+<section class="metrics">
+  <article><div class="metric-head"><span>Ativos monitorados</span><i>01</i></div><strong>{{ total_ativos }}</strong><small>{{ salas }} salas e subsetores</small></article>
+  <article><div class="metric-head"><span>Vulnerabilidades</span><i>02</i></div><strong>{{ total_vulnerabilidades }}</strong><small><b class="ember-dot"></b> entidades independentes</small></article>
+  <article><div class="metric-head"><span>Incidências abertas</span><i>03</i></div><strong>{{ incidencias_abertas }}</strong><small><b class="warning-dot"></b> relações N:M</small></article>
+  <article><div class="metric-head"><span>Alertas pendentes</span><i>04</i></div><strong>{{ alertas_pendentes|default_if_none:"—" }}</strong><small>aguardando reconhecimento</small></article>
+</section>
+
+<section class="grid two">
+  <article class="panel chart-panel accent-panel">
+    <div class="panel-title"><div><span class="kicker"><i></i>ÁLGEBRA LINEAR</span><h2>Risco próprio × efetivo</h2><p>Como as dependências amplificam a exposição de cada ativo.</p></div><a class="panel-link" href="{% url 'api_risco' %}">Ver JSON <span aria-hidden="true">↗</span></a></div>
+    {% if erro_risco %}<div class="alert danger" role="alert">{{ erro_risco }}</div>{% elif risco %}<div id="riskChart"></div>
+    <div class="math-note"><code>(I − A)x = b · perfil {{ risco.perfil }}</code><span>condição {{ risco.numero_condicao }} · raio espectral {{ risco.raio_espectral }}</span></div>
+    {% else %}<div class="empty">Cadastre os ativos e as relações para montar as matrizes.</div>{% endif %}
+  </article>
+  <article class="panel">
+    <div class="panel-title"><div><span class="kicker"><i></i>PRIORIZAÇÃO</span><h2>Prioridade por contexto e ganho</h2><p>A ordem considera nota ambiental e redução estimada do risco.</p></div></div>
+    {% if risco.prioridade_correcao %}
+    <div class="rank-list">{% for item in risco.prioridade_correcao|slice:":6" %}<div><span>{{ forloop.counter|stringformat:"02d" }}</span><b>{{ item.cve_id|default:item.vulnerabilidade_id }}</b><strong>−{{ item.reducao_total_estimada|floatformat:2 }}</strong></div>{% endfor %}</div>
+    {% else %}<div class="empty">Cadastre incidências confirmadas para priorizar.</div>{% endif %}<a class="button secondary full" href="{% url 'prioridades' %}">Comparar e simular correções</a>
+  </article>
+</section>
+
+<section class="grid two">
+  <article class="panel">
+    <h2>Índice observado pelo Olho</h2>
+    <label for="indice-olho">Média dos índices dos ativos: {{ indice_medio|floatformat:1 }}/100</label>
+    <meter id="indice-olho" min="0" max="100" value="{{ indice_medio|stringformat:'f' }}"></meter>
+    {% for id, indice, relatorio in indicadores|slice:":20" %}
+    <p>{{ id }} · índice {{ indice|floatformat:2 }} · risco ponderado {{ relatorio|floatformat:2 }}</p>
+    {% empty %}<p>Cadastre ativos para calcular o índice.</p>{% endfor %}<p class="muted">Janela dos primeiros 20 ativos. A média global considera todos.</p>
+  </article>
+  {% include 'inventario/componentes/simulacao.html' %}
+</section>
+
+<section class="grid three">
+  <article class="panel compact-panel"><span class="kicker">FIM DE SUPORTE</span><h2>Próximos 90 dias</h2>{% for ativo in eol_proximos %}<p class="row"><b>{{ ativo.hostname }}</b><span>{{ ativo.fim_suporte }}</span></p>{% empty %}<p class="empty-inline"><i>✓</i>Nenhum alerta neste período.</p>{% endfor %}</article>
+  <article class="panel compact-panel"><span class="kicker">CERTIFICADOS</span><h2>Expiram em 45 dias</h2>{% for cert in certificados_proximos %}<p class="row"><b>{{ cert.dominio }}</b><span>{{ cert.expira_em }}</span></p>{% empty %}<p class="empty-inline"><i>✓</i>Nenhum certificado próximo do vencimento.</p>{% endfor %}</article>
+  <article class="panel compact-panel"><span class="kicker">TOPOLOGIA</span><h2>Alcance das falhas</h2>{% for vul in top_vulnerabilidades %}<p class="row"><b>{{ vul.cve_id|default:vul.id }}</b><span>{{ vul.total_ativos }} ativo{{ vul.total_ativos|pluralize }}</span></p>{% empty %}<p class="empty-inline"><i>✓</i>Cadastre falhas e vincule-as aos ativos para visualizar seu alcance.</p>{% endfor %}</article>
+</section>
+<article class="panel"><div class="panel-title"><div><span class="kicker">ATENÇÃO OPERACIONAL</span><h2>Alertas recentes</h2></div>{% if perms.inventario.view_alerta %}<a href="{% url 'alertas' %}">Ver fila ↗</a>{% endif %}</div>{% for alerta in alertas_recentes %}<div class="alert-row"><span class="pill p{{ alerta.severidade }}">{{ alerta.tipo }}</span><div><p>{{ alerta.mensagem }}</p><small>{{ alerta.criado_em }}</small></div></div>{% empty %}<p class="empty">{% if perms.inventario.view_alerta %}Nenhum alerta pendente. Os ciclos locais atualizam esta fila.{% else %}A consulta exige permissão específica.{% endif %}</p>{% endfor %}</article>
+<div class="actions panel"><a class="button secondary" href="{% url 'mapa' %}">Mapa de dependências</a><a class="button secondary" href="{% url 'matrizes' %}">Explorar matrizes</a></div>
+<p class="muted">Resumo calculado em {{ painel_gerado_em|date:"d/m/Y H:i:s" }}; reutilizado por até {{ painel_validade }} segundos. O painel representa os dados cadastrados; sua qualidade depende do inventário e dos pesos informados.</p>
+<div class="flame-band" aria-hidden="true"><canvas id="embers"></canvas></div>
+{{ risco_json|json_script:"risk-data" }}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'inventario/dashboard.js' %}" defer></script>
+<script src="{% static 'inventario/simulacao.js' %}" defer></script>
+{% endblock %}

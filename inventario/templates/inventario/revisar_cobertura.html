@@ -1,0 +1,10 @@
+{% extends "inventario/base.html" %}
+{% block title %}Revisar cobertura — Sauron{% endblock %}
+{% block content %}
+<section class="page-heading"><div><h1>Registrar revisão de cobertura</h1><p>Relate a verificação feita e suas limitações; o resultado é uma declaração do operador.</p></div></section>
+<p><a href="{% url 'qualidade_relacoes' %}">Voltar à qualidade</a></p>
+{% if erro %}<p class="alert danger" role="alert">{{ erro }}</p>{% endif %}
+{% if resumo %}<article class="panel"><p>Ativo {{ resumo.ativo }}: {{ resumo.contagens.ELEGIVEL }} relações elegíveis · {{ resumo.vigentes }} vigentes · {{ resumo.pendentes }} vigentes pendentes.</p><p>Hash do contexto consultado: <code>{{ resumo.sha256 }}</code>. Ele vincula o registro aos dados atuais; não autentica fontes.</p></article>{% endif %}
+<article class="panel"><p>“Relações revisadas” exige pelo menos um vínculo elegível e nenhum vigente pendente. “Nenhuma relação identificada” exige ausência de vínculos vigentes, inclusive vencidos. Use “Lacunas” para incertezas, ausência de coleta ou pendências.</p><p>Não altere os campos de seleção após abrir o contexto. Para outro ativo, camada ou principal, volte ao painel e abra uma nova revisão. Gravar não modifica relações, riscos ou incidências. Cada revisão acrescenta um registro histórico e tem validade máxima de 90 dias após a observação (política local).</p></article>
+<form class="panel form" method="post">{% csrf_token %}{{ form.as_p }}<button class="button" type="submit">Registrar declaração com auditoria</button></form>
+{% endblock %}

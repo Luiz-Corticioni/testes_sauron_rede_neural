@@ -1,0 +1,19 @@
+{% load l10n %}
+<svg class="sauron-eye {% if compacto %}eye-small{% endif %}" data-eye data-index="{{ indice_medio|default:0|unlocalize }}" viewBox="0 0 440 240" role="img" aria-labelledby="{{ olho_id }}-titulo">
+  <title id="{{ olho_id }}-titulo">{% if compacto %}Indicador do serviço{% else %}Índice global: média dos índices dos ativos, {{ indice_medio|default:0|floatformat:1 }} de 100{% endif %}</title>
+  <defs>
+    <radialGradient id="{{ olho_id }}-iris"><stop class="eye-core" offset="0"/><stop class="eye-warm" offset=".42"/><stop class="eye-hot" offset=".7"/><stop offset="1" stop-color="#7a0a14" stop-opacity="0"/></radialGradient>
+    <filter id="{{ olho_id }}-chama" x="-40%" y="-40%" width="180%" height="180%">
+      <feTurbulence type="fractalNoise" baseFrequency=".018 .025" numOctaves="2" seed="8" result="ruido"><animate data-eye-animation attributeName="baseFrequency" values=".018 .025;.023 .018;.018 .025" dur="12s" repeatCount="indefinite" begin="indefinite"/></feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="ruido" scale="11" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <clipPath id="{{ olho_id }}-limite"><path d="M24 120Q220 -15 416 120Q220 255 24 120Z"/></clipPath>
+  </defs>
+  <g clip-path="url(#{{ olho_id }}-limite)">
+    <path fill="#050506" d="M24 120Q220 -15 416 120Q220 255 24 120Z"/>
+    <circle class="eye-fire" cx="220" cy="120" r="103" fill="url(#{{ olho_id }}-iris)" filter="url(#{{ olho_id }}-chama)"/>
+    <g class="eye-rings" fill="none" stroke="#ff4d2e"><ellipse cx="220" cy="120" rx="68" ry="84"/><ellipse cx="220" cy="120" rx="57" ry="72"/><ellipse cx="220" cy="120" rx="45" ry="58"/></g>
+    <path class="eye-slit" d="M220 37Q196 120 220 203Q244 120 220 37Z" fill="#050506"/>
+  </g>
+  <path class="eye-outline" d="M24 120Q220 -15 416 120Q220 255 24 120Z" fill="none"/>
+</svg>

@@ -1,0 +1,1 @@
+"""Camada matematica do Sauron."""

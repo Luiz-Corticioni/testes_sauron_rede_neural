@@ -1,0 +1,28 @@
+{% extends "inventario/base.html" %}
+{% block title %}Verificação em duas etapas — Sauron{% endblock %}
+{% block content %}
+<section class="panel login-panel"><h1>Verificação em duas etapas</h1>
+<p>Confirme sua identidade para iniciar ou renovar a verificação desta sessão.</p>
+{% if erro %}<p class="alert danger" role="alert">{{ erro }}</p>{% endif %}
+{% if aviso %}<p class="message" role="status">{{ aviso }}</p>{% endif %}
+{% if privilegiado %}<p>Esta conta possui privilégios e exige um aplicativo autenticador TOTP. Se ainda não estiver configurado, solicite o provisionamento ao responsável pelo servidor.</p>
+{% else %}<h2>Receber código por e-mail</h2>
+{% if not email_valido %}<p>A conta não tem e-mail válido. Peça ao administrador do servidor para cadastrá-lo. O primeiro administrador pode usar <code>python manage.py definir_email_usuario --help</code>.</p>
+{% elif not email_configurado %}<p>É necessário configurar o envio de e-mail no servidor antes de usar este método. Confira o guia de instalação. Se já tiver um autenticador, use-o abaixo.</p>
+{% else %}<p>Endereço cadastrado: {{ email_mascarado }}. {% if email_pendente %}Há um código recente para este endereço; confira sua caixa de entrada.{% endif %}</p>
+<form method="post">{% csrf_token %}<input type="hidden" name="acao" value="enviar_email"><button class="button secondary" type="submit">Enviar código por e-mail</button></form>
+<form method="post">{% csrf_token %}<input type="hidden" name="acao" value="verificar_email">
+<label for="senha-email">Senha atual</label><input id="senha-email" name="password" type="password" autocomplete="current-password" required>
+<label for="codigo-email">Código de 6 dígitos recebido por e-mail</label><input id="codigo-email" name="token" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+<button type="submit" class="button">Verificar código de e-mail</button></form>
+<p>O código vale por 5 minutos e pode ser usado uma vez. Confira também a pasta de spam.</p>{% endif %}
+{% endif %}
+{% if dispositivos %}<details class="decision"><summary>Usar aplicativo autenticador</summary>
+<form method="post">{% csrf_token %}<input type="hidden" name="acao" value="totp">
+<label for="dispositivo">Autenticador</label><select id="dispositivo" name="dispositivo">{% for d in dispositivos %}<option value="{{ d.pk }}">{{ d.name }}</option>{% endfor %}</select>
+<label for="senha-mfa">Senha atual</label><input id="senha-mfa" name="password" type="password" autocomplete="current-password" required>
+<label for="token-mfa">Código do autenticador</label><input id="token-mfa" name="token" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+<button type="submit" class="button">Verificar autenticador</button></form></details>
+{% else %}<p>Alternativa: um administrador do servidor pode provisionar um aplicativo autenticador com <code>python manage.py provisionar_mfa --usuario SEU_USUARIO</code>.</p>{% endif %}
+</section>
+{% endblock %}

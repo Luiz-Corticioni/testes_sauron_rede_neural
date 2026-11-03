@@ -1,0 +1,1 @@
+APROVADO: schema 0023 com software e vulnerabilidade legados; backup cifrado antes da migração; migração 0024; valor/data preservados; origem não inventada. Banco descartável.

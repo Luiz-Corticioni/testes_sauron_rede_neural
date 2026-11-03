@@ -1,0 +1,8 @@
+{
+  "backend": "SQLite em arquivo local",
+  "processos_concorrentes": 8,
+  "reservas_liberadas": 5,
+  "reservas_bloqueadas": 3,
+  "resultado": "aprovado",
+  "observacao": "PostgreSQL e multiplos hosts ainda exigem homologacao real."
+}

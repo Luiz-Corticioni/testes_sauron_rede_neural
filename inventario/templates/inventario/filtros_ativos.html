@@ -1,0 +1,6 @@
+{% if tipos %}
+<label for="filtro-tipo">Tipo</label><select id="filtro-tipo" name="tipo"><option value="">Todos</option>{% for codigo, rotulo in tipos %}<option value="{{ codigo }}" {% if filtros.tipo == codigo %}selected{% endif %}>{{ codigo }} · {{ rotulo }}</option>{% endfor %}</select>
+<label for="filtro-sala">Sala</label><select id="filtro-sala" name="sala"><option value="">Todas</option>{% for sala in salas_filtro %}<option value="{{ sala.pk }}" {% if filtros.sala == sala.pk %}selected{% endif %}>{{ sala }}</option>{% endfor %}</select>
+<label for="filtro-crit">Criticidade</label><select id="filtro-crit" name="criticidade"><option value="">Todas</option>{% for nivel in criticidades %}<option value="{{ nivel }}" {% if filtros.criticidade == nivel|stringformat:'s' %}selected{% endif %}>{{ nivel }}</option>{% endfor %}</select>
+<label for="filtro-status">Status do ativo</label><select id="filtro-status" name="status"><option value="">Todos</option>{% for codigo, rotulo in status_ativos %}<option value="{{ codigo }}" {% if filtros.status == codigo %}selected{% endif %}>{{ rotulo }}</option>{% endfor %}</select>
+{% endif %}

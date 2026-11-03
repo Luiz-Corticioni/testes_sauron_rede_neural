@@ -1,0 +1,53 @@
+python manage.py check
+System check identified no issues (0 silenced).
+
+exit_code=0
+
+python manage.py makemigrations --check
+No changes detected
+
+exit_code=0
+
+python manage.py migrate --noinput
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, inventario, otp_totp, sessions
+Running migrations:
+  No migrations to apply.
+
+exit_code=0
+
+python manage.py test --noinput
+Found 97 test(s).
+System check identified no issues (0 silenced).
+Benchmark R14: 5000 ativos, 1 vulnerabilidade, 4999 arestas: 10.1 ms
+Creating test database for alias 'default'...
+
+.......<WORKSPACE>\work\venv\Lib\site-packages\django\core\handlers\base.py:61: UserWarning: No directory at: <WORKSPACE>\outputs\sauron-remediado\staticfiles\
+  mw_instance = middleware(adapted_handler)
+.......................2026-10-27 00:54:49,884 ERROR django.request [ed9bcb014e7c4de1]: Service Unavailable: /api/cves/kev/
+2026-10-27 00:54:49,886 ERROR django.request [966474eb17824dab]: Service Unavailable: /api/cves/CVE-2021-44228/
+...................................................................
+----------------------------------------------------------------------
+Ran 97 tests in 26.920s
+
+OK
+Destroying test database for alias 'default'...
+
+
+exit_code=0
+
+python -m ruff check .
+All checks passed!
+
+exit_code=0
+
+python -m bandit -r inventario sauron_web -x inventario/migrations -q
+[tester]	WARNING	nosec encountered (B603), but no failed test on file inventario\infraestrutura\backup.py:94
+
+exit_code=0
+
+python scripts/check_producao.py
+System check identified no issues (0 silenced).
+
+exit_code=0
+

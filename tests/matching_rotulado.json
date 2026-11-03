@@ -1,0 +1,42 @@
+[
+  {
+    "cpe": "cpe:2.3:a:apache:log4j:*:*:*:*:*:*:*:*",
+    "versao": "1.9",
+    "afetado": false
+  },
+  {
+    "cpe": "cpe:2.3:a:apache:log4j:*:*:*:*:*:*:*:*",
+    "versao": "2.0",
+    "afetado": true
+  },
+  {
+    "cpe": "cpe:2.3:a:apache:log4j:*:*:*:*:*:*:*:*",
+    "versao": "2.10",
+    "afetado": true
+  },
+  {
+    "cpe": "cpe:2.3:a:apache:log4j:*:*:*:*:*:*:*:*",
+    "versao": "2.14.1",
+    "afetado": true
+  },
+  {
+    "cpe": "cpe:2.3:a:apache:log4j:*:*:*:*:*:*:*:*",
+    "versao": "2.15",
+    "afetado": false
+  },
+  {
+    "cpe": "cpe:2.3:a:apache:log4j:*:*:*:*:*:*:*:*",
+    "versao": "2.16",
+    "afetado": false
+  },
+  {
+    "cpe": "cpe:2.3:a:apache:log4j:*:*:*:*:*:*:*:*",
+    "versao": "2.17.1",
+    "afetado": false
+  },
+  {
+    "cpe": "cpe:2.3:a:microsoft:sql_server:10.0:*:*:*:*:*:*:*",
+    "versao": "10.0",
+    "afetado": false
+  }
+]

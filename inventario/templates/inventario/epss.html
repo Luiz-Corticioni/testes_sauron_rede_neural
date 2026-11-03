@@ -1,0 +1,10 @@
+{% extends "inventario/base.html" %}
+{% block title %}Histórico EPSS — Sauron{% endblock %}
+{% block content %}
+<section class="page-heading"><div><h1>EPSS · {{ v.cve_id|default:v.id }}</h1><p>{{ situacao }}. Probabilidade estimada de observar exploração da CVE em 30 dias; não mede o comprometimento deste ativo.</p><p>Percentil é posição relativa entre CVEs, não uma segunda probabilidade. Mais de dois dias sem referência nova é sinalizado como desatualizado.</p></div></section>
+<p><a href="{% url 'vulnerabilidades' %}">Voltar às vulnerabilidades</a></p>
+{% if not v.epss_observacao and v.epss != None %}<p class="alert">Há um valor informado/legado sem origem registrada; não foi inventado histórico para esse valor.</p>{% endif %}
+<div class="panel table-wrap"><table><thead><tr><th>Referência</th><th>EPSS (30 dias)</th><th>Percentil</th><th>Modelo</th><th>Origem e evidência</th><th>Primeira coleta</th></tr></thead><tbody>
+{% for item in pagina %}<tr><td>{{ item.data|date:"d/m/Y" }}</td><td>{% if item.epss > 0 and item.probabilidade_pct < 0.01 %}&lt;0,01%{% else %}{{ item.probabilidade_pct|floatformat:2 }}%{% endif %}</td><td>{{ item.percentil_pct|floatformat:2 }}%</td><td>{{ item.modelo|default:"Não informado pela fonte" }}</td><td><a href="{{ item.fonte }}" rel="noreferrer">FIRST EPSS</a><br><small>SHA-256: {{ item.assinatura }}</small></td><td>{{ item.coletado_em|date:"d/m/Y H:i" }}</td></tr>{% empty %}<tr><td colspan="6">Sem observações EPSS registradas. A consulta desta página não acessa a internet.</td></tr>{% endfor %}
+</tbody></table></div>{% include 'inventario/paginacao.html' %}
+{% endblock %}

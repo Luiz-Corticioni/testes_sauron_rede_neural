@@ -1,0 +1,54 @@
+# Alternativa opcional: imagem fornecida com driver PostgreSQL compatível com Django.
+x-base: &base
+  image: ${SAURON_POSTGRES_IMAGE:?Forneça imagem com psycopg instalado}
+  env_file: .env
+  environment:
+    DATABASE_URL: ${DATABASE_URL:?Defina DATABASE_URL com TLS em produção}
+    SAURON_DATA_DIR: /app/dados
+  volumes: ["sauron_arquivos:/app/dados"]
+  init: true
+  restart: unless-stopped
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: sauron
+      POSTGRES_USER: sauron
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD}
+    volumes: ["postgres_dados:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sauron -d sauron"]
+      interval: 10s
+      retries: 5
+  preparar:
+    <<: *base
+    restart: "no"
+    command: ["preparar"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+  sauron:
+    <<: *base
+    command: ["web"]
+    ports: ["127.0.0.1:8000:8000"]
+    depends_on:
+      preparar:
+        condition: service_completed_successfully
+  agendador:
+    <<: *base
+    command: ["agendador"]
+    depends_on:
+      preparar:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "scripts/healthcheck.py", "--somente-rotina"]
+      interval: 30s
+      start_period: 330s
+      timeout: 5s
+      retries: 3
+volumes:
+  postgres_dados:
+  sauron_arquivos:
+

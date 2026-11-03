@@ -1,0 +1,21 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://example.org/vex/1",
+  "author": "EXEMPLO SINTÉTICO — sem análise de aplicabilidade",
+  "timestamp": "2026-11-01T12:00:00Z",
+  "version": 1,
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "CVE-2021-44228"
+      },
+      "products": [
+        {
+          "@id": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1"
+        }
+      ],
+      "status": "under_investigation",
+      "status_notes": "Demonstração do formato; não comprova vulnerabilidade ou ausência de risco."
+    }
+  ]
+}

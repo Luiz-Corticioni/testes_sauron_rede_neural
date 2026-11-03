@@ -1,0 +1,30 @@
+[
+  {
+    "repo": "actions/checkout",
+    "tag": "v4",
+    "tipo": "commit",
+    "sha": "11d5960a326750d5838078e36cf38b85af677262",
+    "url": "https://api.github.com/repos/actions/checkout/git/commits/11d5960a326750d5838078e36cf38b85af677262"
+  },
+  {
+    "repo": "actions/setup-python",
+    "tag": "v5",
+    "tipo": "commit",
+    "sha": "a26af69be951a213d495a4c3e4e4022e16d87065",
+    "url": "https://api.github.com/repos/actions/setup-python/git/commits/a26af69be951a213d495a4c3e4e4022e16d87065"
+  },
+  {
+    "repo": "actions/upload-artifact",
+    "tag": "v4",
+    "tipo": "commit",
+    "sha": "ea165f8d65b6e75b540449e92b4886f43607fa02",
+    "url": "https://api.github.com/repos/actions/upload-artifact/git/commits/ea165f8d65b6e75b540449e92b4886f43607fa02"
+  },
+  {
+    "repo": "aquasecurity/trivy-action",
+    "tag": "v0.28.0",
+    "tipo": "commit",
+    "sha": "915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2",
+    "url": "https://api.github.com/repos/aquasecurity/trivy-action/git/commits/915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2"
+  }
+]

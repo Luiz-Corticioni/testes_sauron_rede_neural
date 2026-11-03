@@ -1,0 +1,902 @@
+{
+  "puro": {
+    "modelo": {
+      "ids_ativos": [
+        "1D00001",
+        "1D00002"
+      ],
+      "ids_vulnerabilidades": [
+        "VUL-RCE-0001",
+        "VUL-DOS-0002"
+      ],
+      "matriz_incidencia": [
+        [
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0
+        ]
+      ],
+      "vetor_cvss": [
+        10.0,
+        5.3
+      ],
+      "matriz_dependencias": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.2,
+          0.0
+        ]
+      ],
+      "risco_proprio": [
+        10.0,
+        5.3
+      ],
+      "risco_efetivo": [
+        10.0,
+        7.3
+      ],
+      "numero_condicao": 1.220998,
+      "raio_espectral": 0.0,
+      "series_saltos": [
+        [
+          10.0,
+          5.3
+        ],
+        [
+          0.0,
+          2.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "prioridade_correcao": [
+        {
+          "vulnerabilidade_id": "VUL-RCE-0001",
+          "cve_id": "CVE-2021-44228",
+          "cvss": 10.0,
+          "reducao_total_estimada": 12.0,
+          "reducao_por_ativo": [
+            10.0,
+            2.0
+          ]
+        },
+        {
+          "vulnerabilidade_id": "VUL-DOS-0002",
+          "cve_id": null,
+          "cvss": 5.3,
+          "reducao_total_estimada": 5.3,
+          "reducao_por_ativo": [
+            0.0,
+            5.3
+          ]
+        }
+      ],
+      "perfil": "puro",
+      "vetor_severidade": [
+        10.0,
+        5.3
+      ],
+      "risco_relatorio": [
+        10.0,
+        21.9
+      ],
+      "pesos_relatorio": [
+        1.0,
+        3.0
+      ],
+      "indices": [
+        32.967995,
+        25.323146
+      ],
+      "kappa": 0.3,
+      "tau": 25.0,
+      "residuo_absoluto": 0.0,
+      "residuo_relativo": 0.0,
+      "fatores_aplicados": [
+        1.0,
+        1.0
+      ]
+    },
+    "api": {
+      "ids_ativos": [
+        "1D00001",
+        "1D00002"
+      ],
+      "ids_vulnerabilidades": [
+        "VUL-RCE-0001",
+        "VUL-DOS-0002"
+      ],
+      "matriz_incidencia": [
+        [
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0
+        ]
+      ],
+      "vetor_cvss": [
+        10.0,
+        5.3
+      ],
+      "matriz_dependencias": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.2,
+          0.0
+        ]
+      ],
+      "risco_proprio": [
+        10.0,
+        5.3
+      ],
+      "risco_efetivo": [
+        10.0,
+        7.3
+      ],
+      "numero_condicao": 1.220998,
+      "raio_espectral": 0.0,
+      "series_saltos": [
+        [
+          10.0,
+          5.3
+        ],
+        [
+          0.0,
+          2.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "prioridade_correcao": [
+        {
+          "vulnerabilidade_id": "VUL-RCE-0001",
+          "cve_id": "CVE-2021-44228",
+          "cvss": 10.0,
+          "reducao_total_estimada": 12.0,
+          "reducao_por_ativo": [
+            10.0,
+            2.0
+          ]
+        },
+        {
+          "vulnerabilidade_id": "VUL-DOS-0002",
+          "cve_id": null,
+          "cvss": 5.3,
+          "reducao_total_estimada": 5.3,
+          "reducao_por_ativo": [
+            0.0,
+            5.3
+          ]
+        }
+      ],
+      "perfil": "puro",
+      "vetor_severidade": [
+        10.0,
+        5.3
+      ],
+      "risco_relatorio": [
+        10.0,
+        21.9
+      ],
+      "pesos_relatorio": [
+        1.0,
+        3.0
+      ],
+      "indices": [
+        32.967995,
+        25.323146
+      ],
+      "kappa": 0.3,
+      "tau": 25.0,
+      "residuo_absoluto": 0.0,
+      "residuo_relativo": 0.0,
+      "fatores_aplicados": [
+        1.0,
+        1.0
+      ],
+      "origem_kev": "KEV não utilizado no perfil puro."
+    },
+    "simulacao": {
+      "antes": {
+        "ids_ativos": [
+          "1D00001",
+          "1D00002"
+        ],
+        "ids_vulnerabilidades": [
+          "VUL-RCE-0001",
+          "VUL-DOS-0002"
+        ],
+        "matriz_incidencia": [
+          [
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0
+          ]
+        ],
+        "vetor_cvss": [
+          10.0,
+          5.3
+        ],
+        "matriz_dependencias": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.2,
+            0.0
+          ]
+        ],
+        "risco_proprio": [
+          10.0,
+          5.3
+        ],
+        "risco_efetivo": [
+          10.0,
+          7.3
+        ],
+        "numero_condicao": 1.220998,
+        "raio_espectral": 0.0,
+        "series_saltos": [
+          [
+            10.0,
+            5.3
+          ],
+          [
+            0.0,
+            2.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "prioridade_correcao": [
+          {
+            "vulnerabilidade_id": "VUL-RCE-0001",
+            "cve_id": "CVE-2021-44228",
+            "cvss": 10.0,
+            "reducao_total_estimada": 12.0,
+            "reducao_por_ativo": [
+              10.0,
+              2.0
+            ]
+          },
+          {
+            "vulnerabilidade_id": "VUL-DOS-0002",
+            "cve_id": null,
+            "cvss": 5.3,
+            "reducao_total_estimada": 5.3,
+            "reducao_por_ativo": [
+              0.0,
+              5.3
+            ]
+          }
+        ],
+        "perfil": "puro",
+        "vetor_severidade": [
+          10.0,
+          5.3
+        ],
+        "risco_relatorio": [
+          10.0,
+          21.9
+        ],
+        "pesos_relatorio": [
+          1.0,
+          3.0
+        ],
+        "indices": [
+          32.967995,
+          25.323146
+        ],
+        "kappa": 0.3,
+        "tau": 25.0,
+        "residuo_absoluto": 0.0,
+        "residuo_relativo": 0.0,
+        "fatores_aplicados": [
+          1.0,
+          1.0
+        ]
+      },
+      "depois": {
+        "ids_ativos": [
+          "1D00001",
+          "1D00002"
+        ],
+        "ids_vulnerabilidades": [
+          "VUL-RCE-0001",
+          "VUL-DOS-0002"
+        ],
+        "matriz_incidencia": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0
+          ]
+        ],
+        "vetor_cvss": [
+          10.0,
+          5.3
+        ],
+        "matriz_dependencias": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.2,
+            0.0
+          ]
+        ],
+        "risco_proprio": [
+          0.0,
+          5.3
+        ],
+        "risco_efetivo": [
+          0.0,
+          5.3
+        ],
+        "numero_condicao": 1.220998,
+        "raio_espectral": 0.0,
+        "series_saltos": [
+          [
+            0.0,
+            5.3
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "prioridade_correcao": [
+          {
+            "vulnerabilidade_id": "VUL-DOS-0002",
+            "cve_id": null,
+            "cvss": 5.3,
+            "reducao_total_estimada": 5.3,
+            "reducao_por_ativo": [
+              0.0,
+              5.3
+            ]
+          },
+          {
+            "vulnerabilidade_id": "VUL-RCE-0001",
+            "cve_id": "CVE-2021-44228",
+            "cvss": 10.0,
+            "reducao_total_estimada": 0.0,
+            "reducao_por_ativo": [
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "perfil": "puro",
+        "vetor_severidade": [
+          10.0,
+          5.3
+        ],
+        "risco_relatorio": [
+          0.0,
+          15.9
+        ],
+        "pesos_relatorio": [
+          1.0,
+          3.0
+        ],
+        "indices": [
+          0.0,
+          19.10353
+        ],
+        "kappa": 0.3,
+        "tau": 25.0,
+        "residuo_absoluto": 0.0,
+        "residuo_relativo": 0.0,
+        "fatores_aplicados": [
+          1.0,
+          1.0
+        ]
+      },
+      "incidencias_corrigidas": [
+        "INC-0001"
+      ],
+      "ganho_por_ativo": [
+        10.0,
+        2.0
+      ],
+      "ganho_total": 12.0,
+      "origem_kev": "KEV não utilizado no perfil puro."
+    }
+  },
+  "operacional": {
+    "modelo": {
+      "ids_ativos": [
+        "1D00001",
+        "1D00002"
+      ],
+      "ids_vulnerabilidades": [
+        "VUL-RCE-0001",
+        "VUL-DOS-0002"
+      ],
+      "matriz_incidencia": [
+        [
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0
+        ]
+      ],
+      "vetor_cvss": [
+        10.0,
+        5.3
+      ],
+      "matriz_dependencias": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.2,
+          0.0
+        ]
+      ],
+      "risco_proprio": [
+        16.25,
+        6.625
+      ],
+      "risco_efetivo": [
+        16.25,
+        9.875
+      ],
+      "numero_condicao": 1.220998,
+      "raio_espectral": 0.0,
+      "series_saltos": [
+        [
+          16.25,
+          6.625
+        ],
+        [
+          0.0,
+          3.25
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "prioridade_correcao": [
+        {
+          "vulnerabilidade_id": "VUL-RCE-0001",
+          "cve_id": "CVE-2021-44228",
+          "cvss": 10.0,
+          "reducao_total_estimada": 19.5,
+          "reducao_por_ativo": [
+            16.25,
+            3.25
+          ]
+        },
+        {
+          "vulnerabilidade_id": "VUL-DOS-0002",
+          "cve_id": null,
+          "cvss": 5.3,
+          "reducao_total_estimada": 6.625,
+          "reducao_por_ativo": [
+            0.0,
+            6.625
+          ]
+        }
+      ],
+      "perfil": "operacional",
+      "vetor_severidade": [
+        13.0,
+        5.3
+      ],
+      "risco_relatorio": [
+        16.25,
+        29.625
+      ],
+      "pesos_relatorio": [
+        1.0,
+        3.0
+      ],
+      "indices": [
+        47.795422,
+        32.631996
+      ],
+      "kappa": 0.3,
+      "tau": 25.0,
+      "residuo_absoluto": 0.0,
+      "residuo_relativo": 0.0,
+      "fatores_aplicados": [
+        1.25,
+        1.25
+      ]
+    },
+    "api": {
+      "ids_ativos": [
+        "1D00001",
+        "1D00002"
+      ],
+      "ids_vulnerabilidades": [
+        "VUL-RCE-0001",
+        "VUL-DOS-0002"
+      ],
+      "matriz_incidencia": [
+        [
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0
+        ]
+      ],
+      "vetor_cvss": [
+        10.0,
+        5.3
+      ],
+      "matriz_dependencias": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.2,
+          0.0
+        ]
+      ],
+      "risco_proprio": [
+        16.25,
+        6.625
+      ],
+      "risco_efetivo": [
+        16.25,
+        9.875
+      ],
+      "numero_condicao": 1.220998,
+      "raio_espectral": 0.0,
+      "series_saltos": [
+        [
+          16.25,
+          6.625
+        ],
+        [
+          0.0,
+          3.25
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "prioridade_correcao": [
+        {
+          "vulnerabilidade_id": "VUL-RCE-0001",
+          "cve_id": "CVE-2021-44228",
+          "cvss": 10.0,
+          "reducao_total_estimada": 19.5,
+          "reducao_por_ativo": [
+            16.25,
+            3.25
+          ]
+        },
+        {
+          "vulnerabilidade_id": "VUL-DOS-0002",
+          "cve_id": null,
+          "cvss": 5.3,
+          "reducao_total_estimada": 6.625,
+          "reducao_por_ativo": [
+            0.0,
+            6.625
+          ]
+        }
+      ],
+      "perfil": "operacional",
+      "vetor_severidade": [
+        13.0,
+        5.3
+      ],
+      "risco_relatorio": [
+        16.25,
+        29.625
+      ],
+      "pesos_relatorio": [
+        1.0,
+        3.0
+      ],
+      "indices": [
+        47.795422,
+        32.631996
+      ],
+      "kappa": 0.3,
+      "tau": 25.0,
+      "residuo_absoluto": 0.0,
+      "residuo_relativo": 0.0,
+      "fatores_aplicados": [
+        1.25,
+        1.25
+      ],
+      "origem_kev": "Cache KEV indisponível; usando 1 marcações persistidas. Sem cache KEV. Um gerente deve executar sync_kev."
+    },
+    "simulacao": {
+      "antes": {
+        "ids_ativos": [
+          "1D00001",
+          "1D00002"
+        ],
+        "ids_vulnerabilidades": [
+          "VUL-RCE-0001",
+          "VUL-DOS-0002"
+        ],
+        "matriz_incidencia": [
+          [
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0
+          ]
+        ],
+        "vetor_cvss": [
+          10.0,
+          5.3
+        ],
+        "matriz_dependencias": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.2,
+            0.0
+          ]
+        ],
+        "risco_proprio": [
+          16.25,
+          6.625
+        ],
+        "risco_efetivo": [
+          16.25,
+          9.875
+        ],
+        "numero_condicao": 1.220998,
+        "raio_espectral": 0.0,
+        "series_saltos": [
+          [
+            16.25,
+            6.625
+          ],
+          [
+            0.0,
+            3.25
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "prioridade_correcao": [
+          {
+            "vulnerabilidade_id": "VUL-RCE-0001",
+            "cve_id": "CVE-2021-44228",
+            "cvss": 10.0,
+            "reducao_total_estimada": 19.5,
+            "reducao_por_ativo": [
+              16.25,
+              3.25
+            ]
+          },
+          {
+            "vulnerabilidade_id": "VUL-DOS-0002",
+            "cve_id": null,
+            "cvss": 5.3,
+            "reducao_total_estimada": 6.625,
+            "reducao_por_ativo": [
+              0.0,
+              6.625
+            ]
+          }
+        ],
+        "perfil": "operacional",
+        "vetor_severidade": [
+          13.0,
+          5.3
+        ],
+        "risco_relatorio": [
+          16.25,
+          29.625
+        ],
+        "pesos_relatorio": [
+          1.0,
+          3.0
+        ],
+        "indices": [
+          47.795422,
+          32.631996
+        ],
+        "kappa": 0.3,
+        "tau": 25.0,
+        "residuo_absoluto": 0.0,
+        "residuo_relativo": 0.0,
+        "fatores_aplicados": [
+          1.25,
+          1.25
+        ]
+      },
+      "depois": {
+        "ids_ativos": [
+          "1D00001",
+          "1D00002"
+        ],
+        "ids_vulnerabilidades": [
+          "VUL-RCE-0001",
+          "VUL-DOS-0002"
+        ],
+        "matriz_incidencia": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0
+          ]
+        ],
+        "vetor_cvss": [
+          10.0,
+          5.3
+        ],
+        "matriz_dependencias": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.2,
+            0.0
+          ]
+        ],
+        "risco_proprio": [
+          0.0,
+          6.625
+        ],
+        "risco_efetivo": [
+          0.0,
+          6.625
+        ],
+        "numero_condicao": 1.220998,
+        "raio_espectral": 0.0,
+        "series_saltos": [
+          [
+            0.0,
+            6.625
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        "prioridade_correcao": [
+          {
+            "vulnerabilidade_id": "VUL-DOS-0002",
+            "cve_id": null,
+            "cvss": 5.3,
+            "reducao_total_estimada": 6.625,
+            "reducao_por_ativo": [
+              0.0,
+              6.625
+            ]
+          },
+          {
+            "vulnerabilidade_id": "VUL-RCE-0001",
+            "cve_id": "CVE-2021-44228",
+            "cvss": 10.0,
+            "reducao_total_estimada": 0.0,
+            "reducao_por_ativo": [
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "perfil": "operacional",
+        "vetor_severidade": [
+          13.0,
+          5.3
+        ],
+        "risco_relatorio": [
+          0.0,
+          19.875
+        ],
+        "pesos_relatorio": [
+          1.0,
+          3.0
+        ],
+        "indices": [
+          0.0,
+          23.279405
+        ],
+        "kappa": 0.3,
+        "tau": 25.0,
+        "residuo_absoluto": 0.0,
+        "residuo_relativo": 0.0,
+        "fatores_aplicados": [
+          1.25,
+          1.25
+        ]
+      },
+      "incidencias_corrigidas": [
+        "INC-0001"
+      ],
+      "ganho_por_ativo": [
+        16.25,
+        3.25
+      ],
+      "ganho_total": 19.5,
+      "origem_kev": "Cache KEV indisponível; usando 1 marcações persistidas. Sem cache KEV. Um gerente deve executar sync_kev."
+    }
+  }
+}

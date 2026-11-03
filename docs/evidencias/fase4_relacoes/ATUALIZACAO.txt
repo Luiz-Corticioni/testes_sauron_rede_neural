@@ -1,0 +1,1 @@
+APROVADO: banco SQLite descartável no schema 0024 com ativo, componente PURL, SBOM e CVE; backup cifrado com tabela de relações ausente; atualização 0025 preserva conteúdo/hash e identidade; nenhuma relação inferida; backup anterior restaurado no schema atual com auditoria validada.
