@@ -2,9 +2,9 @@
 
 Cadastro inicial local: `python manage.py cadastrar_administrador --usuario admin` cria somente o primeiro administrador, sem exigir login, dispositivo MFA ou e-mail. Pede senha e confirmação; e-mail é opcional. Esse cadastro não autentica a conta. A mesma exceção vale para a opção de primeiro administrador no terminal. Administradores adicionais seguem o fluxo autenticado.
 
-Toda nova sessão web ou CLI exige segundo fator. Administradores, superusuários e qualquer conta com permissão de escrita ou decisão devem usar TOTP. E-mail é permitido somente para contas sem esses privilégios e deve ser apresentado novamente a cada sessão. Confirmação anterior do endereço não libera sessões futuras.
+Toda nova sessão web ou CLI exige segundo fator. Todas as contas, inclusive administradores, podem escolher código por e-mail cadastrado ou TOTP. Gmail e UFU são destinatários aceitos, assim como outros endereços válidos. E-mail exige um serviço SMTP de envio configurado; a confirmação anterior não libera sessões futuras. Uma promoção de privilégios exige nova verificação da sessão que utilizou e-mail.
 
-Primeiro acesso administrativo: após criar a conta, execute localmente `python manage.py provisionar_mfa --usuario NOME`. Cadastre a URI secreta exibida em um aplicativo autenticador; faça login e confirme senha mais TOTP. A criação de conta no terminal não autentica automaticamente.
+Primeiro acesso administrativo: cadastre a conta com `python manage.py cadastrar_administrador --usuario admin --email SEU_EMAIL`. Configure o remetente SMTP abaixo e, após usuário e senha, peça o código por e-mail. Como alternativa, execute `python manage.py provisionar_mfa --usuario admin` e registre a URI num aplicativo autenticador. A criação não autentica automaticamente nem exige privilégios de administrador do sistema operacional, desde que o usuário tenha acesso de escrita à instalação e ao banco do Sauron.
 
 Recuperação: o responsável pelo servidor deve verificar a identidade por procedimento externo e executar `python manage.py provisionar_mfa --usuario NOME --substituir --motivo "ticket e justificativa"`. O dispositivo antigo é removido, sessões com ele deixam de passar pelo MFA e um novo dispositivo não confirmado é emitido. Não use este comando sem acesso autorizado ao servidor. A URI não deve ser incluída em tickets, relatórios ou logs compartilhados.
 

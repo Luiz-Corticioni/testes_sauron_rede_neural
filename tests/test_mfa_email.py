@@ -21,6 +21,33 @@ CONFIG = dict(
 
 @override_settings(**CONFIG)
 class VerificacaoEmail(BancoTeste):
+    def test_codigo_por_email_funciona_para_gmail_e_ufu_inclusive_administrador(self):
+        for n, dominio in enumerate(('gmail.com', 'ufu.br')):
+            with self.subTest(dominio=dominio):
+                u = get_user_model().objects.create_user(f'teste-dominio-{n}', email=f'usuario@{dominio}', password='SenhaDeTeste123!', is_staff=n == 1, is_superuser=n == 1)
+                if n == 0:
+                    from django.contrib.auth.models import Permission
+                    u.user_permissions.set(Permission.objects.filter(content_type__app_label='inventario', codename__in=['view_ativo', 'view_vulnerabilidade', 'view_incidencia', 'view_dependencia']))
+                self.client.force_login(u)
+                mail.outbox.clear()
+                resposta = self.client.post('/mfa/', {'acao': 'enviar_email'})
+                self.assertContains(resposta, 'aceitou o envio')
+                self.assertEqual(mail.outbox[-1].to, [f'usuario@{dominio}'])
+                codigo = re.search(r'\b[0-9]{6}\b', mail.outbox[-1].body).group()
+                self.assertEqual(self.client.post('/mfa/', {'acao': 'verificar_email', 'password': 'SenhaDeTeste123!', 'token': codigo}).status_code, 302)
+                self.assertEqual(self.client.get('/').status_code, 200)
+
+    def test_administrador_usa_email_no_terminal(self):
+        from inventario.cli import SauronCLI
+        u = get_user_model().objects.create_superuser('admin-email', email='admin@ufu.br', password='SenhaDeTeste123!')
+        cli = SauronCLI(entrada=lambda _: '', saida=lambda _: None)
+        mail.outbox.clear()
+        def codigo(_):
+            return re.search(r'\b[0-9]{6}\b', mail.outbox[-1].body).group()
+        with patch('inventario.cli.getpass', side_effect=codigo):
+            self.assertTrue(cli._validar_mfa_cli(u, 'SenhaDeTeste123!'))
+        self.assertEqual(mail.outbox[-1].to, ['admin@ufu.br'])
+
     def criar(self):
         with self.captureOnCommitCallbacks(execute=True):
             return self._criar_leitor(
@@ -113,6 +140,7 @@ class VerificacaoEmail(BancoTeste):
                 enviar_codigo(u)
         d.refresh_from_db()
         self.assertFalse(d.codigo_hash)
+        self.assertIsNone(d.reenviar_apos)
 
     def test_troca_de_email_revoga_sessao_validada_por_email(self):
         from inventario.aplicacao.mfa_email import verificar_codigo

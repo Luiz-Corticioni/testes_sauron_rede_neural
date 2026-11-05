@@ -160,7 +160,8 @@ def enviar_codigo(usuario, inicial=False):
                 dispositivo.nonce = ""
                 dispositivo.pode_adotar = False
                 dispositivo.expira_em = None
-                dispositivo.save(update_fields=["codigo_hash", "nonce", "pode_adotar", "expira_em"])
+                dispositivo.reenviar_apos = None
+                dispositivo.save(update_fields=["codigo_hash", "nonce", "pode_adotar", "expira_em", "reenviar_apos"])
         LOGGER.warning("Envio MFA por e-mail falhou: %s", type(erro).__name__)
         registrar_evento("MFA_EMAIL_ENVIO_FALHOU", "Autenticacao", usuario.username)
         raise ErroMFAEmail(
@@ -171,10 +172,6 @@ def enviar_codigo(usuario, inicial=False):
 
 
 def verificar_codigo(usuario, nonce, codigo, senha):
-    from inventario.seguranca_mfa import usuario_privilegiado
-    if usuario_privilegiado(usuario):
-        registrar_evento("MFA_EMAIL_RECUSADO", "Autenticacao", usuario.username)
-        return None
     with transaction.atomic():
         travar_escrita()
         atual = get_user_model().objects.select_for_update().get(pk=usuario.pk)

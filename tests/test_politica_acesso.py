@@ -53,15 +53,11 @@ class PoliticaAcesso(BancoTeste):
         u.refresh_from_db()
         self.assertFalse(u.is_superuser)
 
-    def test_admin_email_recusado_na_web_e_terminal(self):
+    def test_admin_pode_solicitar_email_quando_smtp_configurado(self):
         self.client.force_login(self.usuario)
-        for acao in ('enviar_email', 'verificar_email'):
-            self.assertContains(self.client.post('/mfa/', {'acao': acao}), 'devem usar autenticador TOTP')
-        from inventario.cli import SauronCLI
-        cli = SauronCLI(entrada=lambda _: '2', saida=lambda _: None)
-        with patch.object(cli, '_validar_totp_cli', return_value=False) as validar:
-            self.assertFalse(cli._validar_mfa_cli(self.usuario, 'senha-teste-123'))
-            validar.assert_called_once()
+        with patch('inventario.web.views_mfa.enviar_codigo', return_value='nonce') as enviar:
+            self.assertContains(self.client.post('/mfa/', {'acao': 'enviar_email'}), 'aceitou o envio')
+            enviar.assert_called_once()
 
     def test_promocao_revoga_fator_email_existente(self):
         from inventario.aplicacao.mfa_email import hash_email

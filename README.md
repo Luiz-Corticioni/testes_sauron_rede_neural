@@ -1,4 +1,6 @@
-> Fase 7 atual: [carga de 100 usuários, cache e primeiro administrador](docs/RELATORIO_FASE7_CARGA_CACHE.md). Resumos do painel são reutilizados por até 15s; risco e cenários financeiros evitam reconstruções duplicadas. `preparar_servidor` pré-carrega as análises. O primeiro administrador pode ser cadastrado localmente com `python manage.py cadastrar_administrador --usuario admin`, sem MFA para criar a conta; login subsequente continua protegido. Foram testadas 100 sessões com 4 administradores e 96 leitores. Rajadas de login pelo mesmo IP continuam limitadas. Sem nova migração além de 0026. Docker permanece para a etapa seguinte.
+> Política atual: contas comuns e administrativas podem usar código enviado ao e-mail cadastrado ou TOTP. Configure uma conta SMTP autorizada conforme [e-mail e MFA](docs/EMAIL_E_MFA.md); o remetente pode enviar a endereços Gmail e UFU. A criação do primeiro administrador é local e dispensa uma sessão administrativa existente.
+
+> Fase 7: [carga de 100 usuários, cache e primeiro administrador](docs/RELATORIO_FASE7_CARGA_CACHE.md). Resumos do painel são reutilizados por até 15s; risco e cenários financeiros evitam reconstruções duplicadas. `preparar_servidor` pré-carrega as análises. Foram testadas 100 sessões com 4 administradores e 96 leitores. Rajadas de login pelo mesmo IP continuam limitadas. Sem nova migração além de 0026. Docker permanece para a etapa seguinte.
 
 > Fase 6 atual: [acesso, cenários de 30 dias e orientação de uso](docs/RELATORIO_FASE6_CONSOLIDACAO.md). A simulação financeira usa 30 dias, exige EPSS recente com origem e explicita suas hipóteses. Atualize o EPSS na própria tela ou no terminal. Nove tarefas receberam exemplos e próximos passos; o guia traz roteiros por responsabilidade. Autorizações são revalidadas nas escritas compartilhadas. Sem nova migração além da 0026: execute `python manage.py preparar_servidor` e reinicie web/agendador. Consumidores externos devem atualizar o contrato da API financeira. Docker será tratado na etapa seguinte. Relatórios anteriores são históricos.
 
@@ -14,7 +16,7 @@
 
 > Etapa 2 de segurança: leia [o relatório mais recente](docs/RELATORIO_ETAPA2_2026-11-01.md). Aplique a migração 0021 antes de iniciar. O comando `python manage.py verificar_implantacao --json` verifica pré-requisitos locais de produção.
 
-> Revisão de segurança 01/11/2026: leia [o relatório](docs/RELATORIO_REVISAO_2026-11-01.md) e [a política atual de MFA](docs/EMAIL_E_MFA.md) antes de instalar ou atualizar. Documentos de revisões anteriores são históricos e não descrevem a política atual. Primeiro acesso privilegiado exige provisionamento local de TOTP.
+> Revisão de segurança 01/11/2026: leia [o relatório histórico](docs/RELATORIO_REVISAO_2026-11-01.md) e [a política atual de MFA](docs/EMAIL_E_MFA.md) antes de instalar ou atualizar. Documentos anteriores são históricos.
 
 # Sauron Apogeu
 
@@ -42,18 +44,18 @@ Escolha o guia do seu sistema operacional:
 Após preparar a instalação e aplicar as migrações, crie o primeiro administrador no terminal, na pasta que contém `manage.py`:
 
 ```sh
-python manage.py cadastrar_administrador --usuario admin
+python manage.py cadastrar_administrador --usuario admin --email seu_endereco@gmail.com
 ```
 
 O comando solicita senha e confirmação. Esse primeiro cadastro não exige sessão, MFA, e-mail ou SMTP prévios e não inicia uma sessão. Ele recusa a criação se já existir um superusuário, inclusive inativo. O e-mail é opcional com `--email`.
 
-Para entrar na aplicação, provisione um autenticador TOTP para a conta criada:
+Para entrar, configure o SMTP e solicite o código na tela de MFA ou no terminal. Como alternativa, provisione um autenticador TOTP para a conta criada:
 
 ```sh
 python manage.py provisionar_mfa --usuario admin
 ```
 
-Registre a URI exibida em um aplicativo autenticador e proteja esse segredo. Administradores e contas com permissões de escrita usam TOTP; contas somente de leitura podem usar e-mail quando o SMTP estiver configurado. Consulte o [guia de e-mail e MFA](docs/EMAIL_E_MFA.md). Para uso além do computador local, consulte [implantação](docs/IMPLANTACAO.md) e configure HTTPS e os controles apropriados.
+Registre a URI em um aplicativo autenticador caso escolha TOTP e proteja esse segredo. O e-mail depende de uma conta SMTP de envio autorizada; ter um destinatário Gmail ou UFU não configura o remetente automaticamente. Consulte o [guia de e-mail e MFA](docs/EMAIL_E_MFA.md). Para uso além do computador local, consulte [implantação](docs/IMPLANTACAO.md).
 
 ## Como usar
 

@@ -161,7 +161,7 @@ class SistemaMenu:
             from inventario.aplicacao.administrador_inicial import cadastrar_primeiro_administrador
             cadastrar_primeiro_administrador(nome, senha, email)
             self.usuario = None
-            self._ok(f"Administrador {nome} cadastrado sem MFA para criação. Provisione TOTP antes de entrar.")
+            self._ok(f"Administrador {nome} cadastrado. Entre usando o código do e-mail cadastrado com SMTP configurado ou TOTP.")
             return
         validate_password(senha, user=User(username=nome, email=email))
         with transaction.atomic():
@@ -173,7 +173,7 @@ class SistemaMenu:
                 return
             User.objects.create_superuser(nome, email=email, password=senha)
         self.usuario = None
-        self._ok(f"Administrador {nome} criado. Provisione TOTP com provisionar_mfa e entre pelo login.")
+        self._ok(f"Administrador {nome} criado. Entre usando o código do e-mail cadastrado com SMTP configurado ou TOTP.")
 
     def resumo_banco(self):
         if not self._acesso_risco():

@@ -198,12 +198,6 @@ class SauronCLI(
         from django_otp.plugins.otp_totp.models import TOTPDevice
         from inventario.aplicacao.mfa_email import (configuracao_valida, adotar_desafio_inicial, email_valido,
             enviar_codigo, verificar_codigo, ErroMFAEmail, mascarar)
-        from inventario.seguranca_mfa import usuario_privilegiado
-        if usuario_privilegiado(usuario):
-            if not TOTPDevice.objects.filter(user=usuario).exists():
-                self._falha("Conta privilegiada exige TOTP provisionado pelo responsável do servidor.")
-                return False
-            return self._validar_totp_cli(usuario)
         tem_totp=TOTPDevice.objects.filter(user=usuario).exists()
         try:
             configuracao_valida()
@@ -239,6 +233,8 @@ class SauronCLI(
         dispositivo = verificar_codigo(usuario, nonce, token, senha)
         if dispositivo:
             self._mfa_cli_id = dispositivo.persistent_id
+            from inventario.seguranca_mfa import usuario_privilegiado
+            self._mfa_cli_privilegiado = usuario_privilegiado(usuario)
         return dispositivo is not None
 
     def _exigir(self, permissao: str, *, interativo=True) -> bool:
@@ -261,12 +257,13 @@ class SauronCLI(
         if getattr(self, "_mfa_cli_id", None):
             from django_otp.models import Device
             from inventario.models import DispositivoEmail
-            from inventario.seguranca_mfa import usuario_privilegiado
             from inventario.aplicacao.mfa_email import hash_email
+            from inventario.seguranca_mfa import usuario_privilegiado
             dispositivo = Device.from_persistent_id(self._mfa_cli_id)
             if (not dispositivo or not dispositivo.confirmed or dispositivo.user_id != atual.pk
-                    or (isinstance(dispositivo, DispositivoEmail) and (usuario_privilegiado(atual)
-                        or dispositivo.email_confirmado_hash != hash_email(atual.email)))):
+                    or (isinstance(dispositivo, DispositivoEmail)
+                        and (dispositivo.email_confirmado_hash != hash_email(atual.email)
+                             or (getattr(self, '_mfa_cli_privilegiado', False) is False and usuario_privilegiado(atual))))):
                 self.usuario = None
                 self._falha("Segundo fator revogado ou incompatível com os privilégios; entre novamente.")
                 return False

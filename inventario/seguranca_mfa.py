@@ -1,4 +1,4 @@
-"""Segundo fator por sessão; privilégios exigem TOTP, inclusive após promoção."""
+"""Segundo fator por sessão; promoções exigem nova verificação."""
 from django.conf import settings
 from django.contrib.auth import logout
 from django.http import HttpResponseRedirect
@@ -6,7 +6,7 @@ from django.utils import timezone
 
 
 def usuario_privilegiado(usuario):
-    # Qualquer autorização de escrita/decisão exige TOTP, mesmo sem is_staff.
+    # Promoções para contas com escrita exigem nova verificação de segundo fator.
     return usuario.is_staff or usuario.is_superuser or any(
         not permissao.split(".", 1)[-1].startswith("view_")
         for permissao in usuario.get_all_permissions()
@@ -46,9 +46,13 @@ class SessaoEMFAMiddleware:
                     and dispositivo.email_confirmado_hash != hash_email(request.user.email)):
                 request.session.pop("otp_device_id", None)
                 request.user.otp_device = None
-            if usuario_privilegiado(request.user) and isinstance(dispositivo, DispositivoEmail):
+            privilegiado = usuario_privilegiado(request.user)
+            anterior = request.session.get("sauron_mfa_privilegiado")
+            if isinstance(dispositivo, DispositivoEmail) and privilegiado and anterior is False:
                 request.session.pop("otp_device_id", None)
                 request.user.otp_device = None
+            elif request.user.is_verified() and anterior is None:
+                request.session["sauron_mfa_privilegiado"] = privilegiado
             if not request.user.is_verified():
                 return HttpResponseRedirect("/mfa/")
             if request.method=="POST" and agora-request.session.get("sauron_reauth_em",0)>settings.SAURON_REAUTH_SEGUNDOS:

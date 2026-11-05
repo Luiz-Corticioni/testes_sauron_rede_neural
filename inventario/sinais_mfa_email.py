@@ -71,8 +71,7 @@ def novo_usuario(sender, instance, created, raw=False, using="default", **kwargs
         usuario = (
             get_user_model().objects.using(using).filter(pk=usuario_id, is_active=True).first()
         )
-        from inventario.seguranca_mfa import usuario_privilegiado
-        if usuario and not usuario_privilegiado(usuario):
+        if usuario:
             try:
                 enviar_codigo(usuario, inicial=True)
             except ErroMFAEmail:

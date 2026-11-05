@@ -11,7 +11,7 @@ py -3.12 -m venv .venv
 & ".\.venv\Scripts\python.exe" -m pip install -r requirements.txt
 & ".\.venv\Scripts\python.exe" scripts\preparar_ambiente.py --desenvolvimento
 & ".\.venv\Scripts\python.exe" manage.py preparar_servidor
-& ".\.venv\Scripts\python.exe" manage.py cadastrar_administrador --usuario admin
+& ".\.venv\Scripts\python.exe" manage.py cadastrar_administrador --usuario admin --email seu_email@gmail.com
 ```
 
 O primeiro cadastro pede somente senha e confirmação, sem login, MFA ou SMTP prévios. E-mail é opcional com `--email`. O comando não inicia sessão e recusa criar outro administrador se já existir um. O `.env` contém chaves privadas; guarde-o com acesso restrito. `--desenvolvimento` é para uso local. Se o `.env` já existir, o preparador o preserva.
@@ -24,7 +24,7 @@ Inicie a interface web:
 
 Abra http://127.0.0.1:8000/entrar/ e encerre com Ctrl+C. Como alternativa, após a preparação, execute `iniciar_sauron_web.bat`. Para a interface de terminal, execute `iniciar_sauron_terminal.bat` ou `& ".\.venv\Scripts\python.exe" sauron.py`.
 
-Para entrar nas telas da aplicação, o administrador usa senha e TOTP. Após o cadastro local, execute `& ".\.venv\Scripts\python.exe" manage.py provisionar_mfa --usuario admin` e registre a URI no autenticador. O cadastro inicial é independente do MFA; o acesso administrativo continua protegido. E-mail é alternativa somente para leitores sem privilégios de escrita. Consulte [e-mail e MFA](EMAIL_E_MFA.md).
+Para entrar, configure o SMTP e use o código enviado ao e-mail cadastrado, ou execute `& ".\.venv\Scripts\python.exe" manage.py provisionar_mfa --usuario admin` para usar um autenticador TOTP. O cadastro inicial é independente do MFA. Consulte [e-mail e MFA](EMAIL_E_MFA.md).
 
 Para as rotinas periódicas, mantenha um segundo PowerShell aberto na pasta do projeto:
 

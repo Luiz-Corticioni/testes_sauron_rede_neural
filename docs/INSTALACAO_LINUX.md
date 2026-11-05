@@ -35,16 +35,16 @@ bash instalar_linux.sh --sem-pacotes --python /usr/bin/python3.12
 ## Primeiro acesso
 
 ```bash
-.venv-linux/bin/python manage.py cadastrar_administrador --usuario admin
+.venv-linux/bin/python manage.py cadastrar_administrador --usuario admin --email seu_email@ufu.br
 ```
 
 O cadastro inicial exige somente senha e confirmação, sem login, MFA ou SMTP prévios.
 E-mail é opcional com `--email`. O comando não inicia sessão nem cria administradores
 adicionais quando já existe um. Para entrar na aplicação, execute
 `.venv-linux/bin/python manage.py provisionar_mfa --usuario admin` e registre a URI
-secreta em um aplicativo autenticador. Administradores e contas com escrita usam
-senha e TOTP em cada sessão; e-mail é alternativa somente para leitores sem esses
-privilégios. Consulte [EMAIL_E_MFA.md](EMAIL_E_MFA.md).
+secreta em um aplicativo autenticador. Como alternativa, configure SMTP e use o
+código enviado ao e-mail cadastrado, inclusive para contas administrativas. Consulte
+[EMAIL_E_MFA.md](EMAIL_E_MFA.md).
 Abra http://127.0.0.1:8000/entrar/ depois de iniciar `--web`.
 Esse modo usa o servidor de desenvolvimento do Django e acesso local.
 
