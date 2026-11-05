@@ -440,6 +440,18 @@ class DocumentosIntegrados(BancoTeste):
             importar(self.a.pk, dados(sbom()), u, "app", "origem", True)
         self.assertFalse(DocumentoInventario.objects.exists())
 
+    def test_reconciliacao_revalida_permissao_apos_esperar_trava(self):
+        from inventario.aplicacao.documentos import ESCRITA, reconciliar
+        from inventario.infraestrutura.auditoria import travar_escrita
+        doc = DocumentoInventario.objects.get(pk=self.importar(aplicar=True)['documento'])
+        u = get_user_model().objects.create_user('reconciliador')
+        u.user_permissions.add(*Permission.objects.filter(content_type__app_label='inventario', codename__in=[p.split('.')[1] for p in ESCRITA]))
+        def revogar():
+            u.user_permissions.clear()
+            travar_escrita()
+        with patch('inventario.aplicacao.documentos.travar_escrita', side_effect=revogar), self.assertRaises(PermissionDenied):
+            reconciliar(doc, u)
+
     def test_terminal_revalida_conta_apos_confirmacao(self):
         from django.conf import settings
         from inventario.cli import SauronCLI

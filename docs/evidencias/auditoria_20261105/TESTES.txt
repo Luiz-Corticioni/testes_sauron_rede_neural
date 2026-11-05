@@ -1,0 +1,20 @@
+Creating test database for alias 'default'...
+
+.....C:\Users\Luiz Fabiano\Documents\Codex\2026-10-26\files-mentioned-by-the-user-sauron\work\venv\Lib\site-packages\django\core\handlers\base.py:61: UserWarning: No directory at: <WORKSPACE>\work\repositorio-github\staticfiles\
+  mw_instance = middleware(adapted_handler)
+.......C:\Users\Luiz Fabiano\Documents\Codex\2026-10-26\files-mentioned-by-the-user-sauron\work\venv\Lib\site-packages\django\core\handlers\base.py:61: UserWarning: No directory at: <WORKSPACE>\work\repositorio-github\staticfiles\
+  mw_instance = middleware(adapted_handler)
+...........................................................................................................................................................................2026-11-05 18:22:06,953 WARNING inventario.aplicacao.mfa_email [-]: Envio MFA por e-mail falhou: OSError
+..............................2026-11-05 18:22:22,024 ERROR django.request [1dfb0361e09d43ff]: Service Unavailable: /api/cves/kev/
+2026-11-05 18:22:22,025 ERROR django.request [1b42b669a98e45eb]: Service Unavailable: /api/cves/CVE-2021-44228/
+.......................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 380 tests in 144.596s
+
+OK
+Destroying test database for alias 'default'...
+
+Found 380 test(s).
+System check identified no issues (0 silenced).
+<WORKSPACE>\work\tmp\sauron-testes-vzz1wjpi\inventario-completo.json
+Benchmark R14: 5000 ativos, 1 vulnerabilidade, 4999 arestas: 9.1 ms

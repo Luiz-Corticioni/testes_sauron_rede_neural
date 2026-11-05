@@ -2,6 +2,7 @@
 import hashlib
 import json
 from inventario.aplicacao.cache_consultas import lembrar
+from inventario.infraestrutura.limite_simulacoes import vaga_simulacao
 from django.db import transaction
 from django.utils import timezone
 from datetime import timedelta
@@ -81,8 +82,9 @@ def calcular_montecarlo(dados=None):
                     "epss_situacao": situacao_epss(v), "epss_fonte": v.epss_observacao.fonte if v.epss_observacao_id else None, "epss_data": v.epss_data.isoformat() if v.epss_data else None,
                     "vetor": v.cvss_vetor, "kev": v.kev,
                     "exposicao": parametros["exposicao_internet" if i.ativo.exposto_internet else "exposicao_interna"]})
-            resultado = simular(entradas, **{k: parametros[k] for k in ("custos", "n", "seed", "teto")},
-                corrigidas=parametros["cves_corrigidas"] + parametros["incidencias_corrigidas"])
+            with vaga_simulacao():
+                resultado = simular(entradas, **{k: parametros[k] for k in ("custos", "n", "seed", "teto")},
+                    corrigidas=parametros["cves_corrigidas"] + parametros["incidencias_corrigidas"])
             resultado.update(parametros=parametros, versao_dados=versao,
                 quantidade_incidencias=len(incidencias), quantidade_ativos=len({i.ativo_id for i in incidencias}),
                 hipotese_epss="EPSS observado em até 2 dias é usado somente no horizonte de 30 dias. KEV é evidência de exploração e não cria piso numérico. Fatores de cenário, custos e independência entre vínculos são hipóteses, não calibração local.",

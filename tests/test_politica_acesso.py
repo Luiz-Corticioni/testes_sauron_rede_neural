@@ -83,6 +83,21 @@ class PoliticaAcesso(BancoTeste):
         self.assertEqual(self.client.post('/mfa/', {'dispositivo': d.pk, 'password': 'senha-teste-123', 'token': str(token)}).status_code, 200)
         self.assertEqual(self.client.get('/ativos/').url, '/mfa/')
 
+    def test_totp_recusa_senha_alterada_antes_da_trava(self):
+        from django.contrib.auth.hashers import make_password
+        from inventario.infraestrutura.auditoria import travar_escrita
+        self.client.force_login(self.usuario)
+        dispositivo = TOTPDevice.objects.get(user=self.usuario)
+        token = str(totp(dispositivo.bin_key)).zfill(dispositivo.digits)
+        nova_senha = make_password('SenhaNovaForte456!')
+        def trocar():
+            get_user_model().objects.filter(pk=self.usuario.pk).update(password=nova_senha)
+            travar_escrita()
+        with patch('inventario.infraestrutura.auditoria.travar_escrita', side_effect=trocar):
+            resposta = self.client.post('/mfa/', {'dispositivo': dispositivo.pk, 'password': 'senha-teste-123', 'token': token})
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'Senha ou código do autenticador inválido')
+
     def test_recuperacao_revoga_sessao_e_exige_confirmacao_novo_totp(self):
         antigo = TOTPDevice.objects.get(user=self.usuario)
         with self.assertRaises(CommandError):

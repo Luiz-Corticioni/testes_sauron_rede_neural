@@ -207,6 +207,25 @@ class HorizonteEOrientacao(BancoTeste):
             r = self.client.post("/api/montecarlo/", json.dumps(dados), content_type="application/json")
             self.assertEqual(r.status_code, 400)
 
+    def test_limite_global_de_simulacoes_devolve_429_e_libera_vagas(self):
+        from inventario.infraestrutura.limite_simulacoes import vaga_simulacao
+        self.preparar()
+        with vaga_simulacao(), vaga_simulacao():
+            resposta = self.client.post('/api/montecarlo/', json.dumps({'n': 100}), content_type='application/json')
+            self.assertEqual(resposta.status_code, 429)
+            self.assertEqual(resposta['Retry-After'], '3')
+        resposta = self.client.post('/api/montecarlo/', json.dumps({'n': 100}), content_type='application/json')
+        self.assertEqual(resposta.status_code, 200)
+        self.assertTrue(resposta.json()['disponivel'])
+
+    def test_vaga_de_simulacao_e_liberada_ao_ocorrer_excecao(self):
+        from inventario.infraestrutura.limite_simulacoes import vaga_simulacao
+        with self.assertRaises(RuntimeError):
+            with vaga_simulacao():
+                raise RuntimeError('Falha sintética')
+        with vaga_simulacao(), vaga_simulacao():
+            pass
+
     def test_vazio_legitimo_zero_com_escopo_explicito(self):
         self.a.status = self.b.status = "INATIVO"
         self.a.save()

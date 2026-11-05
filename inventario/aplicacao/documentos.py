@@ -20,6 +20,7 @@ def reconciliar(documento, usuario):
     usuario = autorizar(usuario)
     with transaction.atomic(), usar_usuario(usuario):
         travar_escrita()
+        usuario = autorizar(usuario)
         ativo = Ativo.objects.get(pk=documento.ativo_id)
         if ativo.status in ("INATIVO", "BAIXADO"):
             raise ValidationError("Reconciliação operacional exige ativo ativo/em manutenção.")

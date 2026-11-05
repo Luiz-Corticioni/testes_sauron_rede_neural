@@ -50,6 +50,7 @@ def atualizar_epss(request):
 @require_POST
 def api_montecarlo(request):
     import json
+    from inventario.infraestrutura.limite_simulacoes import LimiteSimulacoes
     try:
         if request.content_type != "application/json":
             raise ValueError("Envie o corpo como application/json.")
@@ -62,6 +63,10 @@ def api_montecarlo(request):
         if not isinstance(dados, dict):
             raise ValueError("Envie um objeto JSON.")
         return JsonResponse(calcular_montecarlo(dados), json_dumps_params={"allow_nan": False})
+    except LimiteSimulacoes as erro:
+        resposta = JsonResponse({"erro": str(erro)}, status=429)
+        resposta["Retry-After"] = "3"
+        return resposta
     except (ValueError, TypeError, UnicodeDecodeError) as erro:
         return JsonResponse({"erro": str(erro)}, status=400)
 

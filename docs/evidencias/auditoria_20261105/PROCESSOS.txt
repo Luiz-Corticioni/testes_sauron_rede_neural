@@ -1,0 +1,1 @@
+Dois processos ocupam as duas vagas; terceiro recusado. Após encerrar um processo, a vaga é liberada pelo sistema operacional e outra simulação pode entrar. Testado em diretório temporário no Windows.

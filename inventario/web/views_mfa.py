@@ -1,4 +1,6 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
+import hmac
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.db import transaction
@@ -47,6 +49,8 @@ def verificar_mfa(request):
                 return redirect("/")
             erro = "Senha ou código de e-mail inválido, expirado ou bloqueado. Confira os dados e tente novamente."
         elif acao == "totp":
+            credencial = get_user_model().objects.filter(pk=request.user.pk, is_active=True).only("password").first()
+            senha_valida = bool(credencial and credencial.check_password(request.POST.get("password", "")))
             with transaction.atomic():
                 # Em SQLite, obtenha a trava de escrita antes de contar tentativas.
                 from inventario.infraestrutura.auditoria import travar_escrita
@@ -58,7 +62,8 @@ def verificar_mfa(request):
                     if identificador.isdigit() and len(identificador) < 19
                     else None
                 )
-                senha_valida = request.user.check_password(request.POST.get("password", ""))
+                senha_atual = get_user_model().objects.filter(pk=request.user.pk, is_active=True).values_list("password", flat=True).first()
+                senha_valida = bool(senha_valida and senha_atual and hmac.compare_digest(senha_atual, credencial.password))
                 if device and not senha_valida and device.verify_is_allowed()[0]:
                     device.throttle_increment()
                 if device and senha_valida and device.verify_token(request.POST.get("token", "")):

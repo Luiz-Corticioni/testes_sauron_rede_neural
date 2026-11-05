@@ -70,6 +70,20 @@ class VerificacaoEmail(BancoTeste):
         self.assertEqual(mail.outbox[0].to, ["dono@example.org"])
         return re.search(r"\b[0-9]{6}\b", mail.outbox[0].body).group()
 
+    def test_senha_alterada_entre_calculo_e_trava_impede_autenticacao(self):
+        from django.contrib.auth.hashers import make_password
+        from inventario.aplicacao.mfa_email import adotar_desafio_inicial, verificar_codigo
+        from inventario.infraestrutura.auditoria import travar_escrita
+        u = self.criar()
+        codigo = self.codigo()
+        nonce = adotar_desafio_inicial(u)
+        nova_senha = make_password('OutraSenhaForte456!')
+        def trocar():
+            get_user_model().objects.filter(pk=u.pk).update(password=nova_senha)
+            travar_escrita()
+        with patch('inventario.aplicacao.mfa_email.travar_escrita', side_effect=trocar):
+            self.assertIsNone(verificar_codigo(u, nonce, codigo, 'SenhaDeTeste123!'))
+
     def test_leitor_recebe_email_e_acessa_com_codigo(self):
         u = self.criar()
         codigo = self.codigo()

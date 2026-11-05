@@ -1,3 +1,5 @@
+> Auditoria de 05/11/2026: [achados, correções e limitações](docs/AUDITORIA_CRITICA_2026-11-05.md). Permissões são revalidadas na reconciliação, a verificação de senha do MFA não mantém a trava de escrita, o Admin valida CVSS/identidade e simulações financeiras têm limite de concorrência.
+
 > Política atual: contas comuns e administrativas podem usar código enviado ao e-mail cadastrado ou TOTP. Configure uma conta SMTP autorizada conforme [e-mail e MFA](docs/EMAIL_E_MFA.md); o remetente pode enviar a endereços Gmail e UFU. A criação do primeiro administrador é local e dispensa uma sessão administrativa existente.
 
 > Fase 7: [carga de 100 usuários, cache e primeiro administrador](docs/RELATORIO_FASE7_CARGA_CACHE.md). Resumos do painel são reutilizados por até 15s; risco e cenários financeiros evitam reconstruções duplicadas. `preparar_servidor` pré-carrega as análises. Foram testadas 100 sessões com 4 administradores e 96 leitores. Rajadas de login pelo mesmo IP continuam limitadas. Sem nova migração além de 0026. Docker permanece para a etapa seguinte.

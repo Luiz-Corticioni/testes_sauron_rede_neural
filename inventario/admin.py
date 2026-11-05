@@ -121,6 +121,34 @@ class VulnerabilidadeAdmin(admin.ModelAdmin):
     list_filter = ("categoria", "fonte")
     search_fields = ("id", "cve_id", "descricao")
 
+    def get_readonly_fields(self, request, obj=None):
+        return (*self.readonly_fields, "id") if obj else self.readonly_fields
+
+    def get_form(self, request, obj=None, **kwargs):
+        import re
+        base = super().get_form(request, obj, **kwargs)
+
+        class FormVulnerabilidade(base):
+            def clean(self):
+                dados = super().clean()
+                codigo = dados.get("id", self.instance.pk or "")
+                categoria = dados.get("categoria", "")
+                if codigo and categoria and not re.fullmatch(r"VUL-" + re.escape(categoria) + r"-\d{4,}", codigo.upper()):
+                    self.add_error(None, "ID deve corresponder à categoria, por exemplo VUL-RCE-0001.")
+                vetor = dados.get("cvss_vetor", "")
+                if vetor and dados.get("cvss_versao") == "3.1":
+                    from inventario.matematica.cvss import CalculadoraCVSS31
+                    try:
+                        dados["cvss"] = CalculadoraCVSS31.calcular(vetor).score
+                    except ValueError as erro:
+                        self.add_error("cvss_vetor", str(erro))
+                return dados
+        return FormVulnerabilidade
+
+    def save_model(self, request, obj, form, change):
+        from inventario.aplicacao.cadastros import salvar_cadastro
+        salvar_cadastro(obj, request.user)
+
 
 @admin.register(Incidencia)
 class IncidenciaAdmin(admin.ModelAdmin):

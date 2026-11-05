@@ -172,6 +172,8 @@ def enviar_codigo(usuario, inicial=False):
 
 
 def verificar_codigo(usuario, nonce, codigo, senha):
+    credencial = get_user_model().objects.filter(pk=usuario.pk).only("password").first()
+    senha_valida = bool(credencial and credencial.check_password(senha))
     with transaction.atomic():
         travar_escrita()
         atual = get_user_model().objects.select_for_update().get(pk=usuario.pk)
@@ -195,7 +197,8 @@ def verificar_codigo(usuario, nonce, codigo, senha):
             and dispositivo.expira_em is not None
             and agora < dispositivo.expira_em
             and dispositivo.email_hash == hash_email(atual.email)
-            and atual.check_password(senha)
+            and senha_valida
+            and hmac.compare_digest(atual.password, credencial.password)
             and hmac.compare_digest(
                 dispositivo.codigo_hash, codigo_assinado(atual.pk, nonce, atual.email, codigo)
             )
