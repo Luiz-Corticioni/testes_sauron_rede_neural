@@ -39,6 +39,60 @@ remoto, combine com o administrador o proxy HTTPS, domínio, certificado, firewa
 as variáveis de hosts/origens; use `SAURON_TRUST_PROXY=1` somente atrás de proxy
 confiável que sobrescreva o cabeçalho encaminhado. Consulte [IMPLANTACAO.md](IMPLANTACAO.md).
 
+### Servidor externo com proxy e HTTPS
+
+O arquivo opcional `compose.https.yaml` acrescenta um proxy Caddy ao web e ao
+agendador, semelhante à separação frontend/backend da referência. Sua imagem e
+serviço são próprios; nenhum arquivo é gravado no outro repositório. O Caddy precisa
+de um nome DNS real apontado para o servidor e das portas 80 e 443 acessíveis para
+obter e renovar o certificado. Combine DNS, firewall, Docker e reinicializações com
+o administrador do host. Se houver outro proxy institucional, integre-o apenas com
+a equipe responsável; dois serviços não podem ocupar a mesma porta.
+Consulte a [documentação oficial de HTTPS do Caddy](https://caddyserver.com/docs/quick-starts/https).
+
+Para uma instalação **nova**, gere a configuração para o domínio escolhido:
+
+```sh
+python3 scripts/preparar_ambiente.py --host sauron.seu-dominio.org --https
+```
+
+O gerador não altera um `.env` existente. Edite o arquivo privado para conferir as
+linhas abaixo, trocando o domínio; não gere nem compartilhe o arquivo com senhas:
+
+```dotenv
+SAURON_PUBLIC_HOST=sauron.seu-dominio.org
+SAURON_ALLOWED_HOSTS=localhost,127.0.0.1,sauron.seu-dominio.org
+SAURON_CSRF_TRUSTED_ORIGINS=https://sauron.seu-dominio.org
+SAURON_SECURE_COOKIES=1
+SAURON_SSL_REDIRECT=1
+SAURON_HSTS_PRELOAD=0
+```
+
+Configure SMTP no mesmo `.env` seguindo [EMAIL_E_MFA.md](EMAIL_E_MFA.md), depois:
+
+```sh
+docker compose -f compose.yaml -f compose.https.yaml config --quiet
+docker compose -f compose.yaml -f compose.https.yaml up -d --build
+docker compose -f compose.yaml -f compose.https.yaml ps -a
+docker compose -f compose.yaml -f compose.https.yaml logs --tail=50 proxy sauron
+docker compose -f compose.yaml -f compose.https.yaml exec sauron python manage.py diagnosticar_email
+docker compose -f compose.yaml -f compose.https.yaml exec sauron python manage.py diagnosticar_email --enviar-para seu.endereco@gmail.com
+```
+
+O último comando envia **uma mensagem real de teste** somente para o endereço que
+você indicar; confirme na caixa de entrada e no spam. Depois teste o login completo
+com um endereço Gmail e outro UFU que você controle. O servidor SMTP aceitar a
+mensagem não comprova que ela chegou à caixa. Teste TOTP como alternativa.
+
+O proxy tem IP `172.30.251.2` em uma rede interna separada; somente esse IP pode
+informar ao Django que o acesso externo foi HTTPS. O proxy também participa de uma
+rede própria com saída para emissão de certificados, enquanto o backend continua
+publicado somente no loopback do host. Se a sub-rede conflitar com a rede local,
+altere a sub-rede, o IP e o CIDR confiável juntos. Contêineres autorizados a ingressar
+nessa rede ou operadores com acesso ao Docker ainda fazem parte da infraestrutura
+confiável; restrinja o acesso ao daemon. Preserve os volumes `caddy_dados` e
+`caddy_config`; perder os certificados pode provocar novas emissões.
+
 Teste local no host depois que o serviço estiver saudável:
 
 ```sh

@@ -26,6 +26,7 @@ jobs:
       - run: python manage.py makemigrations --check
       - run: python manage.py migrate --noinput
       - run: python manage.py test
+      - run: python scripts/testar_smtp_local.py
       - run: python -m pytest -q testes_pytest --cov=inventario.dominio --cov=inventario.matematica.risco --cov=inventario.infraestrutura.repositorio_json --cov-report=term-missing
       - run: ruff check .
       - run: bandit -r inventario sauron_web -x inventario/migrations
@@ -42,6 +43,20 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - run: docker build -t sauron:ci .
+      - run: python3 scripts/preparar_ambiente.py
+      - run: echo 'SAURON_PUBLIC_HOST=sauron.example.org' >> .env
+      - run: echo 'SAURON_ROTINAS_SEM_REDE=1' >> .env
+      - run: docker compose -f compose.yaml -f compose.https.yaml config --quiet
+      - run: docker compose up -d --build
+      - run: |
+          for tentativa in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:8000/api/saude/; then exit 0; fi
+            sleep 2
+          done
+          docker compose logs --tail=100 preparar sauron agendador
+          exit 1
+      - if: always()
+        run: docker compose down
       - uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # v0.28.0
         with:
           image-ref: sauron:ci

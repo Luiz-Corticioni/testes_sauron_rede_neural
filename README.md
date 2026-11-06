@@ -1,4 +1,6 @@
-> Trabalho 2: veja a [matriz de requisitos e resultados](docs/RELATORIO_TRABALHO_2.md) e o [guia Docker](docs/DOCKER_TRABALHO_2.md). A execução no servidor por 24 horas ainda precisa de evidência real.
+> Servidor externo e MFA: [mudanças e limitações](docs/RELATORIO_MFA_SERVIDOR_2026-11-06.md). O [guia Docker](docs/DOCKER_TRABALHO_2.md) inclui proxy HTTPS opcional. O envio SMTP real e a execução por 24 horas ainda precisam de validação no servidor.
+
+> Trabalho 2: veja a [matriz de requisitos e resultados](docs/RELATORIO_TRABALHO_2.md). A execução no servidor por 24 horas ainda precisa de evidência real.
 
 > Auditoria de 05/11/2026: [achados, correções e limitações](docs/AUDITORIA_CRITICA_2026-11-05.md). Permissões são revalidadas na reconciliação, a verificação de senha do MFA não mantém a trava de escrita, o Admin valida CVSS/identidade e simulações financeiras têm limite de concorrência.
 

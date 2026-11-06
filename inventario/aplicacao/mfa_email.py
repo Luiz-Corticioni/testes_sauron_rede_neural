@@ -52,9 +52,10 @@ def configuracao_valida():
         or not 1 <= settings.EMAIL_PORT <= 65535
         or not email_valido(settings.DEFAULT_FROM_EMAIL)
         or settings.EMAIL_USE_TLS == settings.EMAIL_USE_SSL
+        or bool(settings.EMAIL_HOST_USER) != bool(settings.EMAIL_HOST_PASSWORD)
     ):
         raise ErroMFAEmail(
-            "Configuração SMTP incompleta: confira host, porta, remetente e TLS/SSL."
+            "Configuração SMTP incompleta: confira host, porta, remetente, credenciais e TLS/SSL."
         )
 
 

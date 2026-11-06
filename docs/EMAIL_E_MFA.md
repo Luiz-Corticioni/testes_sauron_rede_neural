@@ -46,6 +46,14 @@ A verificação abaixo lê a configuração sem enviar mensagens. Execute os com
 
 Para enviar uma mensagem de teste sem código, acrescente `--enviar-para seu.endereco@gmail.com` ao comando. Uma resposta de aceitação informa apenas que o servidor SMTP aceitou a mensagem; confira a caixa de entrada e o spam. Se falhar, revise as configurações e as políticas da conta Google.
 
+No Compose, execute no servidor `docker compose exec sauron python manage.py diagnosticar_email`;
+para enviar a mensagem de teste, acrescente `--enviar-para` com uma caixa que você
+controle. Depois de editar o `.env`, recrie os containers com `docker compose up -d`
+(use também os dois arquivos `-f` do guia se estiver usando o proxy HTTPS). Um
+simples `docker compose restart` não recarrega as variáveis do arquivo para containers
+já criados. O teste local `python scripts/testar_smtp_local.py` exercita STARTTLS e
+autenticação simulada somente em loopback; não comprova entrega externa.
+
 ## Entrar e recuperar o acesso
 
 Cadastre um endereço válido ao criar um usuário. Com o envio configurado, um código é enviado depois que o cadastro é concluído. Na tela de entrada, informe usuário e senha; na etapa seguinte, digite a senha e o código recebido. Se necessário, use o botão para solicitar outro código. O código vale cinco minutos e só pode ser usado uma vez. Há intervalo mínimo entre envios e limites de tentativas e de reenvios.

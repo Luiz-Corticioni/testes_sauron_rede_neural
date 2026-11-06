@@ -1,0 +1,42 @@
+# Acrescente a compose.yaml apenas em servidor com DNS e portas 80/443 autorizados.
+services:
+  sauron:
+    environment:
+      SAURON_TRUST_PROXY: "1"
+      SAURON_TRUSTED_PROXIES: "172.30.251.2/32"
+    networks:
+      - default
+      - proxy_interno
+  proxy:
+    image: caddy:2.11.9-alpine
+    restart: unless-stopped
+    init: true
+    command: ["caddy", "reverse-proxy", "--from", "${SAURON_PUBLIC_HOST:?Defina SAURON_PUBLIC_HOST no .env}", "--to", "sauron:8000"]
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      proxy_publico: {}
+      proxy_interno:
+        ipv4_address: 172.30.251.2
+    volumes:
+      - caddy_dados:/data
+      - caddy_config:/config
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+volumes:
+  caddy_dados:
+  caddy_config:
+networks:
+  proxy_publico: {}
+  proxy_interno:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.30.251.0/24

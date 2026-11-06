@@ -21,6 +21,12 @@ CONFIG = dict(
 
 @override_settings(**CONFIG)
 class VerificacaoEmail(BancoTeste):
+    @override_settings(EMAIL_HOST_USER="conta@example.org", EMAIL_HOST_PASSWORD="")
+    def test_configuracao_smtp_rejeita_credenciais_incompletas(self):
+        from inventario.aplicacao.mfa_email import configuracao_valida, ErroMFAEmail
+        with self.assertRaises(ErroMFAEmail):
+            configuracao_valida()
+
     def test_codigo_por_email_funciona_para_gmail_e_ufu_inclusive_administrador(self):
         for n, dominio in enumerate(('gmail.com', 'ufu.br')):
             with self.subTest(dominio=dominio):

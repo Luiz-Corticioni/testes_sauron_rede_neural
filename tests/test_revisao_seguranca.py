@@ -24,6 +24,16 @@ class SegurancaRevisada(BancoTeste):
         r = self.client.get("/entrar/", REMOTE_ADDR="127.0.0.1", HTTP_X_FORWARDED_PROTO="https")
         self.assertEqual(r.status_code, 200)
 
+    @override_settings(SECURE_SSL_REDIRECT=True,
+        SECURE_PROXY_SSL_HEADER=("HTTP_X_FORWARDED_PROTO", "https"),
+        SAURON_TRUSTED_PROXIES=["172.30.251.2/32"])
+    def test_proxy_compose_aceita_apenas_endereco_definido(self):
+        self.client.logout()
+        proxy = self.client.get("/entrar/", REMOTE_ADDR="172.30.251.2", HTTP_X_FORWARDED_PROTO="https")
+        vizinho = self.client.get("/entrar/", REMOTE_ADDR="172.30.251.3", HTTP_X_FORWARDED_PROTO="https")
+        self.assertEqual(proxy.status_code, 200)
+        self.assertEqual(vizinho.status_code, 301)
+
     def test_csv_invalido_volta_com_erro_legivel(self):
         from django.core.files.uploadedfile import SimpleUploadedFile
         arquivo = SimpleUploadedFile("lote.csv", b"cabecalho,errado\n1,2\n", content_type="text/csv")
