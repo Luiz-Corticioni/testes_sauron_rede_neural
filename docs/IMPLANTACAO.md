@@ -110,6 +110,9 @@ Para SQLite, mantenha o banco em disco local e faça backup; a concorrência de 
 
 ## Docker
 
+O passo a passo completo e as evidências ainda necessárias estão em
+[Docker para o Trabalho 2](DOCKER_TRABALHO_2.md). Gere primeiro o `.env` privado.
+
 ```bash
 docker compose up -d --build
 docker compose exec sauron python manage.py createsuperuser

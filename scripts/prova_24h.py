@@ -16,6 +16,7 @@ def docker(*argumentos, entrada=None):
         text=True,
         timeout=15,
         check=True,
+        cwd=Path(__file__).resolve().parent.parent,
     )
     return resultado.stdout.strip()
 
@@ -62,11 +63,22 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--horas", type=float, default=24)
     parser.add_argument("--intervalo", type=float, default=60)
-    parser.add_argument("--container", default="sauron-apogeu")
+    parser.add_argument("--container", help="ID ou nome; por padrão usa o serviço sauron do Compose.")
+    parser.add_argument("--saida", type=Path, help="Arquivo novo para esta observação.")
     argumentos = parser.parse_args()
     if argumentos.horas <= 0 or argumentos.intervalo <= 0:
         parser.error("Duração e intervalo devem ser positivos.")
-    caminho = Path(__file__).resolve().parent.parent / "dados" / "prova_24h.log"
+    caminho = argumentos.saida or Path(__file__).resolve().parent.parent / "dados" / "prova_24h.log"
+    if caminho.exists():
+        parser.error("O arquivo de evidências já existe; informe outro caminho em --saida.")
+    if not argumentos.container:
+        try:
+            ids = docker("compose", "ps", "-q", "sauron").splitlines()
+        except (OSError, subprocess.SubprocessError) as erro:
+            parser.error(f"Não foi possível consultar o Compose: {erro}")
+        if len(ids) != 1:
+            parser.error("Inicie um único serviço sauron ou informe --container explicitamente.")
+        argumentos.container = ids[0]
     inicio = time.monotonic()
     prazo = inicio + argumentos.horas * 3600
     proxima_amostra = inicio

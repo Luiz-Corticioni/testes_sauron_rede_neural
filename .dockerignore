@@ -1,5 +1,7 @@
 .git
 .venv
+.venv-linux
+venv
 __pycache__
 *.pyc
 dados/*.sqlite3
@@ -14,6 +16,9 @@ staticfiles
 historico
 legado
 tests
+testes_pytest
+.pytest_cache
+.ruff_cache
 .coverage
 .coverage.*
 htmlcov
@@ -28,4 +33,8 @@ requirements-dev.txt
 !.env.example
 dados/backups/
 *.fernet
+*.sqlite3
+*.sqlite3-*
+*.db
+*.log
 **/ancoras-auditoria.jsonl

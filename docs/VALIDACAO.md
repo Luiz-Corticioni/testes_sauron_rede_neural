@@ -31,6 +31,7 @@ python manage.py check
 python manage.py makemigrations --check
 python manage.py migrate --noinput
 python manage.py test
+python -m pytest -q testes_pytest --cov=inventario.dominio --cov=inventario.matematica.risco --cov=inventario.infraestrutura.repositorio_json --cov-report=term-missing
 ruff check .
 bandit -r inventario sauron_web -x inventario/migrations
 python scripts/check_producao.py
@@ -39,7 +40,9 @@ python scripts/check_producao.py
 O último script gera segredos efêmeros e chama exatamente:
 `python manage.py check --deploy --fail-level WARNING`, com DEBUG=0, hosts/origens
 HTTPS, cookies seguros, redirect SSL e HSTS. Não escreve segredos no repositório.
-A suíte usa unittest/Django, mocks e bloqueio de sockets, sem pytest ou rede.
+A suíte principal usa unittest/Django, mocks e bloqueio de sockets. A suíte pytest
+adicional cobre exemplos de persistência e risco; sua cobertura se refere somente
+aos módulos indicados e não representa toda a aplicação.
 Os resultados observados por fase estão no ledger REMEDIACAO.md; não se reproduzem
 números históricos de testes que não foram executados nesta revisão.
 

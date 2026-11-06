@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from copy import deepcopy
 import json
 import os
 from pathlib import Path
@@ -15,6 +16,31 @@ class Repositorio(ABC):
     def salvar_todos(self, itens: list[dict]) -> None: ...
 
 
+def validar_itens(itens):
+    if not isinstance(itens, list) or any(not isinstance(item, dict) for item in itens):
+        raise ValueError("A coleção deve ser um array JSON de objetos.")
+
+
+def _constante_invalida(valor):
+    raise ValueError(f"Constante JSON inválida: {valor}.")
+
+
+class RepositorioMemoria(Repositorio):
+    """Alternativa transitória para testes e demonstrações, sem acesso ao disco."""
+
+    def __init__(self):
+        self._itens = []
+
+    def listar(self) -> list[dict]:
+        return deepcopy(self._itens)
+
+    def salvar_todos(self, itens: list[dict]) -> None:
+        validar_itens(itens)
+        # O mesmo contrato de serialização impede que memória aceite valores que
+        # o repositório JSON não conseguiria gravar.
+        self._itens = json.loads(json.dumps(itens, allow_nan=False))
+
+
 class RepositorioJSON(Repositorio):
     """Persiste uma lista de objetos JSON com escrita atômica."""
 
@@ -25,14 +51,12 @@ class RepositorioJSON(Repositorio):
         if not self.caminho.exists():
             return []
         with self.caminho.open(encoding="utf-8") as arquivo:
-            dados = json.load(arquivo)
-        if not isinstance(dados, list):
-            raise ValueError(f"{self.caminho} deve conter um array JSON.")
+            dados = json.load(arquivo, parse_constant=_constante_invalida)
+        validar_itens(dados)
         return dados
 
     def salvar_todos(self, itens: list[dict]) -> None:
-        if not isinstance(itens, list):
-            raise TypeError("A raiz do arquivo deve ser uma lista.")
+        validar_itens(itens)
         self.caminho.parent.mkdir(parents=True, exist_ok=True)
         temporario_path = None
         try:

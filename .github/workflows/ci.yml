@@ -26,6 +26,7 @@ jobs:
       - run: python manage.py makemigrations --check
       - run: python manage.py migrate --noinput
       - run: python manage.py test
+      - run: python -m pytest -q testes_pytest --cov=inventario.dominio --cov=inventario.matematica.risco --cov=inventario.infraestrutura.repositorio_json --cov-report=term-missing
       - run: ruff check .
       - run: bandit -r inventario sauron_web -x inventario/migrations
       - run: pip-audit -r requirements.txt
