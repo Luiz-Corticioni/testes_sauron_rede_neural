@@ -23,11 +23,14 @@ def main():
     https = argumentos.https or argumentos.host not in ("localhost","127.0.0.1")
     if not https:
         print("ATENÇÃO: HTTP SEM TLS — use apenas em desenvolvimento local; cookies sem transporte seguro.")
+    origens = (f"https://{argumentos.host}" if https else
+               ",".join(f"http://{host}:{porta}" for host in ("127.0.0.1", "localhost")
+                        for porta in (8000, 2228)))
     conteudo = [
         f"SAURON_SECRET_KEY={secrets.token_urlsafe(64)}",
         f"SAURON_DEBUG={int(argumentos.desenvolvimento)}",
         f"SAURON_ALLOWED_HOSTS=localhost,127.0.0.1,{argumentos.host}",
-        f"SAURON_CSRF_TRUSTED_ORIGINS={'https' if https else 'http'}://{argumentos.host}{'' if https else ':8000'}",
+        f"SAURON_CSRF_TRUSTED_ORIGINS={origens}",
         "SAURON_SEED=0",
         f"SAURON_SECURE_COOKIES={int(https)}",
         f"SAURON_SSL_REDIRECT={int(https)}",

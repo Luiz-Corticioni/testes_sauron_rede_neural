@@ -34,7 +34,7 @@ configurar TOTP; para códigos por e-mail é necessário configurar SMTP, confor
 dados reais em logs, repositórios ou apresentações.
 
 O exemplo gerado para `127.0.0.1` é HTTP local e não é adequado à internet. A porta
-publicada pelo Compose fica em `127.0.0.1:8000` **do próprio servidor**. Para acesso
+publicada pelo Compose fica em `127.0.0.1:2228` **do próprio servidor**. Para acesso
 remoto, combine com o administrador o proxy HTTPS, domínio, certificado, firewall e
 as variáveis de hosts/origens; use `SAURON_TRUST_PROXY=1` somente atrás de proxy
 confiável que sobrescreva o cabeçalho encaminhado. Consulte [IMPLANTACAO.md](IMPLANTACAO.md).
@@ -96,7 +96,7 @@ confiável; restrinja o acesso ao daemon. Preserve os volumes `caddy_dados` e
 Teste local no host depois que o serviço estiver saudável:
 
 ```sh
-curl -fsS http://127.0.0.1:8000/api/saude/
+curl -fsS http://127.0.0.1:2228/api/saude/
 docker compose exec sauron python manage.py exportar_json --saida /app/dados/exportacao
 docker compose exec sauron python manage.py relatorio_sprint
 docker compose exec sauron python manage.py relatorio_sql_sprint --limiar 0
@@ -104,6 +104,12 @@ docker compose exec sauron python manage.py relatorio_sql_sprint --limiar 0
 
 A rota de saúde é apenas liveness; não comprova funcionamento de cada operação ou
 entrega de mensagens. Os relatórios podem conter dados sensíveis: restrinja acesso.
+
+Se o `.env` já existia antes da mudança da porta, acrescente à variável
+`SAURON_CSRF_TRUSTED_ORIGINS` as origens `http://127.0.0.1:2228` e
+`http://localhost:2228`, separadas por vírgulas, para acesso local HTTP. Preserve
+as origens HTTPS reais, se existirem. Após editar, execute `docker compose up -d`
+para recriar os containers; reiniciá-los não recarrega o `.env`.
 
 ## Verificar persistência e reinício
 
