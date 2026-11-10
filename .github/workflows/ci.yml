@@ -84,7 +84,7 @@ jobs:
       image: ${{ matrix.imagem }}
     steps:
       - name: Preparar container descartável
-        run: dnf install -y git tar gzip shadow-utils ca-certificates ${{ matrix.pacotes }}
+        run: dnf install -y git tar gzip grep util-linux shadow-utils ca-certificates ${{ matrix.pacotes }}
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Executar como usuário comum
         shell: bash

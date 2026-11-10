@@ -10,4 +10,10 @@ com actionlint e executamos localmente o comando de configuração com um caminh
 contendo espaços. A confirmação do resultado completo depende da execução real
 no GitHub Actions; uma correção de sintaxe não garante que todas as etapas passem.
 
+Após a correção, a execução começou e a etapa Fedora apresentou saída 127
+(comando não encontrado). Os logs detalhados não puderam ser obtidos pela API;
+foi acrescentada a instalação explícita de `util-linux` (que fornece `runuser`
+no Fedora) e de `grep`, ambos usados pelo teste. Essa é uma correção de pré-requisitos
+para nova execução, não uma confirmação da causa exata sem os logs completos.
+
 Referência: [contextos permitidos por posição no workflow](https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#context-availability).
