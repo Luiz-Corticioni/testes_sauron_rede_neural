@@ -10,6 +10,4 @@ class InventarioConfig(AppConfig):
         from inventario.aplicacao.servicos import conectar_sinais
 
         conectar_sinais()
-        from inventario.sinais_mfa_email import conectar
-        conectar()
         from inventario.infraestrutura import conexoes as conexoes

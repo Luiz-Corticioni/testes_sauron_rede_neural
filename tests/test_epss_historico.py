@@ -96,7 +96,7 @@ class EPSSIntegrado(BancoTeste):
         u = get_user_model().objects.create_user('leitor-epss')
         self.client.force_login(u)
         url = f'/vulnerabilidades/{self.v.pk}/epss/'
-        self.assertEqual(self.client.get(url).url, '/mfa/')
+        self.assertEqual(self.client.get(url).status_code, 403)
         self.autenticar(u)
         self.assertEqual(self.client.get(url).status_code, 403)
         u.user_permissions.add(Permission.objects.get(codename='view_vulnerabilidade'))

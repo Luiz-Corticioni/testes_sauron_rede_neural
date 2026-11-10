@@ -1,9 +1,11 @@
+from unittest import skip
 
 from django.utils import timezone
 from .base import BancoTeste
 
 
 class R16(BancoTeste):
+    @skip("MFA desativado nesta branch de apresentação")
     def test_staff_sem_otp_redireciona(self):
         sessao=self.client.session
         sessao.pop("otp_device_id",None)
@@ -19,6 +21,7 @@ class R16(BancoTeste):
         self.assertEqual(self.client.get("/").status_code,302)
         self.assertNotIn("_auth_user_id",self.client.session)
 
+    @skip("MFA desativado nesta branch de apresentação")
     def test_aprovacao_exige_reautenticacao_recente(self):
         sessao=self.client.session
         sessao["sauron_reauth_em"]=timezone.now().timestamp()-301
@@ -28,6 +31,7 @@ class R16(BancoTeste):
         self.assertIn("/mfa/",r.url)
 
 
+    @skip("MFA desativado nesta branch de apresentação")
     def test_token_real_e_replay(self):
         from django_otp.oath import totp
         from django_otp.plugins.otp_totp.models import TOTPDevice

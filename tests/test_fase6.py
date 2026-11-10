@@ -1,3 +1,4 @@
+from unittest import skip
 from datetime import timedelta
 import json
 import time
@@ -108,6 +109,7 @@ class SegurancaConsolidada(BancoTeste):
             salvar_cadastro(obj, cli.usuario)
         self.assertFalse(Software.objects.exists())
 
+    @skip("MFA desativado nesta branch de apresentação")
     def test_dispositivo_mfa_revogado_durante_preenchimento_impede_gravacao(self):
         from django_otp.plugins.otp_totp.models import TOTPDevice
         cli = self.cli()

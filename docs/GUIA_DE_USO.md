@@ -1,10 +1,13 @@
 # Manual de uso do Sauron
 
+> **Branch de apresentação:** o MFA está desativado. As instruções de MFA abaixo
+> referem-se à branch `main`. Veja o [guia desta versão](APRESENTACAO_SEM_MFA.md).
+
 [← Voltar ao início](../README.md) · [Índice de documentos](README.md) ·
 [Login e MFA](EMAIL_E_MFA.md)
 
 Este manual acompanha a interface web. Para instalá-la e entrar pela primeira vez,
-comece no [README](../README.md#abrir-a-interface-gráfica). A interface abre no
+comece no [README](../README.md). A interface abre no
 navegador; não é um programa gráfico separado. A visibilidade de menus e as ações
 possíveis dependem das permissões da conta. Uma tela pode aparecer no menu e ainda
 retornar acesso negado se faltar alguma permissão exigida.

@@ -304,7 +304,7 @@ class FluxoCobertura(BancoTeste):
         p = self.perimetro()
         c = Client(enforce_csrf_checks=True)
         c.force_login(self.usuario)
-        self.assertEqual(c.get("/qualidade-relacoes/").url, "/mfa/")
+        self.assertEqual(c.get("/qualidade-relacoes/").status_code, 200)
         self.autenticar(self.usuario, c)
         self.assertEqual(c.post("/perimetros/novo/", {}).status_code, 403)
         self.assertEqual(c.post("/cobertura/revisar/", {}).status_code, 403)

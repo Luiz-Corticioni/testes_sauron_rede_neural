@@ -155,7 +155,7 @@ class FluxoSSVC(BancoTeste):
         self.assertEqual(c.post(self.url, self.dados()).status_code, 403)
         self.client.logout()
         self.client.force_login(self.usuario)
-        self.assertEqual(self.client.get(self.url).url, '/mfa/')
+        self.assertEqual(self.client.get(self.url).status_code, 200)
         u = get_user_model().objects.create_user('sem-contexto')
         self.autenticar(u)
         self.assertEqual(self.client.get(self.url).status_code, 403)

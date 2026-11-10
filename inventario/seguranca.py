@@ -121,12 +121,7 @@ class LoginProtegido(LoginView):
 
     def form_valid(self, form):
         concluir(self.reserva, True)
-        resposta = super().form_valid(form)
-        from inventario.aplicacao.mfa_email import adotar_desafio_inicial
-        nonce = adotar_desafio_inicial(form.get_user())
-        if nonce:
-            self.request.session["sauron_email_desafio"] = nonce
-        return resposta
+        return super().form_valid(form)
 
 
 class ProxiesConfiaveisMiddleware:

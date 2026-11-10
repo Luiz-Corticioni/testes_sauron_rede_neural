@@ -210,7 +210,7 @@ class CadastroAdmin(admin.ModelAdmin):
 admin.site.register([Dependencia, Incidente, CertificadoDigital, Software], CadastroAdmin)
 admin.site.register([Alerta, Anticorpo, Tolerancia, SugestaoImune], DerivadosAdmin)
 admin.site.register([HistoricoIncidencia, SnapshotRisco], DerivadosAdmin)
-admin.site.site_header = "Sauron — Administração"
+admin.site.site_header = "Sauron — APRESENTAÇÃO · MFA DESATIVADO"
 
 
 # O cadastro de usuários na administração também solicita e valida o e-mail.

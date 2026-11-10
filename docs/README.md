@@ -1,5 +1,8 @@
 # Documentação do Sauron
 
+> Nesta branch, o MFA está desativado. Comece pelo [guia da apresentação](APRESENTACAO_SEM_MFA.md);
+> documentos históricos podem descrever a política de MFA da branch `main`.
+
 [← Voltar ao README](../README.md) · [Manual de uso](GUIA_DE_USO.md)
 
 Este é o ponto de entrada para os documentos do projeto. Os guias de uso ajudam a

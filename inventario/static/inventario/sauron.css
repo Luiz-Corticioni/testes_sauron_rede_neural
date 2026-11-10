@@ -304,3 +304,4 @@ body.page-hidden *,body.page-hidden *::before,body.page-hidden *::after { animat
 .relation-path {display:flex; flex-wrap:wrap; gap:1rem 2rem; padding-left:1.5rem}
 .relation-path li {border:1px solid var(--border, #3c3c42); border-radius:6px; padding:.6rem; font-size:.9rem}
 
+.aviso-demonstracao { background: #8b1d1d; color: #fff; text-align: center; padding: .65rem; position: relative; z-index: 20; }

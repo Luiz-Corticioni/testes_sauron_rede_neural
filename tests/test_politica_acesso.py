@@ -1,3 +1,4 @@
+from unittest import skip
 from io import StringIO
 from unittest.mock import patch
 from django.contrib.auth import get_user_model
@@ -14,6 +15,7 @@ class PoliticaAcesso(BancoTeste):
         u.user_permissions.set(Permission.objects.filter(content_type__app_label='inventario', codename__startswith='view_'))
         return u
 
+    @skip("MFA desativado nesta branch de apresentação")
     def test_leitor_sem_dispositivo_e_novo_login_exigem_mfa(self):
         u = self.leitor()
         self.client.force_login(u)
@@ -24,6 +26,7 @@ class PoliticaAcesso(BancoTeste):
         self.client.force_login(u)
         self.assertEqual(self.client.get('/ativos/').url, '/mfa/')
 
+    @skip("MFA desativado nesta branch de apresentação")
     def test_confirmacao_email_nao_dispensa_mfa_em_nova_sessao(self):
         from inventario.aplicacao.mfa_email import hash_email
         from inventario.models import DispositivoEmail
@@ -53,12 +56,14 @@ class PoliticaAcesso(BancoTeste):
         u.refresh_from_db()
         self.assertFalse(u.is_superuser)
 
+    @skip("MFA desativado nesta branch de apresentação")
     def test_admin_pode_solicitar_email_quando_smtp_configurado(self):
         self.client.force_login(self.usuario)
         with patch('inventario.web.views_mfa.enviar_codigo', return_value='nonce') as enviar:
             self.assertContains(self.client.post('/mfa/', {'acao': 'enviar_email'}), 'aceitou o envio')
             enviar.assert_called_once()
 
+    @skip("MFA desativado nesta branch de apresentação")
     def test_promocao_revoga_fator_email_existente(self):
         from inventario.aplicacao.mfa_email import hash_email
         from inventario.models import DispositivoEmail
@@ -75,6 +80,7 @@ class PoliticaAcesso(BancoTeste):
         get_user_model().objects.filter(pk=u.pk).update(is_staff=True)
         self.assertEqual(self.client.get('/ativos/').url, '/mfa/')
 
+    @skip("MFA desativado nesta branch de apresentação")
     def test_totp_de_outro_usuario_nao_valida(self):
         u = self.leitor()
         self.client.force_login(u)
@@ -83,6 +89,7 @@ class PoliticaAcesso(BancoTeste):
         self.assertEqual(self.client.post('/mfa/', {'dispositivo': d.pk, 'password': 'senha-teste-123', 'token': str(token)}).status_code, 200)
         self.assertEqual(self.client.get('/ativos/').url, '/mfa/')
 
+    @skip("MFA desativado nesta branch de apresentação")
     def test_totp_recusa_senha_alterada_antes_da_trava(self):
         from django.contrib.auth.hashers import make_password
         from inventario.infraestrutura.auditoria import travar_escrita
@@ -98,6 +105,7 @@ class PoliticaAcesso(BancoTeste):
         self.assertEqual(resposta.status_code, 200)
         self.assertContains(resposta, 'Senha ou código do autenticador inválido')
 
+    @skip("MFA desativado nesta branch de apresentação")
     def test_recuperacao_revoga_sessao_e_exige_confirmacao_novo_totp(self):
         antigo = TOTPDevice.objects.get(user=self.usuario)
         with self.assertRaises(CommandError):
@@ -132,6 +140,7 @@ class PoliticaAcesso(BancoTeste):
         self.assertFalse(cli._exigir('inventario.view_ativo'))
         self.assertIsNone(cli.usuario)
 
+    @skip("MFA desativado nesta branch de apresentação")
     def test_cli_dispositivo_recuperado_revoga_sessao(self):
         from inventario.cli import SauronCLI
         cli = SauronCLI(entrada=lambda _: '', saida=lambda _: None)
@@ -176,6 +185,7 @@ class PoliticaAcesso(BancoTeste):
         self.assertFalse(u.is_staff)
         self.assertTrue(usuario_privilegiado(u))
 
+    @skip("MFA desativado nesta branch de apresentação")
     def test_cli_escrita_exige_reautenticacao_recente(self):
         from inventario.cli import SauronCLI
         import time

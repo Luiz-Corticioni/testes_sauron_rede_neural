@@ -20,7 +20,7 @@ from inventario.web import views_cves
 from inventario.web import views_vinculos
 from inventario.web import views_analises, views_operacionais
 from functools import partial
-from inventario.web.views_mfa import verificar_mfa
+from django.views.generic import RedirectView
 
 PERMISSOES_RISCO = (
     "inventario.view_ativo",
@@ -52,7 +52,7 @@ urlpatterns = [
     path("comparar-cvss/", proteger(views_comparacao.comparacao, "inventario.view_vulnerabilidade"), name="comparar_cvss"),
     path("guia/", views_comparacao.guia, name="guia"),
     path("incidencias/<str:pk>/revisar/", proteger(views_operacionais.decidir_pendencia_web, "inventario.change_incidencia"), name="decidir_pendencia"),
-    path("mfa/", verificar_mfa, name="mfa"),
+    path("mfa/", RedirectView.as_view(pattern_name="dashboard", permanent=False), name="mfa"),
     path("montecarlo/", proteger(views_analises.montecarlo, *PERMISSOES_RISCO), name="montecarlo"),
     path("api/montecarlo/", proteger(views_analises.api_montecarlo, *PERMISSOES_RISCO), name="api_montecarlo"),
     path("api/impacto/", proteger(views_analises.api_impacto,

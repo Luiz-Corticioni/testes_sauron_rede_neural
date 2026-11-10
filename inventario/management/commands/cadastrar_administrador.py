@@ -25,4 +25,4 @@ class Command(BaseCommand):
         except ValidationError as erro:
             raise CommandError('; '.join(erro.messages)) from erro
         self.stdout.write(f'Administrador {usuario.username} cadastrado sem exigir MFA para a criação. Nenhuma sessão foi iniciada.')
-        self.stdout.write('Para entrar, use código enviado ao e-mail cadastrado com SMTP configurado ou provisione TOTP com: python manage.py provisionar_mfa --usuario '+usuario.username)
+        self.stdout.write('Nesta versão de apresentação, entre com usuário e senha; o MFA está desativado.')

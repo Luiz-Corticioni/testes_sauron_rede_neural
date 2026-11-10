@@ -102,6 +102,6 @@ GUIAS = {
     "por ausência de incidências. A memória decai e pode ser suspensa por rejeições.",
 }
 
-GUIAS["CVE, KEV E CVSS"] += "\nOpção 8 atualiza EPSS na FIRST: consulta explícita de até 50 CVEs por execução, com permissão de alteração e MFA."
+GUIAS["CVE, KEV E CVSS"] += "\nOpção 8 atualiza EPSS na FIRST: consulta explícita de até 50 CVEs por execução, com permissão de alteração."
 GUIAS["INVENTÁRIO OPERACIONAL"] = "Software, fontes e classificações sustentam as decisões. Opção 8: SBOM/VEX com prévia. Opção 9: relações; dentro dela, opção 5: qualidade e perímetros. Exemplo: escolha ativo e escopo corretos antes de importar; uma declaração não comprova instalação."
 GUIAS["MODO EULER"] += "\nCenários de custo usam horizonte fixo de 30 dias no menu de risco, sem anualização. Sem EPSS recente e coerente, corrija as pendências. Média não é perda garantida; custos padrão são didáticos."

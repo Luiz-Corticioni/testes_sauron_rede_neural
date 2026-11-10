@@ -167,10 +167,6 @@ class SauronCLI(
             registrar_evento("LOGIN_CLI_FALHOU", "Autenticacao", nome_auditavel(usuario))
             self._falha("Credenciais inválidas.")
             return False
-        from inventario.seguranca_mfa import exige_mfa
-        if exige_mfa(autenticado) and not self._validar_mfa_cli(autenticado, senha):
-            self._falha("Verificação em duas etapas não concluída.")
-            return False
         concluir(reserva, True)
         self.usuario = autenticado
         self._inicio_cli = self._ultima_cli = self._reauth_cli = time.monotonic()
@@ -254,29 +250,16 @@ class SauronCLI(
             self._falha("Conta desativada ou removida.")
             return False
         self.usuario = atual
-        if getattr(self, "_mfa_cli_id", None):
-            from django_otp.models import Device
-            from inventario.models import DispositivoEmail
-            from inventario.aplicacao.mfa_email import hash_email
-            from inventario.seguranca_mfa import usuario_privilegiado
-            dispositivo = Device.from_persistent_id(self._mfa_cli_id)
-            if (not dispositivo or not dispositivo.confirmed or dispositivo.user_id != atual.pk
-                    or (isinstance(dispositivo, DispositivoEmail)
-                        and (dispositivo.email_confirmado_hash != hash_email(atual.email)
-                             or (getattr(self, '_mfa_cli_privilegiado', False) is False and usuario_privilegiado(atual))))):
-                self.usuario = None
-                self._falha("Segundo fator revogado ou incompatível com os privilégios; entre novamente.")
-                return False
         if not self.usuario.has_perm(permissao):
             self._falha(f"O usuário não possui a permissão {permissao}.")
             return False
         if not permissao.split(".", 1)[-1].startswith("view_") and hasattr(self, "_reauth_cli"):
             if agora-self._reauth_cli > settings.SAURON_REAUTH_SEGUNDOS:
                 if not interativo:
-                    self._falha("Reautenticação necessária; volte ao menu para validar senha e MFA.")
+                    self._falha("Reautenticação necessária; volte ao menu para validar a senha.")
                     return False
                 senha=getpass("Reautenticação — senha: ")
-                if not self.usuario.check_password(senha) or not self._validar_mfa_cli(self.usuario,senha):
+                if not self.usuario.check_password(senha):
                     self._falha("Reautenticação inválida.")
                     return False
                 self._reauth_cli=time.monotonic()

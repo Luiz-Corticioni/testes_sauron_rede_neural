@@ -14,8 +14,8 @@ def usuario_privilegiado(usuario):
 
 
 def exige_mfa(usuario):
-    # A verificação pertence à sessão atual, não à confirmação anterior do e-mail.
-    return True
+    # Branch exclusiva para apresentação; não aplicável à versão principal.
+    return False
 
 
 class SessaoEMFAMiddleware:
@@ -33,7 +33,7 @@ class SessaoEMFAMiddleware:
             logout(request)
             return HttpResponseRedirect(settings.LOGIN_URL)
         # Agrupa batimentos: evita UPDATE de sessão a cada leitura. A expiração
-        # pode antecipar até 30s; a janela absoluta e o MFA continuam inalterados.
+        # pode antecipar até 30s; a janela absoluta continua inalterada.
         intervalo = min(30, settings.SAURON_SESSAO_OCIOSA_MIN*30)
         if "sauron_ultima_atividade" not in request.session or agora-ultima >= intervalo:
             request.session["sauron_ultima_atividade"]=agora

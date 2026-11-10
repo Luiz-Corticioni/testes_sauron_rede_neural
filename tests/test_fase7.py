@@ -1,3 +1,4 @@
+from unittest import skip
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from io import StringIO
@@ -44,7 +45,7 @@ class CadastroInicial(TestCase):
         self.assertTrue(u.is_superuser and u.is_staff and u.check_password('ForteProtótipo2026!'))
         self.assertFalse(TOTPDevice.objects.filter(user=u).exists())
         self.client.force_login(u)
-        self.assertEqual(self.client.get('/').url, '/mfa/')
+        self.assertEqual(self.client.get('/').status_code, 200)
 
     def test_segundo_cadastro_inicial_bloqueia_antes_de_pedir_senha_mesmo_inativo(self):
         get_user_model().objects.create_superuser('existente', password='forte', is_active=False)
@@ -106,6 +107,7 @@ class CacheESessao(BancoTeste):
         u.user_permissions.remove(Permission.objects.get(codename='view_alerta'))
         self.assertNotContains(self.client.get('/'), 'Alerta reservado da fase 7')
 
+    @skip("MFA desativado nesta branch de apresentação")
     def test_cache_aquecido_nao_ignora_revogacao_totp(self):
         self.assertEqual(self.client.get('/').status_code, 200)
         TOTPDevice.objects.filter(user=self.usuario).delete()
