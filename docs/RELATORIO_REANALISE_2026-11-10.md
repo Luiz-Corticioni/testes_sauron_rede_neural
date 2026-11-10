@@ -84,6 +84,12 @@ real, concorrência, desempenho de interface ou servidor em produção.
   número isolado quais consultas são dispensáveis ou aplicar uma otimização segura
   sem separar autenticação, auditoria, MFA e dados de sessão.
 
+Após os testes completos foi integrada uma alteração já existente no repositório
+remoto que mudou a porta publicada do Compose para `2228`. A checagem HTTP do CI
+foi ajustada para essa porta, e foram executados 11 testes direcionados de instalação
+e segurança após a integração, com sucesso. A suíte completa e o teste de carga
+precederam essa integração; o container não foi executado nesta máquina.
+
 Os testes de MFA verificam sessões, TOTP, repetição de código, expiração, limite de
 tentativas, SMTP simulado, e separação de permissões entre leitores e administradores.
 Eles não demonstram envio efetivo por Gmail/UFU, todas as contas de uma instalação,

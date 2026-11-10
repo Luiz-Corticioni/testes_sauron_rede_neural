@@ -68,8 +68,21 @@ class GeracaoEnv(SimpleTestCase):
             primeiro = subprocess.run(comando, capture_output=True, text=True, check=True)
             conteudo = destino.read_bytes()
             self.assertIn(b"SAURON_BACKUP_KEY=", conteudo)
+            self.assertIn(b"http://127.0.0.1:2228", conteudo)
+            self.assertIn(b"http://localhost:2228", conteudo)
             self.assertNotIn(conteudo.decode().splitlines()[0], primeiro.stdout)
             subprocess.run(comando, capture_output=True, text=True, check=True)
             self.assertEqual(conteudo, destino.read_bytes())
             if os.name != "nt":
                 self.assertEqual(destino.stat().st_mode & 0o777, 0o600)
+
+    def test_origem_https_usa_o_host_sem_porta_local(self):
+        raiz = Path(__file__).resolve().parents[1]
+        with TemporaryDirectory() as pasta:
+            destino = Path(pasta) / ".env"
+            subprocess.run([sys.executable, str(raiz / "scripts/preparar_ambiente.py"),
+                            "--saida", str(destino), "--host", "sauron.example.org"],
+                           capture_output=True, text=True, check=True)
+            conteudo = destino.read_text(encoding="utf-8")
+            self.assertIn("SAURON_CSRF_TRUSTED_ORIGINS=https://sauron.example.org", conteudo)
+            self.assertNotIn("http://127.0.0.1:2228", conteudo)

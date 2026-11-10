@@ -50,7 +50,7 @@ jobs:
       - run: docker compose up -d --build
       - run: |
           for tentativa in $(seq 1 90); do
-            if curl -fsS http://127.0.0.1:8000/api/saude/; then exit 0; fi
+            if curl -fsS http://127.0.0.1:2228/api/saude/; then exit 0; fi
             sleep 2
           done
           docker compose logs --tail=100 preparar sauron agendador
