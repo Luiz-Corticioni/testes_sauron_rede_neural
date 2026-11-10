@@ -8,7 +8,7 @@ Na versão original, cada ativo era um dicionário e cada vulnerabilidade ficava
 
 Primeiro, um dicionário guarda dados, mas não estabelece um contrato de comportamento. Segundo, a mesma vulnerabilidade precisava ser repetida em cada ativo afetado. A nova solução transforma os substantivos do domínio em objetos e as relações em entidades explícitas.
 
-Uma analogia útil é a diferença entre uma ficha preenchida e um profissional. A ficha contém informações; o profissional também sabe agir. `Equipamento` contém identidade, fabricante e localização, mas também estabelece operações como `fator_exposicao()`, `salas_compativeis()` e `exibir_detalhes()`.
+Uma analogia útil é a diferença entre uma ficha preenchida e um profissional. A ficha contém informações; o profissional também sabe agir. `Equipamento` contém identidade, fabricante e localização, mas também estabelece operações como `fator_exposicao()` e `exibir_detalhes()`.
 
 ## 2. Herança e polimorfismo
 
@@ -72,14 +72,14 @@ x = b + Ax
 (I-A)x = b
 ```
 
-O programa usa `numpy.linalg.solve`, não calcula a inversa para obter `x`. A inversa é uma representação matemática útil, mas resolver o sistema diretamente é mais eficiente e numericamente apropriado.
+O programa usa fatoração LU esparsa do SciPy (`splu`) para resolver o sistema, sem calcular a inversa para obter `x`. A inversa é uma representação matemática útil, mas resolver o sistema diretamente evita materializá-la.
 
 Antes da solução são verificados:
 
 - `0 ≤ Aij < 1`;
 - diagonal de `A` igual a zero;
-- posto completo de `I-A`;
-- número de condição finito e abaixo do limite de instabilidade.
+- raio espectral de `A` menor que 1;
+- para até 300 ativos, ou quando o diagnóstico é solicitado, número de condição finito e abaixo do limite de instabilidade. Para matrizes maiores o cálculo automático de condição é omitido.
 
 A soma de cada linha menor que um é uma condição suficiente para convergência, não necessária. Por isso, a validação numérica permanece mesmo quando a interface restringe o cadastro.
 
@@ -110,7 +110,7 @@ O antigo módulo misturava entrada, saída e cálculo. Agora:
 - `Integrador` aplica Simpson ou trapézios;
 - Django apenas coleta parâmetros e exibe o resultado.
 
-Não é utilizado `eval` irrestrito: nomes, chamadas e nós da expressão são validados, e os built-ins são removidos do ambiente de execução.
+Não é utilizado `eval`: o programa interpreta diretamente uma árvore sintática restrita e aceita apenas nós, operações e funções explicitamente previstos.
 
 ## 9. Persistência e adaptadores
 

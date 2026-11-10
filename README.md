@@ -1,3 +1,5 @@
+> Reanálise de 10/11/2026: [explicação simples das funcionalidades](docs/GUIA_SIMPLES_REANALISE_2026-11-10.md) e [achados e limites](docs/RELATORIO_REANALISE_2026-11-10.md). Atualize dependências e reconstrua a imagem para receber a correção do Django.
+
 > Servidor externo e MFA: [mudanças e limitações](docs/RELATORIO_MFA_SERVIDOR_2026-11-06.md). O [guia Docker](docs/DOCKER_TRABALHO_2.md) inclui proxy HTTPS opcional. O envio SMTP real e a execução por 24 horas ainda precisam de validação no servidor.
 
 > Trabalho 2: veja a [matriz de requisitos e resultados](docs/RELATORIO_TRABALHO_2.md). A execução no servidor por 24 horas ainda precisa de evidência real.
