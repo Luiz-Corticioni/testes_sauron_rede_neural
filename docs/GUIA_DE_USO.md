@@ -163,6 +163,22 @@ Para explicações acessíveis e limites de cada recurso, consulte o
 [guia simples](GUIA_SIMPLES_REANALISE_2026-11-10.md). O guia interno do site também
 apresenta exemplos e definições para pessoas técnicas e responsáveis pelo negócio.
 
+### Interface de terminal e API
+
+Depois de preparar a instalação no Windows, abra `iniciar_sauron_terminal.bat` ou
+execute `& ".\.venv\Scripts\python.exe" sauron.py` na pasta do projeto. No Docker,
+use `docker compose exec -it sauron python manage.py sauron_cli`. Faça login com sua
+conta e segundo fator e escolha as opções apresentadas pelo menu; permissões e
+confirmações também se aplicam ali. Se o terminal e o site usarem instalações ou
+bancos diferentes, seus cadastros e contas não serão compartilhados.
+
+A API HTTP atende partes da interface e integrações autorizadas. As rotas de dados
+utilizam os controles de sessão e permissão do Sauron; não presuma que um endereço
+conhecido seja público ou que uma chamada de escrita dispense proteção CSRF. A rota
+`/api/saude/` é uma verificação simples de disponibilidade e não testa todos os
+serviços. Para a estrutura dos módulos e rotas, consulte [arquitetura](ARQUITETURA.md)
+e o arquivo `inventario/web/urls.py` do projeto.
+
 ## 6. Importe, exporte e proteja dados
 
 **Importar CSV:** acesse **Importar CSV**, escolha o arquivo e siga o fluxo de
