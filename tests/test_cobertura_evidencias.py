@@ -353,7 +353,7 @@ class FluxoCobertura(BancoTeste):
     def test_api_invalida_e_consulta_sem_rede_ou_gravacoes(self):
         p = self.perimetro()
         antes = RegistroAuditoria.objects.count()
-        with patch("requests.sessions.Session.request", side_effect=AssertionError("não consultar rede")):
+        with patch("socket.socket.connect", side_effect=AssertionError("não consultar rede")):
             self.assertEqual(self.client.get("/api/qualidade-relacoes/", {"perimetro": p.pk, "tipo": "REDE"}).status_code, 200)
         self.assertEqual(RegistroAuditoria.objects.count(), antes)
         for extra in ({"tipo": "TODAS"}, {"principal": "conta"}, {"limite": 101}, {"filtro": "SEGURO"}):

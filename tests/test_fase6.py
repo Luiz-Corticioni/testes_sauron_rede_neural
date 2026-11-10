@@ -256,7 +256,10 @@ class HorizonteEOrientacao(BancoTeste):
 
     def test_botao_epss_real_atualiza_e_audita_ator(self):
         payload = {"data": [{"cve": self.v.cve_id, "epss": ".2", "percentile": ".9", "date": timezone.now().date().isoformat()}]}
-        with patch("inventario.infraestrutura.cve_client._baixar_json", return_value=payload):
+        # A resposta é simulada e o executor bloqueia sockets; permita a rotina
+        # mesmo quando o CI desabilita consultas externas por configuração.
+        with patch.dict("os.environ", {"SAURON_ROTINAS_SEM_REDE": "0"}), \
+             patch("inventario.infraestrutura.cve_client._baixar_json", return_value=payload):
             r = self.client.post("/epss/atualizar/", {})
         self.assertEqual(r.status_code, 302)
         self.assertEqual(r.url, "/montecarlo/")

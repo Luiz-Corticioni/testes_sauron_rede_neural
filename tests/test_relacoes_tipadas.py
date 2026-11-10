@@ -258,7 +258,7 @@ class IntegracaoRelacoes(BancoTeste):
             self.assertNotContains(r, '<script>alert("x")</script>')
 
     def test_api_erros_utilizaveis_sem_chamada_externa(self):
-        with patch("requests.sessions.Session.request", side_effect=AssertionError("rede não autorizada")):
+        with patch("socket.socket.connect", side_effect=AssertionError("rede não autorizada")):
             self.criar()
             r = self.client.get("/api/grafo-relacoes/", self.consulta())
             self.assertEqual(r.status_code, 200)
