@@ -1,4 +1,4 @@
-# Sauron Apogeu
+# Sauron, meu amor!
 
 O Sauron é um inventário de ativos e vulnerabilidades que ajuda equipes técnicas e
 responsáveis pelo negócio a entender dependências, acompanhar tratamentos e discutir
