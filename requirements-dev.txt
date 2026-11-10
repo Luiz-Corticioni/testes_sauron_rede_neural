@@ -4,5 +4,5 @@ pip-audit==2.10.1
 pip-tools==7.6.2
 cyclonedx-bom==7.5.0
 pytest==8.4.2
-pytest-cov==6.2.1
+pytest-cov==7.1.0
 
