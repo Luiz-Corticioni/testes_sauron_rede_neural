@@ -93,6 +93,18 @@ class IntegracaoMonteCarlo(BancoTeste):
         self.b.save()
         self.assertEqual(calcular_montecarlo(self.parametros)["quantidade_incidencias"], 0)
 
+    def test_versao_muda_mesmo_se_relogio_nao_avancar(self):
+        from django.utils import timezone
+        instante = timezone.now()
+        with patch('django.db.models.fields.timezone.now', return_value=instante):
+            self.v.save()
+            antes = calcular_montecarlo(self.parametros)['versao_dados']
+            self.v.epss_observacao = None
+            self.v.epss = 0.8
+            self.v.save()
+            depois = calcular_montecarlo(self.parametros)['versao_dados']
+        self.assertNotEqual(antes, depois)
+
     def test_roundtrip_epss(self):
         self.v.epss_observacao = None
         self.v.epss, self.v.epss_data = .75, date(2026, 10, 26)

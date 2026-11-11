@@ -23,9 +23,11 @@ class LimitesCompartilhados(BancoTeste):
             self.assertEqual(Client().post('/entrar/', {'username': 'alvo', 'password': 'errada'}).status_code, 429)
 
     def test_expiracao_libera_sem_limpar_nova_janela_com_resposta_antiga(self):
-        antiga = reservar('alvo', 'origem')
-        LimiteLogin.objects.update(expira_em=timezone.now()-timedelta(seconds=1))
-        nova = reservar('alvo', 'origem')
+        instante = timezone.now()
+        with patch('inventario.infraestrutura.limites_login.timezone.now', return_value=instante):
+            antiga = reservar('alvo', 'origem')
+            LimiteLogin.objects.update(expira_em=instante-timedelta(seconds=1))
+            nova = reservar('alvo', 'origem')
         concluir(antiga, True)
         self.assertEqual(LimiteLogin.objects.get(chave=nova['chaves'][0]).quantidade, 1)
         concluir(nova, True)

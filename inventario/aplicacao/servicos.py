@@ -2,6 +2,7 @@
 
 from django.db import transaction, connections
 from django.db.models.signals import post_delete, post_save, pre_save
+from django.db.models import F
 from inventario.infraestrutura import auditoria
 from inventario.infraestrutura.exportacao import exportar_inventario_json
 from inventario.aplicacao.operacao import alterar_status, reconhecer_alerta, calcular_mttr
@@ -54,6 +55,9 @@ def apos_commit(using):
 def sincronizar_estado(sender, using="default", raw=False, **kwargs):
     if raw:
         return
+    from inventario.models import Ativo, Dependencia, Incidencia, Vulnerabilidade
+    if sender in (Ativo, Dependencia, Incidencia, Vulnerabilidade):
+        incrementar_versao_inventario(using)
     conexao = connections[using]
     # A fila da conexão é a fonte da verdade: rollback de savepoint remove a flag
     # junto com o callback. Uma flag booleana solta sobreviveria a esse rollback.
@@ -64,6 +68,14 @@ def sincronizar_estado(sender, using="default", raw=False, **kwargs):
         apos_commit(using)
     invalidar._sauron_invalidacao = True
     transaction.on_commit(invalidar, using=using)
+
+
+def incrementar_versao_inventario(using="default"):
+    """Incrementa no banco e na mesma transação da alteração, inclusive rollback."""
+    from inventario.models import VersaoInventario
+    registro = VersaoInventario.objects.using(using)
+    registro.get_or_create(pk=1)
+    registro.filter(pk=1).update(versao=F("versao") + 1)
 
 
 def conectar_sinais():

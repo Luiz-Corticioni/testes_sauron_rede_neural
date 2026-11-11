@@ -29,6 +29,7 @@ def sincronizar_epss(usuario=None, limite=None):
             break
         with transaction.atomic():
             travar_escrita()
+            alterou_inventario = False
             if usuario is not None:
                 usuario = exigir(usuario, "inventario.view_vulnerabilidade", "inventario.change_vulnerabilidade")
             for cve, dados in encontrados.items():
@@ -43,7 +44,11 @@ def sincronizar_epss(usuario=None, limite=None):
                     mudou = (v.epss, v.epss_data, v.epss_observacao_id) != (dados["epss"], date.fromisoformat(dados["data"]), observacao.pk)
                     if mudou:
                         Vulnerabilidade.objects.filter(pk=v.pk).update(epss=dados["epss"], epss_data=dados["data"], epss_observacao=observacao, atualizado_em=timezone.now())
+                        alterou_inventario = True
                         resultado["atualizadas"] += 1
+            if alterou_inventario:
+                from inventario.aplicacao.servicos import incrementar_versao_inventario
+                incrementar_versao_inventario()
             if encontrados:
                 registrar_evento("EPSS_SINCRONIZADO", "Inteligencia", "FIRST", {"cves_recebidas": len(encontrados), "observacoes_novas": resultado["observacoes_novas"]})
         ausentes = len(set(lote) - encontrados.keys())

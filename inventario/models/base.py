@@ -34,3 +34,9 @@ class ContadorAtivo(models.Model):
     """Sequência persistida: excluir um ativo não torna seu número reutilizável."""
 
     ultimo = models.PositiveBigIntegerField(default=0)
+
+
+class VersaoInventario(models.Model):
+    """Geração transacional para invalidar cálculos entre processos."""
+
+    versao = models.PositiveBigIntegerField(default=0)

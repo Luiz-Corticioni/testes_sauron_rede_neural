@@ -14,7 +14,7 @@ from inventario.aplicacao.cache_consultas import lembrar
 from inventario.matematica.series import SerieRisco
 from inventario.infraestrutura.cve_client import CisaKevClient, IntegracaoCVEError
 from inventario.matematica.risco import ModeloRisco
-from inventario.models import Ativo, Dependencia, Incidencia, SnapshotRisco, Vulnerabilidade
+from inventario.models import Ativo, Dependencia, Incidencia, SnapshotRisco, Vulnerabilidade, VersaoInventario
 
 
 def caminho_cache_kev():
@@ -34,7 +34,8 @@ def namespace_risco():
 
 def versao_dados(perfil="puro"):
     # Inclui o formato do resultado: arquivos de cache antigos não contêm resíduos.
-    versao = [("modelo", 4)]
+    geracao = VersaoInventario.objects.filter(pk=1).values_list("versao", flat=True).first() or 0
+    versao = [("modelo", 4), ("geracao", geracao)]
     for modelo in (Ativo, Vulnerabilidade, Incidencia, Dependencia):
         estado = modelo.objects.aggregate(total=Count("pk"), ultima=Max("atualizado_em"))
         ultima = estado["ultima"].isoformat() if estado["ultima"] else ""

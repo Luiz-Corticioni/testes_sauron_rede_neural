@@ -1,6 +1,6 @@
 """Modelos SQL separados por responsabilidade; API pública preservada."""
 
-from inventario.models.base import ModeloAuditavel, TravaDominio, ContadorAtivo
+from inventario.models.base import ModeloAuditavel, TravaDominio, ContadorAtivo, VersaoInventario
 from inventario.models.salas import Sala
 from inventario.models.ativos import Ativo
 from inventario.models.vulnerabilidades import Vulnerabilidade

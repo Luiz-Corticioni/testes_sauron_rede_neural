@@ -36,7 +36,7 @@ def reservar(nome, origem):
         for registro in registros:
             registro.save()
         return {'chaves': chaves, 'usuario_hash': digest(nome), 'falhas': par.quantidade,
-                'globais': usuario.quantidade, 'expira_em': par.expira_em.isoformat()}
+                'globais': usuario.quantidade, 'geracao': str(par.geracao)}
 
 
 def concluir(reserva, sucesso):
@@ -48,7 +48,7 @@ def concluir(reserva, sucesso):
         travar_escrita()
         par, ip, usuario = reserva['chaves']
         atual = LimiteLogin.objects.filter(chave=par).first()
-        if atual is None or atual.expira_em.isoformat() != reserva['expira_em']:
+        if atual is None or str(atual.geracao) != reserva.get('geracao'):
             return  # Resposta antiga não pode limpar uma nova janela.
         atual.delete()
         registro = LimiteLogin.objects.filter(chave=usuario).first()

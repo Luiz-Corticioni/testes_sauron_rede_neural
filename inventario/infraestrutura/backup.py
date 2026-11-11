@@ -71,6 +71,8 @@ def backup_sqlite(retencao=None):
                     continue
                 if modelo._meta.model_name in ("perimetrorelacoes", "membroperimetro", "revisaocobertura") and ("inventario", "0026_cobertura_evidencias") not in aplicadas:
                     continue
+                if modelo._meta.model_name == "versaoinventario" and ("inventario", "0027_versaoinventario_limitelogin_geracao") not in aplicadas:
+                    continue
                 raise ValueError(f"Tabela ausente para {modelo._meta.label}; backup interrompido.")
             registros=modelo.objects.order_by(modelo._meta.pk.name)
             if modelo._meta.label_lower == "inventario.software" and ("inventario", "0024_documentos_componentes") not in aplicadas:
