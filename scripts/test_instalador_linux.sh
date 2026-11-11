@@ -10,7 +10,10 @@ escolher_pacotes rhel 9.4
 escolher_pacotes rocky 10
 [[ "${PACOTES[*]}" == 'ca-certificates python3.12 python3.12-pip' ]]
 if escolher_pacotes rhel 9.3 >/dev/null 2>&1; then exit 1; fi
-if escolher_pacotes ubuntu 24.04 >/dev/null 2>&1; then exit 1; fi
+escolher_pacotes ubuntu 24.04
+[[ "$GERENCIADOR" == apt-get && "${PACOTES[*]}" == 'ca-certificates python3.12 python3.12-venv' ]]
+if escolher_pacotes ubuntu 22.04 >/dev/null 2>&1; then exit 1; fi
+if escolher_pacotes desconhecido 1 >/dev/null 2>&1; then exit 1; fi
 TEMP_RAIZ="$(cd -- "${TMPDIR:-/tmp}" && pwd)"
 PASTA="$(mktemp -d "$TEMP_RAIZ/sauron-installer-test.XXXXXX")"
 limpar() {
@@ -50,6 +53,11 @@ grep -F -- '-m pip install --only-binary=:all: -r' "$SAURON_TEST_LOG" >/dev/null
 grep -F -- '-m pip check' "$SAURON_TEST_LOG" >/dev/null
 grep -F -- '/scripts/configurar_linux.py' "$SAURON_TEST_LOG" >/dev/null
 [[ "$(cat "$COPIA/.env")" == 'configuração preservada' ]]
+: > "$SAURON_TEST_LOG"
+# Com Python adequado explicitamente escolhido, não deve depender de sudo ou distro.
+bash "$COPIA/instalar_linux.sh" --python "$PASTA/python falso"
+grep -F -- 'import sys, venv, ensurepip, ssl, sqlite3' "$SAURON_TEST_LOG" >/dev/null
+grep -F -- '/scripts/configurar_linux.py' "$SAURON_TEST_LOG" >/dev/null
 : > "$SAURON_TEST_LOG"
 export SAURON_TEST_FALHAR=1
 if bash "$COPIA/instalar_linux.sh" --sem-pacotes --python "$PASTA/python falso"; then exit 1; fi

@@ -21,6 +21,6 @@
 <label for="senha-mfa">Senha atual</label><input id="senha-mfa" name="password" type="password" autocomplete="current-password" required>
 <label for="token-mfa">Código do autenticador</label><input id="token-mfa" name="token" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
 <button type="submit" class="button">Verificar autenticador</button></form></details>
-{% else %}<p>Alternativa: um administrador do servidor pode provisionar um aplicativo autenticador com <code>python manage.py provisionar_mfa --usuario SEU_USUARIO</code>.</p>{% endif %}
+{% else %}<p>Para usar um aplicativo autenticador, provisione-o no terminal da instalação com <code>python manage.py provisionar_mfa --usuario SEU_USUARIO</code>. A pessoa que executar o comando precisa ter acesso autorizado ao banco do Sauron; não é necessária uma senha especial do administrador do sistema operacional.</p>{% endif %}
 </section>
 {% endblock %}

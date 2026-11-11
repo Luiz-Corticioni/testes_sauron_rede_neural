@@ -1,4 +1,4 @@
-"""Finaliza a instalação Linux usando o Python do ambiente virtual."""
+"""Finaliza a instalação usando o Python do ambiente virtual, no Linux ou Windows."""
 
 import argparse
 import os
@@ -49,14 +49,19 @@ def preparar(args):
     call_command("preparar_servidor")
     call_command("ancorar_auditoria")
     call_command("verificar_auditoria")
-    print("Instalação concluída. Crie sua conta: .venv-linux/bin/python manage.py createsuperuser")
+    python = r'.\.venv\Scripts\python.exe' if os.name == 'nt' else '.venv-linux/bin/python'
+    print(f"Instalação concluída. Primeiro administrador: {python} manage.py cadastrar_administrador --usuario admin")
     print(
         "Configure o Gmail no .env para receber códigos por e-mail; consulte docs/EMAIL_E_MFA.md."
     )
-    print("Alternativa: .venv-linux/bin/python manage.py provisionar_mfa --usuario SEU_USUARIO")
-    print("Web local: bash iniciar_linux.sh --web | Terminal: bash iniciar_linux.sh --terminal")
-    print("Rotinas (outro terminal): bash iniciar_linux.sh --agendador")
-    if not settings.DEBUG and settings.SECURE_SSL_REDIRECT:
+    print(f"Alternativa: {python} manage.py provisionar_mfa --usuario SEU_USUARIO")
+    if os.name == 'nt':
+        print(f'Web local: & "{python}" scripts/iniciar_web.py')
+        print(f'Terminal: & "{python}" sauron.py | Rotinas: & "{python}" scripts/agendador.py')
+    else:
+        print("Web local: bash iniciar_linux.sh --web | Terminal: bash iniciar_linux.sh --terminal")
+        print("Rotinas (outro terminal): bash iniciar_linux.sh --agendador")
+    if os.name != 'nt' and not settings.DEBUG and settings.SECURE_SSL_REDIRECT:
         print(
             "Servidor: bash iniciar_linux.sh --servidor; configure proxy HTTPS e CIDRs confiáveis conforme docs/INSTALACAO_LINUX.md."
         )

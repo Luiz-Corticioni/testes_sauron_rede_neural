@@ -1,9 +1,42 @@
 
 from django.utils import timezone
+from io import StringIO
+import base64
+from django.core.management import call_command
+from django.test import Client
 from .base import BancoTeste
 
 
 class R16(BancoTeste):
+    def test_chave_manual_provisionada_permite_login_totp_real(self):
+        from django_otp.oath import totp
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        TOTPDevice.objects.filter(user=self.usuario).delete()
+        saida = StringIO()
+        call_command('provisionar_mfa', usuario=self.usuario.username, stdout=saida)
+        chave = next(linha.split(': ', 1)[1] for linha in saida.getvalue().splitlines()
+                     if linha.startswith('Chave (Base32): '))
+        dispositivo = TOTPDevice.objects.get(user=self.usuario)
+        self.assertEqual(base64.b32decode(chave), dispositivo.bin_key)
+        self.assertFalse(dispositivo.confirmed)
+        cliente = Client(enforce_csrf_checks=True)
+        cliente.get('/entrar/')
+        csrf = cliente.cookies['csrftoken'].value
+        resposta = cliente.post('/entrar/', {'username': self.usuario.username,
+            'password': 'senha-teste-123', 'csrfmiddlewaretoken': csrf})
+        self.assertEqual(resposta.status_code, 302)
+        self.assertEqual(cliente.get('/').url, '/mfa/')
+        token = str(totp(base64.b32decode(chave), step=dispositivo.step, t0=dispositivo.t0,
+                         digits=dispositivo.digits)).zfill(dispositivo.digits)
+        csrf = cliente.cookies['csrftoken'].value
+        resposta = cliente.post('/mfa/', {'acao': 'totp', 'dispositivo': dispositivo.pk,
+            'password': 'senha-teste-123', 'token': token, 'csrfmiddlewaretoken': csrf})
+        self.assertEqual(resposta.status_code, 302)
+        self.assertEqual(cliente.get('/').status_code, 200)
+        dispositivo.refresh_from_db()
+        self.assertTrue(dispositivo.confirmed)
+
     def test_staff_sem_otp_redireciona(self):
         sessao=self.client.session
         sessao.pop("otp_device_id",None)

@@ -6,6 +6,23 @@ Toda nova sessão web ou CLI exige segundo fator. Todas as contas, inclusive adm
 
 Primeiro acesso administrativo: cadastre a conta com `python manage.py cadastrar_administrador --usuario admin --email SEU_EMAIL`. Configure o remetente SMTP abaixo e, após usuário e senha, peça o código por e-mail. Como alternativa, execute `python manage.py provisionar_mfa --usuario admin` e registre a URI num aplicativo autenticador. A criação não autentica automaticamente nem exige privilégios de administrador do sistema operacional, desde que o usuário tenha acesso de escrita à instalação e ao banco do Sauron.
 
+## Aplicativo autenticador: passo a passo
+
+1. No mesmo banco/instalação onde criou o usuário, execute o comando abaixo; troque `admin` pelo nome escolhido:
+
+   ```bash
+   # Linux
+   .venv-linux/bin/python manage.py provisionar_mfa --usuario admin
+   ```
+
+   No Windows, use `& ".\.venv\Scripts\python.exe" manage.py provisionar_mfa --usuario admin`.
+   No Docker, use `docker compose exec -it sauron python manage.py provisionar_mfa --usuario admin`.
+2. No aplicativo do celular, escolha adicionar conta e **inserir chave manualmente**. Informe o nome da conta e copie a linha `Chave (Base32)` inteira. Escolha baseado em tempo; se pedir, use seis dígitos, 30 segundos e SHA-1. Não copie a URI inteira no campo da chave. O aplicativo gera os códigos localmente e não exige SMTP.
+3. Acesse `/entrar/`, informe usuário e senha. Na segunda tela abra **Usar aplicativo autenticador**, selecione o dispositivo, digite novamente a senha e o código atual de seis dígitos. Após o primeiro código válido, o dispositivo é confirmado.
+4. Mantenha data e hora automáticas no celular e no computador. Se o código expirar, espere o próximo; tentativas erradas podem gerar espera temporária.
+
+A chave e a URI são segredos equivalentes ao autenticador: não as compartilhe nem registre em fotos, vídeos ou tickets. Se o comando disser que o dispositivo já existe e você perdeu a chave, a recuperação descrita abaixo substitui o dispositivo antigo e invalida sessões associadas. Não substitua um autenticador de outra pessoa sem autorização.
+
 Recuperação: o responsável pelo servidor deve verificar a identidade por procedimento externo e executar `python manage.py provisionar_mfa --usuario NOME --substituir --motivo "ticket e justificativa"`. O dispositivo antigo é removido, sessões com ele deixam de passar pelo MFA e um novo dispositivo não confirmado é emitido. Não use este comando sem acesso autorizado ao servidor. A URI não deve ser incluída em tickets, relatórios ou logs compartilhados.
 
 Gestão de usuários e grupos no Django Admin é restrita a superusuários, mesmo quando uma conta staff recebe permissões `auth.*`. Usuários sem staff recebem 403 na área administrativa após MFA.

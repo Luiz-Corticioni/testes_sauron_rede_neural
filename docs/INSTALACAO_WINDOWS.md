@@ -4,7 +4,20 @@ Este guia usa PowerShell e Python 3.12. Abra o terminal na pasta do projeto, ond
 
 ## Instalação inicial
 
-Instale o Python 3.12 e confirme que o comando `py -3.12 --version` funciona. Execute:
+Instale o Python 3.12 e confirme que o comando `py -3.12 --version` funciona. Na
+pasta do projeto, o instalador verifica dependências e prepara a instalação:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\instalar_windows.ps1
+```
+
+Se o launcher `py` não estiver disponível, passe o caminho do Python 3.12:
+`powershell -ExecutionPolicy Bypass -File .\instalar_windows.ps1 -Python "C:\caminho\python.exe"`.
+O instalador preserva `.env` e banco existentes, exige `-Atualizar` se houver
+migrações pendentes e tenta criar backup cifrado antes de migrar. Para verificar
+uma instalação, acrescente `-Verificar` no lugar de `-Atualizar`.
+
+Para fazer manualmente em uma instalação nova:
 
 ```powershell
 py -3.12 -m venv .venv
@@ -25,6 +38,10 @@ Inicie a interface web:
 Abra http://127.0.0.1:8000/entrar/ e encerre com Ctrl+C. Como alternativa, após a preparação, execute `iniciar_sauron_web.bat`. Para a interface de terminal, execute `iniciar_sauron_terminal.bat` ou `& ".\.venv\Scripts\python.exe" sauron.py`.
 
 Para entrar, configure o SMTP e use o código enviado ao e-mail cadastrado, ou execute `& ".\.venv\Scripts\python.exe" manage.py provisionar_mfa --usuario admin` para usar um autenticador TOTP. O cadastro inicial é independente do MFA. Consulte [e-mail e MFA](EMAIL_E_MFA.md).
+
+Para criar o cenário fictício em um banco de teste vazio, use
+`& ".\.venv\Scripts\python.exe" manage.py seed_demo`. Isso não recupera dados de
+outra instalação; um banco com inventário existente é preservado.
 
 Para as rotinas periódicas, mantenha um segundo PowerShell aberto na pasta do projeto:
 

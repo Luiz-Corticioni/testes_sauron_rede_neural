@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fedora e RHEL 9.4+/compatíveis. Execute como usuário comum.
+# Instalação para usuário comum; outros sistemas podem fornecer Python 3.12.
 set -Eeuo pipefail
 umask 077
 trap 'printf "Falha na instalação (linha %s). A inicialização foi interrompida.\n" "$LINENO" >&2' ERR
@@ -25,13 +25,13 @@ while (($#)); do
             cat <<'AJUDA'
 Uso: bash instalar_linux.sh [opções]
   --simular       Mostra o plano sem instalar ou criar arquivos.
-  --sem-pacotes   Usa Python 3.12 já instalado; dispensa dnf/sudo.
+  --sem-pacotes   Usa Python 3.12 já instalado; dispensa gerenciador/sudo.
   --python PATH   Escolhe um interpretador Python 3.12.
   --verificar     Verifica instalação existente; não instala dependências.
   --host DNS --https  Configura instalação nova para proxy HTTPS.
   --atualizar     Autoriza migrações de banco existente após backup cifrado.
 Padrão: instalação local, acesso em 127.0.0.1:8000, ambiente .venv-linux.
-Não execute o instalador com sudo. Só a etapa dnf pede privilégio.
+Não execute o instalador com sudo. Só a instalação de pacotes pede privilégio.
 AJUDA
             exit 0 ;;
         *) printf 'Opção desconhecida: %s\n' "$1" >&2; exit 2 ;;
@@ -41,13 +41,21 @@ if [[ "$(uname -s)" != Linux ]]; then
     echo 'Execute este script dentro de um Linux. No Windows, use o instalador .bat.' >&2
     exit 2
 fi
+if [[ $SEM_PACOTES == 0 && $SIMULAR == 0 ]]; then
+    CANDIDATO="${PYTHON:-$(command -v python3.12 || true)}"
+    if [[ -n "$CANDIDATO" ]] && "$CANDIDATO" -c 'import sys, venv, ensurepip, ssl, sqlite3; assert sys.version_info[:2] == (3, 12)' 2>/dev/null; then
+        PYTHON="$CANDIDATO"
+        SEM_PACOTES=1
+        echo 'Python 3.12 e venv encontrados; instalação de pacotes do sistema dispensada.'
+    fi
+fi
 if [[ $SEM_PACOTES == 0 ]]; then
     [[ -r /etc/os-release ]] || { echo '/etc/os-release indisponível.' >&2; exit 2; }
     # Arquivo de identificação pertencente ao sistema operacional.
     . /etc/os-release
     . "$RAIZ/scripts/linux_plataforma.sh"
     escolher_pacotes "${ID:-}" "${VERSION_ID:-}"
-    printf 'Pacotes via dnf:'; printf ' %s' "${PACOTES[@]}"; printf '\n'
+    printf 'Pacotes via %s:' "$GERENCIADOR"; printf ' %s' "${PACOTES[@]}"; printf '\n'
 fi
 if [[ $SIMULAR == 1 ]]; then
     printf '%s\n' 'Plano: Python 3.12 → .venv-linux → requirements.txt → pip check → .env preservado/criado → backup se atualização → migrações/grupos/estáticos → âncora → diagnóstico.'
@@ -58,9 +66,9 @@ if [[ $EUID == 0 ]]; then
     exit 2
 fi
 if [[ $SEM_PACOTES == 0 ]]; then
-    command -v dnf >/dev/null || { echo 'dnf não encontrado.' >&2; exit 2; }
+    command -v "$GERENCIADOR" >/dev/null || { echo "Gerenciador $GERENCIADOR não encontrado; instale Python 3.12 com venv e use --sem-pacotes." >&2; exit 2; }
     command -v sudo >/dev/null || { echo 'sudo não encontrado. Peça ao administrador os pacotes e use --sem-pacotes.' >&2; exit 2; }
-    sudo dnf install -y "${PACOTES[@]}"
+    sudo "$GERENCIADOR" install -y "${PACOTES[@]}"
 fi
 if [[ $VERIFICAR == 1 ]]; then
     [[ -x "$RAIZ/.venv-linux/bin/python" ]] || { echo 'Ambiente .venv-linux ausente; execute a instalação.' >&2; exit 1; }
@@ -76,7 +84,7 @@ if [[ -e "$RAIZ/.venv-linux" && ! -x "$RAIZ/.venv-linux/bin/python" ]]; then
     exit 2
 fi
 if [[ ! -x "$RAIZ/.venv-linux/bin/python" ]]; then
-    "$PYTHON" -m venv "$RAIZ/.venv-linux"
+    "$PYTHON" -m venv "$RAIZ/.venv-linux" || { echo 'Falha ao criar venv. Instale o componente venv/ensurepip do Python 3.12 e confira as permissões.' >&2; exit 1; }
 fi
 VENV="$RAIZ/.venv-linux/bin/python"
 "$VENV" -c 'import sys; sys.exit(0 if sys.version_info[:2] == (3, 12) else "Ambiente existente incompatível com Python 3.12.")'

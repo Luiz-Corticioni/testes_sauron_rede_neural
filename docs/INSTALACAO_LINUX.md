@@ -1,7 +1,30 @@
-# Instalar Sauron em Fedora/RHEL
+# Instalar Sauron em Linux
+
+## Baixar o projeto
+
+Com Git instalado e conexão ao GitHub, abra o terminal na pasta em que deseja
+criar a pasta `sauron` e execute:
+
+```bash
+git clone --branch main --single-branch https://github.com/Luiz-Corticioni/testes_sauron_rede_neural.git sauron
+cd sauron
+ls instalar_linux.sh requirements.txt manage.py
+```
+
+Os três nomes devem aparecer. Execute os comandos seguintes nessa pasta. O clone
+baixa código e arquivos versionados; não traz o `.env`, o banco, senhas ou dados
+privados de outra máquina. Caso o Git não esteja instalado no Fedora, alguém com
+permissão de administração pode instalar o pacote `git` com `sudo dnf install git`.
+Sem Git, abra a [branch principal no GitHub](https://github.com/Luiz-Corticioni/testes_sauron_rede_neural/tree/main),
+selecione **Code → Download ZIP**, extraia o arquivo e abra um terminal dentro da
+pasta extraída. Se o clone ou download não terminar, confira a mensagem de erro,
+conexão, acesso ao GitHub e espaço livre; repetir os comandos de instalação não
+recupera um download incompleto.
+
+## Preparar e iniciar
 
 Execute os comandos dentro da pasta descompactada do projeto, em uma sessão de
-usuário comum com acesso a `sudo`. Não copie o ambiente `.venv` do Windows:
+usuário comum. Não copie o ambiente `.venv` do Windows:
 o instalador Linux usa `.venv-linux` e mantém o Python do sistema.
 
 ```bash
@@ -10,7 +33,9 @@ bash instalar_linux.sh
 bash iniciar_linux.sh --web
 ```
 
-O instalador baixa os pacotes necessários com `dnf`, cria o ambiente virtual Python
+Se Python 3.12 com `venv`, SSL e SQLite já estiver disponível, o instalador o usa
+sem solicitar `sudo`. Se não estiver, pode instalar pacotes do sistema via `dnf`
+no Fedora/RHEL ou `apt-get` no Ubuntu 24.04, com acesso a `sudo`. Ele cria o ambiente virtual Python
 3.12, instala as versões de `requirements.txt` usando wheels, verifica conflitos,
 gera chaves privadas em `.env` se ele não existir, aplica migrações, configura os
 grupos, publica arquivos estáticos, cria a primeira âncora e executa diagnósticos.
@@ -19,12 +44,16 @@ parte do funcionamento normal. Rede é necessária para repositórios dnf e PyPI
 Sem wheel compatível com a arquitetura, a instalação interrompe com erro em vez de
 compilar dependências implicitamente. Não cria senha padrão nem importa dados de exemplo.
 
-Suporte automático: Fedora com pacote `python3.12`; RHEL e compatíveis (Rocky/Alma/
+Suporte automático de pacotes: Ubuntu 24.04; Fedora com pacote `python3.12`; RHEL e compatíveis (Rocky/Alma/
 CentOS Stream) 9.4 ou posterior com os pacotes Python 3.12 do fornecedor. Em RHEL,
 a assinatura e os repositórios oficiais precisam estar habilitados pelo administrador.
 O script não habilita repositórios de terceiros. A disponibilidade pode variar por
 versão/arquitetura; leia o erro do dnf. Não se comprovou execução real nessas
 distribuições neste host Windows; a CI inclui containers Fedora/Rocky para esse teste.
+Em outra distribuição ou versão, instale Python 3.12, `venv`, SSL e SQLite por um
+meio adequado ao sistema e execute `bash instalar_linux.sh --sem-pacotes`.
+O suporte depende também de wheels das dependências para sua arquitetura; não é
+possível prometer compatibilidade com todas as distribuições e máquinas.
 
 Sem sudo, peça ao administrador os pacotes listados em `--simular` e use:
 
@@ -47,6 +76,15 @@ código enviado ao e-mail cadastrado, inclusive para contas administrativas. Con
 [EMAIL_E_MFA.md](EMAIL_E_MFA.md).
 Abra http://127.0.0.1:8000/entrar/ depois de iniciar `--web`.
 Esse modo usa o servidor de desenvolvimento do Django e acesso local.
+
+Para preencher **um banco de teste vazio** com o cenário fictício incluído no código:
+
+```bash
+.venv-linux/bin/python manage.py seed_demo
+```
+
+Esse comando não baixa os arquivos pessoais de outra instalação. Ele ignora um banco
+que já contenha inventário. Dados anteriores exigem restauração ou importação autorizada.
 
 Outras interfaces:
 

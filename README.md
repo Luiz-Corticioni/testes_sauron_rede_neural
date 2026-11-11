@@ -12,11 +12,13 @@ do ambiente.
 | Quero... | Acesse |
 |---|---|
 | Instalar e abrir no meu computador Windows | [Primeiro acesso no Windows](docs/INSTALACAO_WINDOWS.md) |
+| Instalar e abrir no Linux | [Instalação Linux](docs/INSTALACAO_LINUX.md) |
 | Usar a interface, do cadastro aos relatórios | [Manual de uso](docs/GUIA_DE_USO.md) |
 | Criar o primeiro administrador e configurar o segundo fator | [Primeiro administrador e login](#primeiro-administrador-e-login) e [e-mail e MFA](docs/EMAIL_E_MFA.md) |
 | Entender os resultados sem conhecimento técnico profundo | [Guia simples das funcionalidades](docs/GUIA_SIMPLES_REANALISE_2026-11-10.md) |
 | Executar com Docker ou implantar em servidor | [Docker](docs/DOCKER_TRABALHO_2.md) e [implantação](docs/IMPLANTACAO.md) |
 | Encontrar documentos técnicos e relatórios | [Índice da documentação](docs/README.md) |
+| Conferir as alterações recentes de instalação e TOTP | [Relatório de 11/11/2026](docs/RELATORIO_INSTALACAO_E_TOTP_2026-11-11.md) |
 
 ## Abrir a interface gráfica
 
@@ -52,7 +54,7 @@ O Compose padrão publica o site localmente em
 [http://127.0.0.1:2228/entrar/](http://127.0.0.1:2228/entrar/). A porta **8000**
 continua sendo usada dentro do container; o navegador usa **2228** no computador.
 
-Para Fedora/RHEL, consulte [instalação Linux](docs/INSTALACAO_LINUX.md). Para acesso
+Para Linux, consulte [instalação Linux](docs/INSTALACAO_LINUX.md). Para acesso
 por outra máquina, domínio e HTTPS exigem configuração de servidor e rede: siga
 [implantação](docs/IMPLANTACAO.md) e a seção de HTTPS do guia Docker.
 
@@ -85,7 +87,7 @@ Depois configure pelo menos um segundo fator e entre na página de login:
 3. Após entrar, abra **Guia rápido** no menu para consultar orientações dentro do site.
 
 **Aplicativo autenticador (TOTP):** para a conta `admin` do exemplo, provisione o
-dispositivo no terminal da instalação e cadastre a URI exibida em um aplicativo
+dispositivo no terminal da instalação e cadastre a chave Base32 exibida em um aplicativo
 autenticador compatível. A URI é um segredo; não a publique nem compartilhe.
 
 ```powershell
@@ -97,7 +99,8 @@ docker compose exec -it sauron python manage.py provisionar_mfa --usuario admin
 ```
 
 Na tela de MFA, abra **Usar aplicativo autenticador**, informe a senha e o código
-atual e clique em **Verificar autenticador**.
+atual e clique em **Verificar autenticador**. Para cadastrar a chave no celular,
+consulte o [passo a passo do TOTP](docs/EMAIL_E_MFA.md#aplicativo-autenticador-passo-a-passo).
 
 **Código por e-mail:** configure primeiro uma conta de envio SMTP autorizada no
 servidor, seguindo [e-mail e MFA](docs/EMAIL_E_MFA.md). Na tela, clique em **Enviar

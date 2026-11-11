@@ -1,4 +1,6 @@
 """Provisionamento e recuperação locais, com revogação do dispositivo anterior."""
+import base64
+
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -31,5 +33,11 @@ class Command(BaseCommand):
                 DispositivoEmail.objects.filter(user=usuario).update(confirmed=False, codigo_hash="", nonce="", pode_adotar=False, expira_em=None, email_confirmado_hash="")
             device = TOTPDevice.objects.create(user=usuario, name="Autenticador", confirmed=False)
             registrar_evento("MFA_RECUPERADO" if options["substituir"] else "MFA_PROVISIONADO", "Autenticacao", usuario.username, {"motivo": options["motivo"][:1000]})
-        self.stdout.write("SEGREDO: cadastrar em autenticador TOTP e descartar esta saída com segurança.")
+        self.stdout.write("SEGREDO: não compartilhe nem fotografe esta saída. Ela permite gerar os códigos da conta.")
+        self.stdout.write("No aplicativo autenticador, escolha adicionar conta por chave de configuração:")
+        self.stdout.write(f"Conta: {usuario.username}")
+        self.stdout.write(f"Chave (Base32): {base64.b32encode(device.bin_key).decode('ascii')}")
+        self.stdout.write(f"Tipo: baseado em tempo (TOTP); dígitos: {device.digits}; período: {device.step} segundos.")
+        self.stdout.write("Alternativa para aplicativos que aceitam URI de provisionamento:")
         self.stdout.write(device.config_url)
+        self.stdout.write("Entre com usuário e senha; em 'Usar aplicativo autenticador', informe a senha e o código atual.")
