@@ -9,6 +9,39 @@ document.addEventListener("DOMContentLoaded", () => {
   const moeda = v => new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0}).format(v);
   const percentual = v => new Intl.NumberFormat("pt-BR", {style:"percent", maximumFractionDigits:1}).format(v);
   const numero = v => new Intl.NumberFormat("pt-BR").format(v);
+  const contexto = porId("mc-contexto"), aplicarContexto = porId("mc-contexto-aplicar");
+  const resultadoContexto = porId("mc-contexto-resultado");
+  let faixaContexto = null;
+  contexto.addEventListener("input", () => {
+    faixaContexto = null;
+    aplicarContexto.disabled = true;
+    resultadoContexto.textContent = "Valores alterados; estime novamente antes de aplicar.";
+  });
+  contexto.addEventListener("submit", e => {
+    e.preventDefault();
+    faixaContexto = null;
+    aplicarContexto.disabled = true;
+    if (!contexto.reportValidity()) return;
+    const campos = new FormData(contexto), valor = nome => Number(campos.get(nome));
+    const hora = valor("custo_hora"), recuperacao = valor("recuperacao");
+    const horas = ["horas_min", "horas_moda", "horas_max"].map(valor);
+    const faixa = horas.map(h => h * hora + recuperacao);
+    if (![hora, recuperacao, ...horas, ...faixa].every(Number.isFinite) ||
+        !(horas[0] < horas[1] && horas[1] < horas[2]) ||
+        !(faixa[0] < faixa[1] && faixa[1] < faixa[2]) || faixa[2] > 1e15) {
+      resultadoContexto.textContent = "Informe custo por hora maior que zero, durações mínima < mais provável < máxima e valores dentro dos limites.";
+      return;
+    }
+    faixaContexto = faixa;
+    resultadoContexto.textContent = `Por incidente: mínimo ${moeda(faixa[0])}; mais provável ${moeda(faixa[1])}; máximo ${moeda(faixa[2])}. Confira as premissas antes de aplicar.`;
+    aplicarContexto.disabled = false;
+  });
+  aplicarContexto.addEventListener("click", () => {
+    if (!faixaContexto) return;
+    ["A_min", "A_moda", "A_max"].forEach((nome, i) => { parametros.elements[nome].value = faixaContexto[i]; });
+    resultadoContexto.textContent += " Faixa aplicada à disponibilidade para a simulação atual.";
+    agendar(true);
+  });
   let geracao = 0, temporizador, controlador;
   const svgNo = (nome, atributos = {}, texto) => {
     const no = document.createElementNS("http://www.w3.org/2000/svg", nome);
@@ -46,11 +79,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const limpar = () => {
     for (const id of ["mc-distribuicao", "mc-excedencia", "mc-comparacao", "mc-contribuicoes", "mc-excedencia-tabela", "mc-fontes"]) porId(id).replaceChildren();
     for (const id of ["mc-ganho", "mc-hipotese", "mc-escopo"]) porId(id).textContent = "";
+    for (const id of ["mc-kpi-media", "mc-kpi-p95", "mc-kpi-perda", "mc-kpi-reducao"]) porId(id).textContent = "—";
     saida.textContent = "";
   };
   const desenhar = r => {
     if (r.horizonte_dias !== 30) throw new Error("Resultado incompatível com o horizonte de 30 dias. Atualize a página.");
     if (!r.disponivel) {
+      for (const id of ["mc-kpi-media", "mc-kpi-p95", "mc-kpi-perda", "mc-kpi-reducao"]) porId(id).textContent = "—";
       for (const id of ["mc-distribuicao", "mc-excedencia", "mc-comparacao", "mc-contribuicoes", "mc-excedencia-tabela", "mc-fontes"]) porId(id).replaceChildren();
       porId("mc-ganho").textContent = "";
       porId("mc-frase").textContent = "Dados insuficientes para calcular perdas em 30 dias.";
@@ -60,7 +95,18 @@ document.addEventListener("DOMContentLoaded", () => {
       status.dataset.erro = "1";
       return;
     }
+    if (r.quantidade_incidencias === 0) {
+      limpar();
+      porId("mc-frase").textContent = "Não há incidências elegíveis para esta análise.";
+      status.textContent = "Cadastre e revise os vínculos do inventário. Ausência de registros não demonstra ausência de risco.";
+      status.dataset.erro = "1";
+      return;
+    }
     const a = r.antes, d = r.depois;
+    porId("mc-kpi-media").textContent = moeda(a.media);
+    porId("mc-kpi-p95").textContent = moeda(a.P95);
+    porId("mc-kpi-perda").textContent = percentual(a.probabilidade_perda);
+    porId("mc-kpi-reducao").textContent = moeda(r.ganho_media);
     const campos = ["media", "P50", "P90", "P95"];
     const {svg, x, y} = quadro("Comparação de perdas em 30 dias: média, mediana, P90 e P95. Consulte a tabela com os mesmos valores.", Math.max(1, ...campos.map(c => a[c])), moeda, ["Média", "Mediana", "P90", "P95"]);
     campos.forEach((campo,i) => {
@@ -72,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     porId("mc-distribuicao").replaceChildren(svg);
     const maxPerda = Math.max(1, ...r.excedencia.map(p => p.perda));
-    const q = quadro("Chance no cenário de 30 dias de ultrapassar cada perda: cenário atual e após correções. Valores na tabela de excedência.", 1, percentual, Array.from({length:5},(_,i) => moeda(maxPerda*i/4)));
+    const q = quadro("Frequência simulada em 30 dias de ultrapassar cada perda: cenário atual e após correções. Valores na tabela de excedência.", 1, percentual, Array.from({length:5},(_,i) => moeda(maxPerda*i/4)));
     const xPerda = valor => 140 + valor/maxPerda*780;
     for (const [campo, classe] of [["probabilidade", "mc-linha"], ["probabilidade_depois", "mc-linha-depois"]]) {
       const d = r.excedencia.map((p,i) => `${i ? "L" : "M"}${xPerda(p.perda)},${q.y(p[campo])}`).join(" ");
@@ -82,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
     porId("mc-frase").textContent = `Nos cenários hipotéticos de 30 dias, a média é ${moeda(a.media)}, a mediana é ${moeda(a.P50)} e o P95 é ${moeda(a.P95)}. Uma mediana zero pode coexistir com perdas elevadas em outros cenários.`;
     tabela("mc-comparacao", [["Mediana em 30 dias", moeda(a.P50), moeda(d.P50)], ["Perda média em 30 dias", moeda(a.media), moeda(d.media)],
       ["P90 dos cenários de 30 dias", moeda(a.P90), moeda(d.P90)], ["P5", moeda(a.P5), moeda(d.P5)],
-      ["P95", moeda(a.P95), moeda(d.P95)], ["P99", moeda(a.P99), moeda(d.P99)], ["Chance de alguma perda", percentual(a.probabilidade_perda), percentual(d.probabilidade_perda)]]);
+      ["P95", moeda(a.P95), moeda(d.P95)], ["P99", moeda(a.P99), moeda(d.P99)], ["Cenários com alguma perda", percentual(a.probabilidade_perda), percentual(d.probabilidade_perda)]]);
     porId("mc-ganho").textContent = `Redução estimada da perda média em 30 dias: ${moeda(r.ganho_media)}.`;
     tabela("mc-contribuicoes", r.contribuicoes.map(c => [c.cve, moeda(c.media_atribuida), moeda(c.ganho_correcao)]));
     tabela("mc-excedencia-tabela", r.excedencia.map(p => [moeda(p.perda), percentual(p.probabilidade), percentual(p.probabilidade_depois)]));

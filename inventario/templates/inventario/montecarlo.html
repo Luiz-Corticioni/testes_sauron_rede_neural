@@ -15,6 +15,16 @@
   <p class="muted">Estimativa, não previsão. Os custos padrão são exemplos didáticos e os fatores de cenário são hipóteses. EPSS descreve exploração da CVE no mundo real; não é uma probabilidade local de perda.</p>
 </section>
 <details class="panel"><summary>Dados necessários e atualização do EPSS</summary><p>O cálculo exige EPSS com observação de origem coerente e data de até dois dias para todas as incidências elegíveis. Não ter dados suficientes não significa risco zero. Se sua conta permite atualização, a ação abaixo consulta a FIRST pela internet; caso contrário, peça a atualização ao responsável pelo inventário.</p>{% if perms.inventario.change_vulnerabilidade %}<form method="post" action="{% url 'atualizar_epss' %}">{% csrf_token %}<button class="button secondary" type="submit">Consultar FIRST e atualizar EPSS (até 50 CVEs)</button></form>{% endif %}</details>
+<section class="panel" aria-labelledby="mc-executivo-titulo">
+  <span class="kicker">RESUMO PARA DECISÃO · 30 DIAS</span><h2 id="mc-executivo-titulo">O que os cenários mostram</h2>
+  <p>Os números dependem dos custos e fatores informados abaixo. São resultados do modelo exploratório, não probabilidades verificadas para esta empresa.</p>
+  <div class="mc-executivo">
+    <article><h3>Perda média simulada</h3><p id="mc-kpi-media">—</p><small>Média dos cenários, não uma cobrança prevista.</small></article>
+    <article><h3>P95 simulado</h3><p id="mc-kpi-p95">—</p><small>95% dos cenários ficam até esse valor; não é perda máxima.</small></article>
+    <article><h3>Cenários com perda</h3><p id="mc-kpi-perda">—</p><small>Frequência na simulação, não chance medida na empresa.</small></article>
+    <article><h3>Redução simulada</h3><p id="mc-kpi-reducao">—</p><small>Diferença entre médias após as correções selecionadas.</small></article>
+  </div>
+</section>
 <section class="panel" aria-labelledby="mc-distribuicao-titulo">
   <span class="kicker">01 · DISTRIBUIÇÃO DOS CENÁRIOS</span><h2 id="mc-distribuicao-titulo">Perdas simuladas no período de 30 dias</h2>
   <p>As barras comparam média e percentis. Mediana: metade dos cenários fica de cada lado. P90: 90% dos cenários calculados ficam até esse valor. Não há previsão diária ou data de ataque.</p>
@@ -22,8 +32,8 @@
   <div id="mc-distribuicao" class="mc-grafico"></div>
 </section>
 <section class="panel" aria-labelledby="mc-chance-titulo">
-  <span class="kicker">02 · CHANCE DE ULTRAPASSAR UM VALOR</span><h2 id="mc-chance-titulo">Chance de perder mais que R$…</h2>
-  <p>Escolha um valor na tabela abaixo para ler a frequência simulada de ultrapassagem em 30 dias. Os pontos resumem os cenários; o traçado entre pontos é aproximado.</p>
+  <span class="kicker">02 · FREQUÊNCIA SIMULADA</span><h2 id="mc-chance-titulo">Quantos cenários ultrapassam cada valor?</h2>
+  <p>A tabela mostra a proporção de cenários simulados que ultrapassam cada valor em 30 dias; ela não é uma chance medida para a empresa. Os pontos resumem os cenários; o traçado entre pontos é aproximado.</p>
   <div id="mc-excedencia" class="mc-grafico"></div>
 </section>
 <section class="panel" aria-labelledby="mc-corrigir-titulo">
@@ -33,14 +43,28 @@
   <p id="mc-ganho"></p>
   <fieldset id="mc-selecao"><legend>CVEs a corrigir</legend>
     {% for cve in cves %}<label class="mc-opcao"><input type="checkbox" name="cve" value="{{ cve.cve }}"> <span>{{ cve.cve }} · {{ cve.ativos }} ativo{{ cve.ativos|pluralize }} · incidências: {{ cve.incidencias|join:", " }}</span></label>
-    {% empty %}<p>Nenhuma incidência elegível. Os resultados serão zero para este inventário.</p>{% endfor %}
+    {% empty %}<p>Nenhuma incidência elegível. Cadastre os vínculos necessários; ausência de registros não demonstra ausência de risco.</p>{% endfor %}
   </fieldset>
   {% include 'inventario/componentes/simulacao.html' with montecarlo_financeiro=True %}
   <div class="mc-tabela"><table><caption>Contribuição em 30 dias atribuída e ganho marginal ao corrigir cada CVE</caption><thead><tr><th scope="col">CVE / ID</th><th scope="col">Parcela da perda média</th><th scope="col">Redução da média ao corrigir</th></tr></thead><tbody id="mc-contribuicoes"></tbody></table></div>
   <p class="muted">No mesmo ativo vale a maior perda, e as perdas entre ativos são somadas. As contribuições atribuem o máximo ao vencedor; empates seguem a ordem dos IDs. Ganhos individuais não devem ser somados.</p>
 </section>
 <section class="panel" aria-labelledby="mc-controles-titulo">
-  <span class="kicker">04 · CALIBRE COM SEU CLIENTE</span><h2 id="mc-controles-titulo">Custos e exposição</h2>
+  <span class="kicker">04 · CONTEXTO DA EMPRESA</span><h2 id="mc-controles-titulo">Comece pela paralisação de um serviço</h2>
+  <p>Estime quanto uma interrupção pode custar usando dados da empresa. <strong>Exemplo fictício:</strong> o portal de vendas da Loja Aurora tem uma perda econômica hipotética de R$ 1.000 por hora e R$ 2.000 de recuperação. Para 4, 8 e 24 horas, a faixa é de R$ 6.000, R$ 10.000 e R$ 26.000 por incidente. Todos esses valores foram inventados para demonstração.</p>
+  <p>Use perda econômica por hora, não faturamento integral automaticamente. Some apenas custos extras ainda não incluídos no valor por hora; não inclua vazamento ou fraude se já forem informados em outras categorias. Horas simultâneas e despesas comuns entre serviços não devem ser contadas duas vezes.</p>
+  <form id="mc-contexto" class="form">
+    <div class="mc-custos">
+      <label>Perda estimada por hora de interrupção (R$)<input type="number" name="custo_hora" min="0" max="1000000000000000" step="any" required></label>
+      <label>Recuperação adicional por incidente (R$)<input type="number" name="recuperacao" min="0" max="1000000000000000" step="any" value="0" required></label>
+      <fieldset><legend>Duração da interrupção (horas)</legend><label>Mínima <input type="number" name="horas_min" min="0" max="1000000" step="any" required></label><label>Mais provável <input type="number" name="horas_moda" min="0" max="1000000" step="any" required></label><label>Máxima <input type="number" name="horas_max" min="0" max="1000000" step="any" required></label></fieldset>
+    </div>
+    <button class="button secondary" type="submit">Estimar custo por incidente</button>
+    <p id="mc-contexto-resultado" role="status" aria-live="polite">Preencha os valores para estimar a faixa.</p>
+    <button id="mc-contexto-aplicar" class="button secondary" type="button" disabled>Usar a faixa em disponibilidade</button>
+    <p class="muted">Aplicar substitui apenas os três valores de disponibilidade abaixo e recalcula. Horas e componentes permanecem no navegador; a faixa aplicada é enviada à API e pode permanecer no cache do servidor. Essa faixa é para um incidente de impacto alto; o simulador ainda aplica pesos CVSS e outras hipóteses.</p>
+  </form>
+  <h2>Custos e exposição para a simulação</h2>
   <form id="mc-parametros" class="form">
     <p>Custos em R$ por incidente de impacto alto. Cada faixa exige mínimo &lt; valor mais provável &lt; máximo (distribuição PERT).</p>
     <div class="mc-custos">
@@ -56,7 +80,7 @@
 </section>
 <section class="panel" aria-labelledby="mc-tabelas-titulo">
   <span class="kicker">05 · TODOS OS VALORES DOS GRÁFICOS</span><h2 id="mc-tabelas-titulo">Leitura acessível dos resultados</h2>
-  <details><summary>Chance de ultrapassar cada valor</summary><div class="mc-tabela"><table><caption>Excedência em 30 dias nos pontos desenhados</caption><thead><tr><th scope="col">Perder mais que</th><th scope="col">Chance atual</th><th scope="col">Chance após correções</th></tr></thead><tbody id="mc-excedencia-tabela"></tbody></table></div></details>
+  <details><summary>Frequência simulada de ultrapassagem</summary><div class="mc-tabela"><table><caption>Excedência simulada em 30 dias nos pontos desenhados</caption><thead><tr><th scope="col">Perder mais que</th><th scope="col">Cenário atual</th><th scope="col">Após correções</th></tr></thead><tbody id="mc-excedencia-tabela"></tbody></table></div></details>
   <details><summary>Origem das probabilidades e hipóteses</summary><p id="mc-hipotese"></p><p>EPSS informa exploração de uma CVE em 30 dias, não a chance específica de ataque a este cliente. A simulação usa EPSS recente e coerente com sua observação de origem, sem anualização. Exige essa informação em todos os vínculos elegíveis; ausência não vira zero. Independência entre vínculos e fatores de cenário são hipóteses. KEV não cria uma probabilidade. Há no máximo um evento por vínculo no período; o limite financeiro vale para os mesmos 30 dias. Isto não é um modelo FAIR completo. Vetores CVSS 3.x usam pesos N=0, L=0,3 e H=1; sem vetor compatível, usa-se CVSS/10 em cada dimensão, marcado como estimado.</p><p id="mc-escopo"></p><div class="mc-tabela"><table><caption>Entradas efetivamente utilizadas</caption><thead><tr><th scope="col">Ativo</th><th scope="col">CVE / ID</th><th scope="col">EPSS 30 dias</th><th scope="col">Origem</th><th scope="col">Data EPSS</th><th scope="col">Hipótese ajustada · 30 dias</th><th scope="col">Impacto</th></tr></thead><tbody id="mc-fontes"></tbody></table></div></details>
 </section>
 <noscript><p class="panel">Ative o JavaScript para calcular os cenários financeiros. O menu do terminal oferece o mesmo cálculo.</p></noscript>

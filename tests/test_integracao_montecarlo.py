@@ -44,6 +44,13 @@ class IntegracaoMonteCarlo(BancoTeste):
         cve = self.post({**self.parametros, "cves_corrigidas": [self.v.cve_id]}).json()
         self.assertEqual(corrigido["depois"], cve["depois"])
 
+    def test_painel_executivo_e_calculadora_exigem_acesso_e_respondem(self):
+        resposta = self.client.get(reverse("montecarlo"))
+        for texto in ("RESUMO PARA DECISÃO", "mc-kpi-media", "mc-kpi-p95", "mc-contexto", "enviada à API", "Loja Aurora"):
+            self.assertContains(resposta, texto)
+        self.client.logout()
+        self.assertEqual(self.client.get(reverse("montecarlo")).status_code, 302)
+
     def test_erros_json(self):
         for dados in (None, [], {"n": 1}, {"seed": True}, {"custos": {}}, {"teto": -1},
                       {"exposicao_interna": float("nan")}, {"incidencias_corrigidas": [1]},

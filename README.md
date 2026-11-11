@@ -19,6 +19,7 @@ do ambiente.
 | Executar com Docker ou implantar em servidor | [Docker](docs/DOCKER_TRABALHO_2.md) e [implantação](docs/IMPLANTACAO.md) |
 | Encontrar documentos técnicos e relatórios | [Índice da documentação](docs/README.md) |
 | Conferir as alterações recentes de instalação e TOTP | [Relatório de 11/11/2026](docs/RELATORIO_INSTALACAO_E_TOTP_2026-11-11.md) |
+| Entender o plano e as premissas da análise financeira | [Risco financeiro e contexto empresarial](docs/PLANO_RISCO_FINANCEIRO_2026-11-11.md) |
 
 ## Abrir a interface gráfica
 

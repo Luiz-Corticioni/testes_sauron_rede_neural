@@ -31,6 +31,7 @@ jobs:
       - run: python manage.py test
       - run: python scripts/testar_smtp_local.py
       - run: python -m pytest -q testes_pytest --cov=inventario.dominio --cov=inventario.matematica.risco --cov=inventario.infraestrutura.repositorio_json --cov-report=term-missing
+      - run: node scripts/testar_dashboard_financeiro.cjs
       - run: ruff check .
       - run: bandit -r inventario sauron_web -x inventario/migrations
       - run: pip-audit -r requirements.txt
