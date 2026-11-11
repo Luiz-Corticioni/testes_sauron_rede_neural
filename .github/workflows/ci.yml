@@ -16,7 +16,7 @@ jobs:
       SAURON_ROTINAS_SEM_REDE: "1"
       PYTHONUTF8: "1"
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
@@ -44,7 +44,7 @@ jobs:
     needs: validacao
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: docker build -t sauron:ci .
       - run: python3 scripts/preparar_ambiente.py
       - run: echo 'SAURON_PUBLIC_HOST=sauron.example.org' >> .env
@@ -85,7 +85,7 @@ jobs:
     steps:
       - name: Preparar container descartável
         run: dnf install -y git tar gzip grep util-linux shadow-utils ca-certificates ${{ matrix.pacotes }}
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Executar como usuário comum
         shell: bash
         run: |
@@ -103,7 +103,7 @@ jobs:
     container: ubuntu:24.04
     steps:
       - run: apt-get update && apt-get install -y git ca-certificates python3.12 python3.12-venv util-linux
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Preparar como usuário comum
         shell: bash
         run: |
@@ -117,7 +117,7 @@ jobs:
     runs-on: windows-2022
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
