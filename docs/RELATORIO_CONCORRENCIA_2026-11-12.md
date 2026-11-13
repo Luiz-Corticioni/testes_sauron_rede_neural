@@ -24,3 +24,7 @@ A rejeição de versões antigas ocorre nos serviços usados pelas telas e pelo 
 - Nessa cópia SQLite, duas threads tentaram editar o mesmo perímetro usando a mesma versão e, em seguida, fizeram o mesmo com uma relação, com relógio congelado. Em cada caso, uma gravação ocorreu e a outra recebeu `ValidationError`. É um ensaio pontual, não um teste de carga ou validação de PostgreSQL.
 - A suíte Django completa passou no Windows local: 398 testes. Os 6 testes de pytest, 12 testes JavaScript e o teste do painel financeiro também passaram.
 - A CI do GitHub deve ser verificada para o commit publicado; os testes locais não comprovam, por si só, o resultado no runner remoto.
+
+## Correção adicional da CI
+
+Após a correção, os testes de Windows passaram no GitHub, mas o job da imagem não iniciou: a ação Trivy antiga referenciava `setup-trivy@v0.2.1`, versão indisponível. A ação foi atualizada para o commit oficial da v0.36.0, que fixa uma versão disponível da dependência. A política de falhar em vulnerabilidades altas e críticas permanece ativa; o resultado da nova execução precisa ser conferido.
