@@ -1,4 +1,20 @@
-from django.db import models, transaction
+from datetime import timedelta
+from django.db import DEFAULT_DB_ALIAS, models, transaction
+
+
+class DataHoraVersao(models.DateTimeField):
+    """Versão temporal estritamente crescente por registro sob a trava de escrita."""
+
+    def pre_save(self, instancia, add):
+        instante = super().pre_save(instancia, add)
+        if not add and instancia.pk is not None:
+            usando = instancia._state.db or DEFAULT_DB_ALIAS
+            anterior = (type(instancia)._base_manager.using(usando).filter(pk=instancia.pk)
+                        .values_list(self.attname, flat=True).first())
+            if anterior is not None and instante <= anterior:
+                instante = anterior + timedelta(microseconds=1)
+                setattr(instancia, self.attname, instante)
+        return instante
 
 
 class ModeloAuditavel(models.Model):

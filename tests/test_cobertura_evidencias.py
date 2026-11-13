@@ -230,10 +230,48 @@ class FluxoCobertura(BancoTeste):
         for nome, ids in (("outro", [self.a.pk]), (p.nome, ["INEXISTENTE"]), (p.nome, [self.a.pk]*2)):
             with self.assertRaises(ValidationError):
                 salvar_perimetro(self.usuario, nome, "Descrição", ids, p.pk, versao)
-        salvar_perimetro(self.usuario, p.nome, "Nova descrição", [self.a.pk], p.pk, versao)
-        with self.assertRaises(ValidationError):
-            salvar_perimetro(self.usuario, p.nome, "Concorrente", [self.b.pk], p.pk, versao)
+        # O segundo salvamento deve ser rejeitado mesmo se o relógio não avançar.
+        with patch("django.db.models.fields.timezone.now", return_value=p.atualizado_em):
+            salvar_perimetro(self.usuario, p.nome, "Nova descrição", [self.a.pk], p.pk, versao)
+            with self.assertRaises(ValidationError):
+                salvar_perimetro(self.usuario, p.nome, "Concorrente", [self.b.pk], p.pk, versao)
         self.assertEqual(list(p.ativos.values_list("pk", flat=True)), [self.a.pk])
+
+    def test_versao_do_perimetro_avanca_mesmo_se_relogio_retroceder(self):
+        p = self.perimetro()
+        inicial = p.atualizado_em
+        with patch("django.db.models.fields.timezone.now", return_value=inicial-timedelta(microseconds=1)):
+            primeiro = salvar_perimetro(self.usuario, p.nome, "Primeira revisão", [self.a.pk], p.pk, inicial.isoformat())
+            segundo = salvar_perimetro(self.usuario, p.nome, "Segunda revisão", [self.b.pk], p.pk, primeiro.atualizado_em.isoformat())
+        self.assertGreater(primeiro.atualizado_em, inicial)
+        self.assertGreater(segundo.atualizado_em, primeiro.atualizado_em)
+        p.refresh_from_db()
+        self.assertEqual(p.atualizado_em, segundo.atualizado_em)
+        self.assertEqual(set(p.ativos.values_list("pk", flat=True)), {self.b.pk})
+
+    def test_formulario_de_perimetro_rejeita_versao_antiga(self):
+        p = self.perimetro()
+        antiga = p.atualizado_em.isoformat()
+        with patch("django.db.models.fields.timezone.now", return_value=p.atualizado_em):
+            salvar_perimetro(self.usuario, p.nome, "Atualização confirmada", [self.a.pk], p.pk, antiga)
+            resposta = self.client.post(f"/perimetros/{p.pk}/editar/", {
+                "nome": p.nome, "descricao": "Formulário antigo", "ativos": [self.b.pk], "versao": antiga,
+            })
+        self.assertContains(resposta, "O perímetro mudou; recarregue antes de editar.")
+        p.refresh_from_db()
+        self.assertEqual(p.descricao, "Atualização confirmada")
+        self.assertEqual(set(p.ativos.values_list("pk", flat=True)), {self.a.pk})
+
+    def test_save_parcial_do_perimetro_invalida_versao_antiga(self):
+        p = self.perimetro()
+        antiga = p.atualizado_em.isoformat()
+        with patch("django.db.models.fields.timezone.now", return_value=p.atualizado_em):
+            p.descricao = "Atualização parcial"
+            p.save(update_fields=["descricao"])
+            with self.assertRaises(ValidationError):
+                salvar_perimetro(self.usuario, p.nome, "Tentativa antiga", [self.b.pk], p.pk, antiga)
+        p.refresh_from_db()
+        self.assertEqual(p.descricao, "Atualização parcial")
 
     def test_datas_e_evidencia_invalidas_nao_passam(self):
         p = self.perimetro()

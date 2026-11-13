@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxLengthValidator
 from django.db import models, transaction
 from django.utils import timezone
-from inventario.models.base import ModeloAuditavel
+from inventario.models.base import DataHoraVersao, ModeloAuditavel
 
 
 class RelacaoAtivos(ModeloAuditavel):
@@ -29,7 +29,7 @@ class RelacaoAtivos(ModeloAuditavel):
     criada_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="relacoes_criadas")
     atualizada_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="relacoes_atualizadas")
     criado_em = models.DateTimeField(auto_now_add=True)
-    atualizado_em = models.DateTimeField(auto_now=True)
+    atualizado_em = DataHoraVersao(auto_now=True)
 
     class Meta:
         ordering = ["tipo", "escopo", "pk"]
