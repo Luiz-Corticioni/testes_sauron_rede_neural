@@ -23,6 +23,8 @@ Dentro da interface web, o menu **Guia rápido** oferece uma orientação resumi
 responsáveis pelo negócio, analistas e responsáveis pelo inventário. Acesso a dados
 e ações depende das permissões de cada conta.
 
+- [Sprint 5: requisitos, evidências e pendências](SPRINT5_RASTREABILIDADE.md).
+
 ## Para compreender e avaliar
 
 - [Explicação técnica do projeto](EXPLICACAO_SAURON.md): domínio, relações e cálculo.
