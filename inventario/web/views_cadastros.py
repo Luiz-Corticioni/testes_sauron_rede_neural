@@ -58,7 +58,9 @@ def formulario(request, cadastro, pk=None):
     if request.method == "POST" and form.is_valid():
         try:
             salvar_cadastro(form.save(commit=False), request.user)
-        except (ValidationError, ValueError, IntegrityError) as erro:
+        except IntegrityError:
+            form.add_error(None, "Não foi possível salvar: confira dados duplicados ou vínculos e tente novamente.")
+        except (ValidationError, ValueError) as erro:
             texto = "; ".join(erro.messages) if isinstance(erro, ValidationError) else str(erro)
             form.add_error(None, texto)
         else:

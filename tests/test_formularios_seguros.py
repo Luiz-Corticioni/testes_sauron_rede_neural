@@ -41,3 +41,15 @@ class FormulariosSeguros(BancoTeste):
         self.a.refresh_from_db()
         self.assertFalse(self.a.linha_base_saudavel)
 
+
+    def test_erro_de_integridade_nao_expoe_detalhes_do_banco(self):
+        from unittest.mock import patch
+        from django.db import IntegrityError
+
+        dados = {"id": "VUL-INJ-1234", "descricao": "Exemplo", "categoria": "INJ",
+                 "cvss": "7.0", "cvss_versao": "3.1", "fonte": "Manual"}
+        with patch("inventario.web.views_cadastros.salvar_cadastro",
+                   side_effect=IntegrityError("DETALHE INTERNO DE SQL")):
+            resposta = self.client.post("/vulnerabilidades/nova/", dados)
+        self.assertContains(resposta, "dados duplicados")
+        self.assertNotContains(resposta, "DETALHE INTERNO DE SQL")
