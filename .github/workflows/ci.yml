@@ -54,6 +54,7 @@ jobs:
       - run: echo 'SAURON_PUBLIC_HOST=sauron.example.org' >> .env
       - run: echo 'SAURON_ROTINAS_SEM_REDE=1' >> .env
       - run: docker compose -f compose.yaml -f compose.https.yaml config --quiet
+      - run: docker compose -f compose.yaml -f compose.faculdade.yaml config --quiet
       - run: docker compose up -d --build
       - run: |
           for tentativa in $(seq 1 90); do

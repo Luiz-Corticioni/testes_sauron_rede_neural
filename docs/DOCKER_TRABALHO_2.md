@@ -144,3 +144,30 @@ O verificador exige 24 horas entre amostras, lacunas de até 90 segundos, estado
 `running` e `healthy` e a mesma execução sem reinícios. Guarde evidência real de
 build, logs, reboot, persistência e coleta; não edite datas para forçar aprovação.
 O monitoramento amostral não garante disponibilidade entre amostras.
+
+## Identificação no servidor compartilhado (Sprint 5)
+
+A matrícula informada é `12621CBS228`. O identificador normalizado é
+`trab02_2026_2_12621cbs228`; os três últimos dígitos são 228, portanto a
+porta externa exigida é **2000 + 228 = 2228**, conectada à porta interna 8000.
+
+Para uma instalação nova e autorizada, use os dois arquivos em todos os comandos:
+
+```sh
+python3 scripts/preparar_ambiente.py
+docker compose -f compose.yaml -f compose.faculdade.yaml config
+docker compose -f compose.yaml -f compose.faculdade.yaml up -d --build
+docker compose -f compose.yaml -f compose.faculdade.yaml ps -a
+docker compose -f compose.yaml -f compose.faculdade.yaml exec sauron python manage.py cadastrar_administrador --usuario admin --email seu_endereco@gmail.com
+```
+
+A sobreposição define nomes exclusivos para projeto, imagem e containers. O volume
+fica associado ao nome do projeto. **Não aplique essa mudança sobre uma instalação
+existente supondo que ela enxergará os dados antigos**: faça backup, identifique
+os volumes e planeje a migração antes. O repositório no GitHub mantém seu nome
+atual; renomeá-lo depende da orientação do professor e pode quebrar links.
+
+A porta continua vinculada a `127.0.0.1` do servidor, evitando exposição acidental.
+Para acesso remoto, combine com o administrador um proxy HTTPS ou túnel autorizado.
+A matrícula e os arquivos não comprovam acesso, implantação nem funcionamento
+contínuo de 24 horas: as evidências devem ser coletadas no servidor após liberação.

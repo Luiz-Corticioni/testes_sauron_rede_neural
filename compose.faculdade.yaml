@@ -1,0 +1,13 @@
+# Sobreposição apenas para uma instalação nova e autorizada no servidor compartilhado.
+# Não use sobre uma instalação existente sem planejar a migração do volume.
+name: trab02_2026_2_12621cbs228
+services:
+  preparar:
+    image: trab02_2026_2_12621cbs228:local
+    container_name: trab02_2026_2_12621cbs228_preparar
+  sauron:
+    image: trab02_2026_2_12621cbs228:local
+    container_name: trab02_2026_2_12621cbs228
+  agendador:
+    image: trab02_2026_2_12621cbs228:local
+    container_name: trab02_2026_2_12621cbs228_agendador
