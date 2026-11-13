@@ -10,7 +10,7 @@ from inventario.dominio.enums import TipoEquipamento
 ID_ATIVO_RE = re.compile(r"^[1-9][A-Z][0-9]{5}$")
 
 
-def _como_tipo(tipo: TipoEquipamento | str) -> TipoEquipamento:
+def _normalizar_tipo_equipamento(tipo: TipoEquipamento | str) -> TipoEquipamento:
     return tipo if isinstance(tipo, TipoEquipamento) else TipoEquipamento(str(tipo))
 
 
@@ -24,20 +24,20 @@ def codigo_fabricante(fabricante: str) -> str:
 def gerar_id_ativo(tipo: TipoEquipamento | str, fabricante: str, sequencia: int) -> str:
     if not 0 < sequencia <= 99999:
         raise ValueError("A sequência do ativo deve estar entre 1 e 99999.")
-    return f"{_como_tipo(tipo).value}{codigo_fabricante(fabricante)}{sequencia:05d}"
+    return f"{_normalizar_tipo_equipamento(tipo).value}{codigo_fabricante(fabricante)}{sequencia:05d}"
 
 
 def validar_id_ativo(identificador: str, tipo: TipoEquipamento | str | None = None) -> str:
     identificador = identificador.strip().upper()
     if not ID_ATIVO_RE.fullmatch(identificador):
         raise ValueError("ID inválido. Use: tipo + fabricante + 5 números, ex.: 4H21444.")
-    if tipo is not None and identificador[0] != _como_tipo(tipo).value:
+    if tipo is not None and identificador[0] != _normalizar_tipo_equipamento(tipo).value:
         raise ValueError("O primeiro algarismo do ID não corresponde ao tipo do ativo.")
     return identificador
 
 
 def gerar_hostname(tipo: TipoEquipamento | str, fabricante: str, sequencia: int) -> str:
-    classe = Equipamento.REGISTRO[_como_tipo(tipo)]
+    classe = Equipamento.REGISTRO[_normalizar_tipo_equipamento(tipo)]
     fab = "".join(c for c in fabricante.upper() if c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
     return f"SAU-{classe.PREFIXO_HOST}-{fab[:4] or 'GEN'}-{sequencia:05d}"
 
@@ -72,7 +72,7 @@ class Equipamento(ABC):
         super().__init_subclass__(**kwargs)
         tipo = cls.__dict__.get("TIPO")
         if tipo is not None:
-            tipo = _como_tipo(tipo)
+            tipo = _normalizar_tipo_equipamento(tipo)
             if tipo in Equipamento.REGISTRO:
                 raise ValueError(f"Tipo {tipo.value} já registrado.")
             Equipamento.REGISTRO[tipo] = cls
@@ -103,7 +103,7 @@ class Equipamento(ABC):
     @classmethod
     def from_dict(cls, dados: dict):
         dados = dict(dados)
-        tipo = _como_tipo(dados.pop("tipo"))
+        tipo = _normalizar_tipo_equipamento(dados.pop("tipo"))
         dados.pop("classe", None)
         dados.pop("fator_exposicao", None)
         dados["id"] = validar_id_ativo(dados["id"], tipo)
