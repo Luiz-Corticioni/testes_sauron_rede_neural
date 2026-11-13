@@ -1,10 +1,10 @@
 {% load l10n %}
-<svg class="sauron-eye {% if compacto %}eye-small{% endif %}" data-eye data-index="{{ indice_medio|default:0|unlocalize }}" viewBox="0 0 440 240" role="img" aria-labelledby="{{ olho_id }}-titulo">
-  <title id="{{ olho_id }}-titulo">{% if compacto %}Indicador do serviço{% else %}Índice global: média dos índices dos ativos, {{ indice_medio|default:0|floatformat:1 }} de 100{% endif %}</title>
+<svg class="sauron-eye {% if compacto %}eye-small{% endif %}" data-eye data-disponivel="{% if risco and risco.indices %}true{% else %}false{% endif %}" data-index="{{ indice_medio|default:0|unlocalize }}" viewBox="0 0 440 240" role="img" aria-labelledby="{{ olho_id }}-titulo">
+  <title id="{{ olho_id }}-titulo">{% if compacto %}Indicador de resposta do serviço{% elif risco and risco.indices %}Índice global: média dos índices dos ativos, {{ indice_medio|floatformat:1 }} de 100{% else %}Índice global indisponível{% endif %}</title>
   <defs>
     <radialGradient id="{{ olho_id }}-iris"><stop class="eye-core" offset="0"/><stop class="eye-warm" offset=".42"/><stop class="eye-hot" offset=".7"/><stop offset="1" stop-color="#7a0a14" stop-opacity="0"/></radialGradient>
     <filter id="{{ olho_id }}-chama" x="-40%" y="-40%" width="180%" height="180%">
-      <feTurbulence type="fractalNoise" baseFrequency=".018 .025" numOctaves="2" seed="8" result="ruido"><animate data-eye-animation attributeName="baseFrequency" values=".018 .025;.023 .018;.018 .025" dur="12s" repeatCount="indefinite" begin="indefinite"/></feTurbulence>
+      <feTurbulence type="fractalNoise" baseFrequency=".018 .025" numOctaves="2" seed="8" result="ruido"></feTurbulence>
       <feDisplacementMap in="SourceGraphic" in2="ruido" scale="11" xChannelSelector="R" yChannelSelector="G"/>
     </filter>
     <clipPath id="{{ olho_id }}-limite"><path d="M24 120Q220 -15 416 120Q220 255 24 120Z"/></clipPath>

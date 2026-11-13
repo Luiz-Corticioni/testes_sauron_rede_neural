@@ -20,6 +20,7 @@ do ambiente.
 | Encontrar documentos técnicos e relatórios | [Índice da documentação](docs/README.md) |
 | Conferir as alterações recentes de instalação e TOTP | [Relatório de 11/11/2026](docs/RELATORIO_INSTALACAO_E_TOTP_2026-11-11.md) |
 | Entender o plano e as premissas da análise financeira | [Risco financeiro e contexto empresarial](docs/PLANO_RISCO_FINANCEIRO_2026-11-11.md) |
+| Entender os componentes e critérios da interface | [Sistema visual](docs/DESIGN_SISTEMA.md) |
 
 ## Abrir a interface gráfica
 

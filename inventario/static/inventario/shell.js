@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!opened()) return;
     if (event.key === "Escape") closeMenu();
     if (event.key !== "Tab") return;
-    const items = [...sidebar.querySelectorAll("a[href],button:not([disabled])")];
+    const items = [...sidebar.querySelectorAll("a[href]:not([hidden]),button:not([disabled]),input:not([disabled]):not([type=hidden])")];
     const first = items[0], last = items[items.length - 1];
     if (event.shiftKey && document.activeElement === first) {
       event.preventDefault(); last.focus();

@@ -8,9 +8,11 @@
   <title>{% block title %}Sauron{% endblock %}</title>
   <link rel="icon" href="{% static 'inventario/sauron-eye.svg' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'inventario/sauron.css' %}">
+  <link rel="stylesheet" href="{% static 'inventario/interface.css' %}">
   <script src="{% static 'inventario/http.js' %}" defer></script>
   <script src="{% static 'inventario/autocomplete.js' %}" defer></script>
   <script src="{% static 'inventario/shell.js' %}" defer></script>
+  <script src="{% static 'inventario/busca-menu.js' %}" defer></script>
   <script src="{% static 'inventario/olho.js' %}" defer></script>
   {% block head %}{% endblock %}
 </head>
@@ -20,39 +22,40 @@
   <button class="sidebar-overlay" type="button" aria-label="Fechar navegação"></button>
   <aside class="sidebar" id="sidebar" aria-label="Navegação principal">
     <button class="drawer-close button secondary" type="button">Fechar navegação</button>
-    <a class="brand" href="{% url 'dashboard' %}" aria-label="Sauron — página inicial">
+    <a class="brand" href="{% if perms.inventario.view_ativo and perms.inventario.view_vulnerabilidade and perms.inventario.view_incidencia and perms.inventario.view_dependencia %}{% url 'dashboard' %}{% else %}{% url 'guia' %}{% endif %}" aria-label="Sauron — início">
       <span class="brand-mark"><img src="{% static 'inventario/sauron-eye.svg' %}" alt=""></span>
       <span class="brand-copy"><b>SAURON</b><small>Observatório de Risco</small></span>
     </a>
     {% if perms.inventario.add_ativo %}<a class="sidebar-action" href="{% url 'criar_ativo' %}"><span>＋</span> Cadastrar ativo</a>{% endif %}
-    <nav>
+    <div class="nav-search" hidden><label for="buscar-menu">Buscar no menu</label><input id="buscar-menu" type="search" placeholder="Ex.: ativos, riscos" autocomplete="off" aria-controls="navegacao-links" aria-describedby="resultado-menu"><p id="resultado-menu" role="status" aria-live="polite"></p></div>
+    <nav id="navegacao-links" aria-label="Seções do Sauron">
       <p class="nav-label">Monitoramento</p>
-      <a class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}aria-current="page"{% endif %}><span class="nav-index">01</span><span><b>Visão geral</b><small>Panorama de risco</small></span></a>
-      <a class="{% if request.resolver_match.url_name == 'ativos' or request.resolver_match.url_name == 'criar_ativo' or request.resolver_match.url_name == 'detalhe_ativo' %}active{% endif %}" href="{% url 'ativos' %}"><span class="nav-index">02</span><span><b>Ativos</b><small>Inventário e salas</small></span></a>
-      <a class="{% if request.resolver_match.url_name == 'vulnerabilidades' or request.resolver_match.url_name == 'criar_vulnerabilidade' %}active{% endif %}" href="{% url 'vulnerabilidades' %}"><span class="nav-index">03</span><span><b>Vulnerabilidades</b><small>Incidências e CVSS</small></span></a>
-      {% if perms.inventario.view_incidencia %}<a href="{% url 'incidencias' %}"><span class="nav-index">14</span><span><b>Incidências</b><small>Falhas por ativo</small></span></a>{% endif %}
-      {% if perms.inventario.view_dependencia %}<a href="{% url 'dependencias' %}"><span class="nav-index">15</span><span><b>Dependências</b><small>Propagação do risco</small></span></a>{% endif %}
-      {% if perms.inventario.view_sala %}<a href="{% url 'salas' %}"><span class="nav-index">16</span><span><b>Salas e subsetores</b><small>Estrutura da empresa</small></span></a>{% endif %}
+      {% if perms.inventario.view_ativo and perms.inventario.view_vulnerabilidade and perms.inventario.view_incidencia and perms.inventario.view_dependencia %}<a class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}aria-current="page"{% endif %}><span><b>Visão geral</b><small>Panorama de risco</small></span></a>{% endif %}
+      {% if perms.inventario.view_ativo %}<a class="{% if request.resolver_match.url_name == 'ativos' or request.resolver_match.url_name == 'criar_ativo' or request.resolver_match.url_name == 'detalhe_ativo' %}active{% endif %}" href="{% url 'ativos' %}"><span><b>Ativos</b><small>Inventário e salas</small></span></a>{% endif %}
+      {% if perms.inventario.view_vulnerabilidade %}<a class="{% if request.resolver_match.url_name == 'vulnerabilidades' or request.resolver_match.url_name == 'criar_vulnerabilidade' %}active{% endif %}" href="{% url 'vulnerabilidades' %}"><span><b>Vulnerabilidades</b><small>Incidências e CVSS</small></span></a>{% endif %}
+      {% if perms.inventario.view_incidencia %}<a href="{% url 'incidencias' %}"><span><b>Incidências</b><small>Falhas por ativo</small></span></a>{% endif %}
+      {% if perms.inventario.view_dependencia %}<a href="{% url 'dependencias' %}"><span><b>Dependências</b><small>Relações e impacto estimado</small></span></a>{% endif %}
+      {% if perms.inventario.view_sala %}<a href="{% url 'salas' %}"><span><b>Salas e subsetores</b><small>Estrutura da empresa</small></span></a>{% endif %}
       <p class="nav-label">Inteligência</p>
-      {% if perms.inventario.view_ativo and perms.inventario.view_relacaoativos %}<a href="{% url 'relacoes' %}"><span class="nav-index">23</span><span><b>Relações por camada</b><small>Rede, identidade e negócio</small></span></a>{% endif %}
+      {% if perms.inventario.view_ativo and perms.inventario.view_relacaoativos %}<a href="{% url 'relacoes' %}"><span><b>Relações por camada</b><small>Rede, identidade e negócio</small></span></a>{% endif %}
       {% if perms.inventario.view_dependencia and perms.inventario.view_incidencia and perms.inventario.view_vulnerabilidade and perms.inventario.view_ativo %}
-      <a href="{% url 'mapa' %}"><span class="nav-index">17</span><span><b>Mapa de dependências</b><small>O caminho do risco</small></span></a>
-      <a href="{% url 'matrizes' %}"><span class="nav-index">18</span><span><b>Matrizes</b><small>Incidência e amplificação</small></span></a>
-      <a class="{% if request.resolver_match.url_name == 'montecarlo' %}active{% endif %}" href="{% url 'montecarlo' %}" {% if request.resolver_match.url_name == 'montecarlo' %}aria-current="page"{% endif %}><span class="nav-index">20</span><span><b>Perda financeira</b><small>Cenários de custo em 30 dias</small></span></a>
-      <a href="{% url 'prioridades' %}"><span class="nav-index">19</span><span><b>Prioridade de correção</b><small>Simule o ganho</small></span></a>
+      <a href="{% url 'mapa' %}"><span><b>Mapa de dependências</b><small>Dependências declaradas</small></span></a>
+      <a href="{% url 'matrizes' %}"><span><b>Matrizes</b><small>Incidência e amplificação</small></span></a>
+      <a class="{% if request.resolver_match.url_name == 'montecarlo' %}active{% endif %}" href="{% url 'montecarlo' %}" {% if request.resolver_match.url_name == 'montecarlo' %}aria-current="page"{% endif %}><span><b>Perda financeira</b><small>Cenários de custo em 30 dias</small></span></a>
+      <a href="{% url 'prioridades' %}"><span><b>Prioridade de correção</b><small>Simule o ganho</small></span></a>
       {% endif %}
-      <a href="{% url 'imune' %}"><span class="nav-index">13</span><span><b>Sistema imune</b><small>Recomendações e tolerâncias</small></span></a>
-      <a href="{% url 'alertas' %}"><span class="nav-index">09</span><span><b>Alertas e decisões</b><small>Prazos, aceites e MTTR</small></span></a>
-      <a href="{% url 'software' %}"><span class="nav-index">10</span><span><b>Software</b><small>Componentes por ativo</small></span></a>
-      <a class="{% if request.resolver_match.url_name == 'cves' %}active{% endif %}" href="{% url 'cves' %}"><span class="nav-index">04</span><span><b>CVE / KEV</b><small>Ameaças exploradas</small></span></a>
-      <a class="{% if request.resolver_match.url_name == 'modo_euler' %}active{% endif %}" href="{% url 'modo_euler' %}"><span class="nav-index">05</span><span><b>Modo Euler</b><small>Cálculo científico</small></span></a>
-      {% if perms.inventario.view_vulnerabilidade %}<a href="{% url 'comparar_cvss' %}"><span class="nav-index">21</span><span><b>Comparar CVSS</b><small>Base 3.1 × 4.0 da NVD</small></span></a>{% endif %}
+      {% if perms.inventario.view_sugestaoimune and perms.inventario.view_anticorpo and perms.inventario.view_tolerancia %}<a href="{% url 'imune' %}"><span><b>Sistema imune</b><small>Recomendações e tolerâncias</small></span></a>{% endif %}
+      {% if perms.inventario.view_alerta and perms.inventario.view_incidencia and perms.inventario.view_ativo and perms.inventario.view_vulnerabilidade %}<a href="{% url 'alertas' %}"><span><b>Alertas e decisões</b><small>Prazos, aceites e MTTR</small></span></a>{% endif %}
+      {% if perms.inventario.view_software %}<a href="{% url 'software' %}"><span><b>Software</b><small>Componentes por ativo</small></span></a>{% endif %}
+      {% if perms.inventario.view_vulnerabilidade %}<a class="{% if request.resolver_match.url_name == 'cves' %}active{% endif %}" href="{% url 'cves' %}"><span><b>CVE / KEV</b><small>Vulnerabilidades e exploração conhecida</small></span></a>{% endif %}
+      {% if perms.inventario.view_ativo and perms.inventario.view_vulnerabilidade and perms.inventario.view_incidencia and perms.inventario.view_dependencia %}<a class="{% if request.resolver_match.url_name == 'modo_euler' %}active{% endif %}" href="{% url 'modo_euler' %}"><span><b>Modo Euler</b><small>Cálculo científico</small></span></a>{% endif %}
+      {% if perms.inventario.view_vulnerabilidade %}<a href="{% url 'comparar_cvss' %}"><span><b>Comparar CVSS</b><small>Base 3.1 × 4.0 da NVD</small></span></a>{% endif %}
       <p class="nav-label">Sistema</p>
-      {% if request.user.is_authenticated %}<a href="{% url 'guia' %}"><span class="nav-index">22</span><span><b>Guia rápido</b><small>Conceitos e decisões</small></span></a>{% endif %}
-      {% if perms.inventario.add_ativo %}<a href="{% url 'importar' %}"><span class="nav-index">11</span><span><b>Importar CSV</b><small>Validar antes de gravar</small></span></a>{% endif %}
-      <a href="{% url 'exportar_ativos_csv' %}"><span class="nav-index">06</span><span><b>Exportar dados</b><small>Relatório CSV</small></span></a>
-      {% if perms.inventario.view_registroauditoria %}<a href="{% url 'auditoria' %}"><span class="nav-index">08</span><span><b>Auditoria</b><small>Integridade dos registros</small></span></a>{% endif %}
-      {% if request.user.is_staff %}{% if user.is_staff %}<a href="/admin/"><span class="nav-index">07</span><span><b>Administração</b><small>Controle avançado</small></span></a>{% endif %}{% endif %}
+      {% if request.user.is_authenticated %}<a href="{% url 'guia' %}"><span><b>Guia rápido</b><small>Conceitos e decisões</small></span></a>{% endif %}
+      {% if perms.inventario.add_ativo %}<a href="{% url 'importar' %}"><span><b>Importar CSV</b><small>Validar antes de gravar</small></span></a>{% endif %}
+      {% if perms.inventario.view_ativo %}<a href="{% url 'exportar_ativos_csv' %}"><span><b>Exportar dados</b><small>Relatório CSV</small></span></a>{% endif %}
+      {% if perms.inventario.view_registroauditoria %}<a href="{% url 'auditoria' %}"><span><b>Auditoria</b><small>Integridade dos registros</small></span></a>{% endif %}
+      {% if request.user.is_staff %}{% if user.is_staff %}<a href="/admin/"><span><b>Administração</b><small>Controle avançado</small></span></a>{% endif %}{% endif %}
     </nav>
     <div class="sidebar-foot">
       <div><b id="service-label">Verificando o serviço</b><small id="service-detail">Aguardando resposta local</small></div>

@@ -1,0 +1,33 @@
+/* Camada visual compartilhada: orienta a leitura sem alterar os dados. */
+.nav-search{margin:0 3px 4px}
+.nav-search label{display:block;color:var(--osso);font-size:14px;margin-bottom:4px}
+.nav-search input{min-height:44px;font-size:14px}
+.nav-search p{font-size:14px;color:var(--cinza);margin:4px 0;min-height:1em}
+.sidebar nav a{min-height:44px}
+.sidebar nav b{font-size:14px}
+.nav-label{letter-spacing:1px}
+.hero{min-height:0;padding:28px 0 12px;grid-template-columns:minmax(0,1fr) minmax(170px,260px)}
+.hero h1{font-size:clamp(28px,3vw,40px);margin-bottom:10px}
+.hero-actions{margin-top:12px;gap:18px}.hero-copy>p{max-width:650px}
+.all-seeing .sauron-eye{max-width:210px}.vision-caption{margin-top:-10px}
+.metrics{margin:16px 0 24px}.metrics article{min-height:120px;padding:16px 18px}
+.metric-head i{display:none}
+.button{min-height:44px;font-size:14px}input,select,textarea{font-size:14px}
+.panel{border-color:#3e444f}.sidebar{border-right-color:#3e444f}
+.login-panel{max-width:620px}.login-panel form+form{margin-top:14px}
+@media (max-width:820px){.hero{padding:24px 0 12px;gap:12px}}
+@media (max-width:560px){.hero{grid-template-columns:1fr}.hero h1{font-size:32px}.all-seeing{display:flex;align-items:center;gap:8px;padding:0}.all-seeing .sauron-eye{max-width:130px}.vision-caption{margin:0;text-align:left}.metrics article{min-height:110px}}
+/* Texto funcional deve permanecer legível nas tabelas e na navegação. */
+label,.brand-copy small,.nav-label,.sidebar nav small,.sidebar-foot b,.sidebar-foot small,
+.kicker,.panel-title p,.panel-link,.metrics small,.metric-head,.row,.row span,
+.rank-list>div,.rank-list>div>span,.math-note,table,caption,th,td small,.form .helptext,
+.field .helptext,.result span,.guide p,.alert-row p,.alert-row small,.empty,.empty-inline,
+.legend,.timeline time,.kev-card p,.cve-explain{font-size:14px}
+.pill,.severity{font-size:14px}
+@media (max-width:820px){.live-badge span{display:inline}.topbar-start,.topbar-end{gap:8px}.user-chip{max-width:130px;overflow:hidden;white-space:nowrap}.user-chip>span{flex-shrink:0}}
+@media (max-width:420px){.topbar{padding-inline:12px}.topbar-start small{display:none}.user-chip{max-width:100px}.topbar-end{gap:6px}}
+.sauron-eye[data-band="indisponivel"] .eye-fire{opacity:.18;filter:grayscale(1)}
+/* Bordas e foco distinguem controles de seus fundos escuros. */
+.button{border-color:#d87d84}.button.secondary{border-color:#a2aab5}
+input,select,textarea,.menu-toggle{border-color:#8995a4}
+@media (prefers-contrast:more){:root{--osso:#fff;--cinza:#e2e6eb;--linha:#b6c0cc}.panel,.sidebar,input,select,textarea{border-color:#b6c0cc}:focus-visible{outline:3px solid #fff}}

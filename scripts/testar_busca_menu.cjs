@@ -1,0 +1,25 @@
+/* Verifica filtro da navegação renderizada sem acrescentar links não autorizados. */
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const vm = require("node:vm");
+const titulo = texto => ({textContent:texto, classList:{contains:n=>n === "nav-label"}, tagName:"P", hidden:false});
+const link = texto => ({textContent:texto, classList:{contains:()=>false}, tagName:"A", hidden:false});
+const monitor = titulo("Monitoramento"), ativos = link("Ativos Inventário"), vulnerabilidades = link("Vulnerabilidades Incidências");
+const inteligencia = titulo("Inteligência"), financeiro = link("Perda financeira Cenários");
+const nav = {children:[monitor, ativos, vulnerabilidades, inteligencia, financeiro]};
+const area = {hidden:true};
+const campo = {value:"", closest:()=>area, addEventListener:(evento, fn) => { if (evento === "input") campo.filtrar = fn; }};
+const resultado = {textContent:""};
+const nodes = {"buscar-menu":campo,"navegacao-links":nav,"resultado-menu":resultado};
+const document = {getElementById:id=>nodes[id], addEventListener:(evento, fn)=>{if(evento === "DOMContentLoaded")fn();}};
+vm.runInNewContext(fs.readFileSync("inventario/static/inventario/busca-menu.js", "utf8"), {document});
+assert.equal(area.hidden,false);
+campo.value = "incidencias"; campo.filtrar();
+assert.equal(ativos.hidden,true); assert.equal(vulnerabilidades.hidden,false);
+assert.equal(monitor.hidden,false); assert.equal(inteligencia.hidden,true); assert.match(resultado.textContent,/1 seção/);
+campo.value = "inexistente"; campo.filtrar();
+assert.equal(monitor.hidden,true); assert.equal(inteligencia.hidden,true); assert.match(resultado.textContent,/Nenhuma/);
+campo.value = ""; campo.filtrar();
+assert.equal(ativos.hidden,false); assert.equal(financeiro.hidden,false); assert.equal(resultado.textContent,"");
+assert.equal(nav.children.length,5);
+console.log("OK: busca acessível, acentos, estado vazio e somente links existentes.");
