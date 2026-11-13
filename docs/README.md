@@ -16,6 +16,7 @@ em que foram escritos. Eles não são um certificado de que um servidor está se
 | Entender funções e limitações em linguagem simples | [Guia simples](GUIA_SIMPLES_REANALISE_2026-11-10.md) |
 | Criar conta inicial, configurar SMTP/TOTP e recuperar acesso | [E-mail e MFA](EMAIL_E_MFA.md) |
 | Entender CVSS 3.1 e comparação com 4.0 | [Comparação CVSS](COMPARACAO_CVSS.md) |
+| Cadastrar sensores de isca e importar eventos de demonstração | [Sensores de isca — fase 1](HONEYPOT_FASE1.md) |
 | Executar com Docker, HTTPS e reunir evidências de 24 horas | [Docker para o trabalho](DOCKER_TRABALHO_2.md) |
 | Configurar servidor, atualização, backups e diagnóstico | [Implantação](IMPLANTACAO.md) |
 

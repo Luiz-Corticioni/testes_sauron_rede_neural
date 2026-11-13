@@ -1,0 +1,4 @@
+{% extends "inventario/base.html" %}
+{% block title %}{{ titulo }} — Sauron{% endblock %}
+{% block content %}<section class="page-heading"><div><h1>{{ titulo }}</h1><p>Importação manual de dados minimizados. Não inicia um honeypot nem recebe eventos automaticamente.</p></div></section>
+<article class="panel">{% if sensor %}<p>Sensor: {{ sensor.nome }}. Use o formato documentado e IDs únicos; senhas e comandos não são aceitos.</p>{% endif %}<form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.as_p }}<button class="button" type="submit">Salvar</button> <a href="{% url 'honeypot' %}">Cancelar</a></form></article>{% endblock %}

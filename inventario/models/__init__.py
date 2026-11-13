@@ -21,3 +21,5 @@ from inventario.models.ssvc import AvaliacaoSSVC
 from inventario.models.documentos import DocumentoInventario, ItemSBOM, AchadoComponente, DeclaracaoVEX
 from inventario.models.relacoes import RelacaoAtivos
 from inventario.models.cobertura import PerimetroRelacoes, MembroPerimetro, RevisaoCobertura
+
+from inventario.models.honeypot import SensorHoneypot, EventoHoneypot

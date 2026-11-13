@@ -2,6 +2,8 @@
 
 ## Não lançado — Sprint 5
 
+- Sensores de isca, importação manual de eventos minimizados e alertas agrupados; sem coletor nem exposição de rede.
+
 - Senhas novas usam Argon2id; hashes legados compatíveis são atualizados após verificação.
 - API v1 de leitura para ativos e incidências por vulnerabilidade, com permissões, MFA, paginação e contrato OpenAPI. A API de escrita permanece pendente.
 - Consulta local interativa da API e verificações mypy/OpenAPI na CI.

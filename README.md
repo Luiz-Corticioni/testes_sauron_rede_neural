@@ -18,6 +18,7 @@ do ambiente.
 | Entender os resultados sem conhecimento técnico profundo | [Guia simples das funcionalidades](docs/GUIA_SIMPLES_REANALISE_2026-11-10.md) |
 | Executar com Docker ou implantar em servidor | [Docker](docs/DOCKER_TRABALHO_2.md) e [implantação](docs/IMPLANTACAO.md) |
 | Acompanhar requisitos da Sprint 5 | [Rastreabilidade e pendências](docs/SPRINT5_RASTREABILIDADE.md) |
+| Testar sensores de isca e eventos fictícios | [Guia de honeypot](docs/HONEYPOT_FASE1.md) |
 | Encontrar documentos técnicos e relatórios | [Índice da documentação](docs/README.md) |
 | Conferir as alterações recentes de instalação e TOTP | [Relatório de 11/11/2026](docs/RELATORIO_INSTALACAO_E_TOTP_2026-11-11.md) |
 | Entender o plano e as premissas da análise financeira | [Risco financeiro e contexto empresarial](docs/PLANO_RISCO_FINANCEIRO_2026-11-11.md) |

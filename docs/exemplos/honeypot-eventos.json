@@ -1,0 +1,14 @@
+[
+  {
+    "id": "demo-001",
+    "observado_em": "2026-11-13T12:00:00Z",
+    "origem_ip": "192.0.2.10",
+    "tipo": "CONEXAO"
+  },
+  {
+    "id": "demo-002",
+    "observado_em": "2026-11-13T12:01:00Z",
+    "origem_ip": "192.0.2.10",
+    "tipo": "LOGIN_FALHOU"
+  }
+]

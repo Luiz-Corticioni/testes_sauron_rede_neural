@@ -77,7 +77,7 @@ class Software(ModeloAuditavel):
 class Alerta(ModeloAuditavel):
     TIPOS = [
         (t, t)
-        for t in ("LOGIN", "EOL", "CERT", "SLA", "KEV", "TENDENCIA", "IMUNE", "SEM_DONO", "ACEITE_VENCIDO")
+        for t in ("LOGIN", "EOL", "CERT", "SLA", "KEV", "TENDENCIA", "IMUNE", "SEM_DONO", "ACEITE_VENCIDO", "HONEYPOT")
     ]
     tipo = models.CharField(max_length=20, choices=TIPOS)
     severidade = models.PositiveSmallIntegerField(

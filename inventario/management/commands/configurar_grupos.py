@@ -24,12 +24,12 @@ def configurar_grupos():
     auditor, _ = Group.objects.get_or_create(name="Auditores")
     auditor.permissions.set(
         permissoes.filter(codename__startswith="view_").exclude(
-            content_type__model="travadominio",
+            content_type__model__in=["travadominio", "sensorhoneypot", "eventohoneypot"],
         )
     )
     operador, _ = Group.objects.get_or_create(name="Operadores")
     leitura = permissoes.filter(codename__startswith="view_").exclude(
-        content_type__model__in=["registroauditoria", "travadominio"],
+        content_type__model__in=["registroauditoria", "travadominio", "sensorhoneypot", "eventohoneypot"],
     )
     operador.permissions.set(
         leitura

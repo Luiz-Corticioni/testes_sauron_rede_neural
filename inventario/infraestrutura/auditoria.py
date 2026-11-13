@@ -157,6 +157,7 @@ def conectar_sinais():
         SugestaoImune,
         RelacaoAtivos,
         PerimetroRelacoes,
+        SensorHoneypot,
     )
 
     for modelo in (
@@ -174,6 +175,7 @@ def conectar_sinais():
         SugestaoImune,
         RelacaoAtivos,
         PerimetroRelacoes,
+        SensorHoneypot,
     ):
         post_save.connect(
             auditar_salvamento,
