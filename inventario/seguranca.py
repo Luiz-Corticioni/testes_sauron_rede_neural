@@ -18,6 +18,9 @@ class AcessoObrigatorioMiddleware(LoginRequiredMiddleware):
         if request.resolver_match.url_name in {"entrar", "api_saude"}:
             return None
         if not request.user.is_authenticated:
+            if request.path.startswith("/api/v1/"):
+                from inventario.web.api_v1 import problema
+                return problema(401, "Autenticação necessária", "Entre e conclua o segundo fator.")
             return self.handle_no_permission(request, view_func)
         if request.path.startswith("/admin/") and not request.user.is_staff:
             from django.core.exceptions import PermissionDenied

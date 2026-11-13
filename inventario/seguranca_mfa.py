@@ -31,6 +31,9 @@ class SessaoEMFAMiddleware:
         if (agora-ultima >= settings.SAURON_SESSAO_OCIOSA_MIN*60 or
                 agora-inicio >= settings.SAURON_SESSAO_ABSOLUTA_HORAS*3600):
             logout(request)
+            if request.path.startswith("/api/v1/"):
+                from inventario.web.api_v1 import problema
+                return problema(401, "Sessão expirada", "Entre e conclua o segundo fator novamente.")
             return HttpResponseRedirect(settings.LOGIN_URL)
         # Agrupa batimentos: evita UPDATE de sessão a cada leitura. A expiração
         # pode antecipar até 30s; a janela absoluta e o MFA continuam inalterados.
@@ -54,6 +57,9 @@ class SessaoEMFAMiddleware:
             elif request.user.is_verified() and anterior is None:
                 request.session["sauron_mfa_privilegiado"] = privilegiado
             if not request.user.is_verified():
+                if request.path.startswith("/api/v1/"):
+                    from inventario.web.api_v1 import problema
+                    return problema(403, "Segundo fator necessário", "Conclua o segundo fator para esta sessão.")
                 return HttpResponseRedirect("/mfa/")
             if request.method=="POST" and agora-request.session.get("sauron_reauth_em",0)>settings.SAURON_REAUTH_SEGUNDOS:
                 return HttpResponseRedirect("/mfa/")

@@ -3,6 +3,7 @@ from django.contrib.auth.views import LogoutView
 from inventario.seguranca import LoginProtegido, proteger
 
 from inventario.web import views
+from inventario.web import api_v1
 from inventario.web import views_documentos
 from inventario.web import views_relacoes
 from inventario.web import views_cobertura
@@ -31,6 +32,8 @@ PERMISSOES_RISCO = (
 
 
 urlpatterns = [
+    path("api/v1/ativos/", api_v1.ativos, name="api_v1_ativos"),
+    path("api/v1/vulnerabilidades/<str:pk>/ativos/", api_v1.ativos_afetados, name="api_v1_ativos_afetados"),
     path("epss/atualizar/", proteger(views_analises.atualizar_epss, *PERMISSOES_RISCO, "inventario.change_vulnerabilidade"), name="atualizar_epss"),
     path("qualidade-relacoes/", proteger(views_cobertura.painel, *LEITURA_COBERTURA), name="qualidade_relacoes"),
     path("api/qualidade-relacoes/", proteger(views_cobertura.api, *LEITURA_COBERTURA), name="api_qualidade_relacoes"),
