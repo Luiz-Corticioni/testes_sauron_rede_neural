@@ -42,6 +42,19 @@ def paginar(request, registros):
                          "paginas": paginador.num_pages, "resultados": list(parte.object_list)})
 
 
+def ativos_por_risco(qs, campos):
+    """Reutiliza o cálculo de risco existente sem alterar o significado do score."""
+    from inventario.aplicacao.risco import calcular_risco_banco
+
+    resultado = calcular_risco_banco(perfil="puro")
+    riscos = dict(zip(resultado["ids_ativos"], resultado["risco_efetivo"], strict=True))
+    registros = list(qs.order_by("id").values(*campos))
+    for item in registros:
+        item["risco_efetivo"] = riscos.get(item["id"], 0.0)
+    registros.sort(key=lambda item: (-item["risco_efetivo"], item["id"]))
+    return registros
+
+
 def ativos(request):
     erro = verificar(request, ("inventario.view_ativo",))
     if erro:
@@ -61,13 +74,7 @@ def ativos(request):
                       "inventario.view_dependencia")
         if not request.user.has_perms(permissoes):
             return problema(403, "Acesso negado", "A ordenação por risco exige acesso ao modelo de risco.")
-        from inventario.aplicacao.risco import calcular_risco_banco
-        resultado = calcular_risco_banco(perfil="puro")
-        riscos = dict(zip(resultado["ids_ativos"], resultado["risco_efetivo"], strict=True))
-        registros = list(qs.order_by("id").values(*campos))
-        for item in registros:
-            item["risco_efetivo"] = riscos.get(item["id"], 0.0)
-        registros.sort(key=lambda item: (-item["risco_efetivo"], item["id"]))
+        registros = ativos_por_risco(qs, campos)
     else:
         registros = qs.order_by(ordem, "id").values(*campos) if ordem != "id" else qs.order_by("id").values(*campos)
     return paginar(request, registros)
