@@ -30,7 +30,7 @@ class Vulnerabilidade:
     epss: float | None = None
     epss_data: str | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.id = self.id.strip().upper()
         if not VUL_RE.fullmatch(self.id):
             raise ValueError("ID de vulnerabilidade inválido. Ex.: VUL-RCE-0001.")
@@ -90,7 +90,7 @@ class Dependencia:
     peso: float
     descricao: str = ""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.peso = float(self.peso)
         if self.dependente_id == self.fornecedor_id:
             raise ValueError("Um ativo não pode depender de si próprio.")

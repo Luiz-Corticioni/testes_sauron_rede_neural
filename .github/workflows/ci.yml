@@ -36,6 +36,7 @@ jobs:
       - run: node scripts/testar_busca_menu.cjs
       - run: node scripts/testar_olho.cjs
       - run: ruff check .
+      - run: mypy --check-untyped-defs --follow-imports=silent --ignore-missing-imports inventario/dominio/equipamentos.py inventario/dominio/vulnerabilidades.py
       - run: bandit -r inventario sauron_web -x inventario/migrations
       - run: pip-audit -r requirements.txt
       - run: cyclonedx-py requirements requirements.txt -o sbom.cdx.json

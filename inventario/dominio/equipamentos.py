@@ -10,7 +10,7 @@ from inventario.dominio.enums import TipoEquipamento
 ID_ATIVO_RE = re.compile(r"^[1-9][A-Z][0-9]{5}$")
 
 
-def _como_tipo(tipo):
+def _como_tipo(tipo: TipoEquipamento | str) -> TipoEquipamento:
     return tipo if isinstance(tipo, TipoEquipamento) else TipoEquipamento(str(tipo))
 
 
@@ -21,13 +21,13 @@ def codigo_fabricante(fabricante: str) -> str:
     return letras[0]
 
 
-def gerar_id_ativo(tipo, fabricante: str, sequencia: int) -> str:
+def gerar_id_ativo(tipo: TipoEquipamento | str, fabricante: str, sequencia: int) -> str:
     if not 0 < sequencia <= 99999:
         raise ValueError("A sequência do ativo deve estar entre 1 e 99999.")
     return f"{_como_tipo(tipo).value}{codigo_fabricante(fabricante)}{sequencia:05d}"
 
 
-def validar_id_ativo(identificador: str, tipo=None) -> str:
+def validar_id_ativo(identificador: str, tipo: TipoEquipamento | str | None = None) -> str:
     identificador = identificador.strip().upper()
     if not ID_ATIVO_RE.fullmatch(identificador):
         raise ValueError("ID inválido. Use: tipo + fabricante + 5 números, ex.: 4H21444.")
@@ -36,7 +36,7 @@ def validar_id_ativo(identificador: str, tipo=None) -> str:
     return identificador
 
 
-def gerar_hostname(tipo, fabricante: str, sequencia: int) -> str:
+def gerar_hostname(tipo: TipoEquipamento | str, fabricante: str, sequencia: int) -> str:
     classe = Equipamento.REGISTRO[_como_tipo(tipo)]
     fab = "".join(c for c in fabricante.upper() if c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
     return f"SAU-{classe.PREFIXO_HOST}-{fab[:4] or 'GEN'}-{sequencia:05d}"
@@ -45,7 +45,6 @@ def gerar_hostname(tipo, fabricante: str, sequencia: int) -> str:
 @dataclass
 class Equipamento(ABC):
     REGISTRO: ClassVar[dict[TipoEquipamento, type[Equipamento]]] = {}
-    TIPO: ClassVar[TipoEquipamento]
     FATOR_BASE: ClassVar[float] = 1.0
     PREFIXO_HOST: ClassVar[str]
     ROTULO: ClassVar[str]
@@ -79,7 +78,7 @@ class Equipamento(ABC):
             Equipamento.REGISTRO[tipo] = cls
 
     @property
-    def tipo(self):
+    def tipo(self) -> TipoEquipamento:
         return self.TIPO
 
     @property
