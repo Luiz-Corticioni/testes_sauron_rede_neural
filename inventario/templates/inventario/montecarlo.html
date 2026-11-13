@@ -13,6 +13,7 @@
   <p id="mc-frase" class="mc-frase">Calculando os cenários do seu inventário…</p>
   <p id="mc-status" role="status" aria-live="polite">Preparando a simulação.</p>
   <p class="muted">Estimativa, não previsão. Os custos padrão são exemplos didáticos e os fatores de cenário são hipóteses. EPSS descreve exploração da CVE no mundo real; não é uma probabilidade local de perda.</p>
+  <nav class="mc-navegacao" aria-label="Atalhos da análise financeira"><a class="button secondary" href="#mc-executivo-titulo">Ver resumo</a><a class="button secondary" href="#mc-controles-titulo">Informar contexto</a><a class="button secondary" href="#mc-corrigir-titulo">Comparar correções</a><a class="button secondary" href="#mc-tabelas-titulo">Conferir hipóteses</a></nav>
 </section>
 <details class="panel"><summary>Dados necessários e atualização do EPSS</summary><p>O cálculo exige EPSS com observação de origem coerente e data de até dois dias para todas as incidências elegíveis. Não ter dados suficientes não significa risco zero. Se sua conta permite atualização, a ação abaixo consulta a FIRST pela internet; caso contrário, peça a atualização ao responsável pelo inventário.</p>{% if perms.inventario.change_vulnerabilidade %}<form method="post" action="{% url 'atualizar_epss' %}">{% csrf_token %}<button class="button secondary" type="submit">Consultar FIRST e atualizar EPSS (até 50 CVEs)</button></form>{% endif %}</details>
 <section class="panel" aria-labelledby="mc-executivo-titulo">

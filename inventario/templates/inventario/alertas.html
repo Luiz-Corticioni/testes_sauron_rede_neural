@@ -15,7 +15,7 @@
 <a href="{% url 'exportar_colecao_csv' 'risco' %}">Risco puro CSV</a></p>
 {% if rotina.erros %}<p class="error">Rotina parcial: {{ rotina.erros }}. As demais etapas continuaram.</p>{% endif %}
 {% if rotina.etapas.software.avisos %}<p class="error">Revisão de software: {{ rotina.etapas.software.avisos }}</p>{% endif %}
-<div class="table-wrap"><table><thead><tr><th>Tipo</th><th>Nível 1–4</th><th>Ativo</th><th>Mensagem</th><th>Ciência</th></tr></thead><tbody>
+<div class="table-wrap"><table><caption>Alertas na seleção atual</caption><thead><tr><th scope="col">Tipo</th><th scope="col">Nível 1–4</th><th scope="col">Ativo</th><th scope="col">Mensagem</th><th scope="col">Ciência</th></tr></thead><tbody>
 {% for alerta in alertas %}<tr><td>{{ alerta.tipo }}</td><td>{{ alerta.severidade }}</td><td>{{ alerta.ativo_id|default:"Infraestrutura" }}</td><td>{{ alerta.mensagem }}</td>
 <td>{% if alerta.reconhecido_em %}{{ alerta.reconhecido_por }} · {{ alerta.reconhecido_em }}{% elif perms.inventario.reconhecer_alerta %}
 <form method="post" action="{% url 'reconhecer_alerta' alerta.pk %}">{% csrf_token %}<button class="button" type="submit">Reconhecer</button></form>{% else %}Pendente{% endif %}</td></tr>

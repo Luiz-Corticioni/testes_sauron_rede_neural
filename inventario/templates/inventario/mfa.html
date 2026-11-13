@@ -15,7 +15,8 @@
 <label for="codigo-email">Código de 6 dígitos recebido por e-mail</label><input id="codigo-email" name="token" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
 <button type="submit" class="button">Verificar código de e-mail</button></form>
 <p>O código vale por 5 minutos e pode ser usado uma vez. Confira também a pasta de spam.</p>{% endif %}
-{% if dispositivos %}<details class="decision"><summary>Usar aplicativo autenticador</summary>
+{% if dispositivos %}<details class="decision" {% if not email_configurado or not email_valido %}open{% endif %}><summary>Usar aplicativo autenticador</summary>
+<p>Abra o autenticador no celular e informe abaixo o código atual de seis dígitos. Se o código não funcionar, confira a data e a hora do celular e do computador.</p>
 <form method="post">{% csrf_token %}<input type="hidden" name="acao" value="totp">
 <label for="dispositivo">Autenticador</label><select id="dispositivo" name="dispositivo">{% for d in dispositivos %}<option value="{{ d.pk }}">{{ d.name }}</option>{% endfor %}</select>
 <label for="senha-mfa">Senha atual</label><input id="senha-mfa" name="password" type="password" autocomplete="current-password" required>
