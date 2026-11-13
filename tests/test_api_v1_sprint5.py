@@ -60,3 +60,13 @@ class ConsultasV1(BancoTeste):
         self.assertEqual(nomes, nomes_antecipados)
         self.assertEqual(len(lento), 3)
         self.assertEqual(len(rapido), 1)
+
+    def test_documentacao_interativa_e_especificacao_locais(self):
+        pagina = self.client.get("/api/v1/docs/")
+        self.assertContains(pagina, "Consultar a API v1")
+        self.assertContains(pagina, "/api/v1/ativos/")
+        contrato = self.client.get("/api/v1/openapi.json")
+        self.assertEqual(contrato.status_code, 200)
+        self.assertEqual(contrato.json()["openapi"], "3.1.0")
+        self.client.logout()
+        self.assertEqual(self.client.get("/api/v1/openapi.json").status_code, 401)

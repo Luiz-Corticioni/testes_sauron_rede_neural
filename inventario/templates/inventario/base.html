@@ -52,6 +52,7 @@
       {% if perms.inventario.view_vulnerabilidade %}<a href="{% url 'comparar_cvss' %}"><span><b>Comparar CVSS</b><small>Base 3.1 × 4.0 da NVD</small></span></a>{% endif %}
       <p class="nav-label">Sistema</p>
       {% if request.user.is_authenticated %}<a href="{% url 'guia' %}"><span><b>Guia rápido</b><small>Conceitos e decisões</small></span></a>{% endif %}
+      {% if perms.inventario.view_ativo %}<a href="{% url 'api_v1_docs' %}"><span><b>API v1</b><small>Consulta e contrato</small></span></a>{% endif %}
       {% if perms.inventario.add_ativo %}<a href="{% url 'importar' %}"><span><b>Importar CSV</b><small>Validar antes de gravar</small></span></a>{% endif %}
       {% if perms.inventario.view_ativo %}<a href="{% url 'exportar_ativos_csv' %}"><span><b>Exportar dados</b><small>Relatório CSV</small></span></a>{% endif %}
       {% if perms.inventario.view_registroauditoria %}<a href="{% url 'auditoria' %}"><span><b>Auditoria</b><small>Integridade dos registros</small></span></a>{% endif %}

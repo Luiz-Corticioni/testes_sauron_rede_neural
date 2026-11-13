@@ -32,6 +32,8 @@ PERMISSOES_RISCO = (
 
 
 urlpatterns = [
+    path("api/v1/docs/", api_v1.documentacao, name="api_v1_docs"),
+    path("api/v1/openapi.json", api_v1.especificacao, name="api_v1_especificacao"),
     path("api/v1/ativos/", api_v1.ativos, name="api_v1_ativos"),
     path("api/v1/vulnerabilidades/<str:pk>/ativos/", api_v1.ativos_afetados, name="api_v1_ativos_afetados"),
     path("epss/atualizar/", proteger(views_analises.atualizar_epss, *PERMISSOES_RISCO, "inventario.change_vulnerabilidade"), name="atualizar_epss"),

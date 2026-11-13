@@ -1,0 +1,13 @@
+{% extends "inventario/base.html" %}
+{% block title %}API v1 — Sauron{% endblock %}
+{% block content %}
+<section class="page-heading"><div><span class="kicker">INTEGRAÇÃO</span><h1>Consultar a API v1</h1><p>Explore consultas de leitura usando as permissões da sua sessão. Conclua o segundo fator antes de consultar.</p></div></section>
+<article class="panel"><h2>Ativos</h2><p>Ordenar por risco exige permissão de leitura do modelo completo. Os valores são pontos, não probabilidades.</p>
+<form method="get" action="{% url 'api_v1_ativos' %}">
+<label for="busca">Nome, hostname ou ID</label><input id="busca" name="busca" maxlength="100">
+<label for="tamanho">Resultados por página</label><input id="tamanho" name="tamanho" type="number" min="1" max="100" value="25">
+<label for="ordem">Ordenar</label><select id="ordem" name="ordenar"><option value="id">ID</option><option value="nome">Nome</option><option value="-risco">Risco efetivo</option></select>
+<button type="submit">Consultar ativos</button></form></article>
+<article class="panel"><h2>Ativos por vulnerabilidade</h2><p>Acesse a rota informando o identificador cadastrado, por exemplo <code>/api/v1/vulnerabilidades/VUL-RCE-0001/ativos/</code>. Cada resultado é uma incidência, cujo status deve ser interpretado antes de afirmar que a falha continua aberta.</p></article>
+<article class="panel"><h2>Contrato</h2><p><a href="{% url 'api_v1_especificacao' %}">Abrir especificação OpenAPI</a>. Ela descreve as duas consultas v1; as APIs legadas e operações de escrita não fazem parte do contrato atual.</p></article>
+{% endblock %}

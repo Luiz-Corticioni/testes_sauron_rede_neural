@@ -83,3 +83,24 @@ def ativos_afetados(request, pk):
     registros = Incidencia.objects.filter(vulnerabilidade_id=pk).order_by("ativo_id", "id").values(
         "id", "status", "ativo_id", "ativo__nome", "ativo__hostname")
     return paginar(request, registros)
+
+
+def especificacao(request):
+    erro = verificar(request, ())
+    if erro:
+        return erro
+    import json
+    from django.conf import settings
+
+    caminho = settings.BASE_DIR / "docs" / "openapi-v1.json"
+    with caminho.open(encoding="utf-8") as arquivo:
+        return JsonResponse(json.load(arquivo))
+
+
+def documentacao(request):
+    erro = verificar(request, ("inventario.view_ativo",))
+    if erro:
+        return erro
+    from django.shortcuts import render
+
+    return render(request, "inventario/api_v1.html")
