@@ -187,12 +187,51 @@ class IntegracaoRelacoes(BancoTeste):
     def test_edicao_usa_versao_evitar_sobrescrever_alteracao_concorrente(self):
         r = self.criar()
         versao = r.atualizado_em.isoformat()
-        salvar_relacao({"evidencia": "Revisão feita por outro operador"}, self.usuario, r.pk, versao)
-        with self.assertRaises(ValidationError):
-            salvar_relacao({"vigente": False}, self.usuario, r.pk, versao)
+        # Simula o relógio de baixa resolução observado no Windows.
+        with patch("django.db.models.fields.timezone.now", return_value=r.atualizado_em):
+            salvar_relacao({"evidencia": "Revisão feita por outro operador"}, self.usuario, r.pk, versao)
+            with self.assertRaises(ValidationError):
+                salvar_relacao({"vigente": False}, self.usuario, r.pk, versao)
         r.refresh_from_db()
         self.assertTrue(r.vigente)
         self.assertEqual(r.evidencia, "Revisão feita por outro operador")
+
+    def test_versao_avanca_em_gravacoes_seguidas_com_relogio_retrocedendo(self):
+        r = self.criar()
+        inicial = r.atualizado_em
+        with patch("django.db.models.fields.timezone.now", return_value=inicial-timedelta(microseconds=1)):
+            primeiro = salvar_relacao({"evidencia": "Primeira revisão"}, self.usuario, r.pk, inicial.isoformat())
+            segundo = salvar_relacao({"evidencia": "Segunda revisão"}, self.usuario, r.pk, primeiro.atualizado_em.isoformat())
+        self.assertGreater(primeiro.atualizado_em, inicial)
+        self.assertGreater(segundo.atualizado_em, primeiro.atualizado_em)
+        r.refresh_from_db()
+        self.assertEqual(r.atualizado_em, segundo.atualizado_em)
+        self.assertEqual(r.evidencia, "Segunda revisão")
+
+    def test_formulario_rejeita_versao_antiga_e_preserva_a_alteracao(self):
+        r = self.criar()
+        antiga = r.atualizado_em.isoformat()
+        with patch("django.db.models.fields.timezone.now", return_value=r.atualizado_em):
+            salvar_relacao({"evidencia": "Atualização confirmada"}, self.usuario, r.pk, antiga)
+            dados = self.dados(evidencia="Formulário antigo")
+            dados["origem"] = dados.pop("origem_id")
+            dados["destino"] = dados.pop("destino_id")
+            dados["versao"] = antiga
+            resposta = self.client.post(f"/relacoes/{r.pk}/editar/", dados)
+        self.assertContains(resposta, "A relação mudou; recarregue antes de editar.")
+        r.refresh_from_db()
+        self.assertEqual(r.evidencia, "Atualização confirmada")
+
+    def test_save_com_update_fields_tambem_invalida_versao_antiga(self):
+        r = self.criar()
+        antiga = r.atualizado_em.isoformat()
+        with patch("django.db.models.fields.timezone.now", return_value=r.atualizado_em):
+            r.evidencia = "Alteração pelo cadastro administrativo"
+            r.save(update_fields=["evidencia"])
+            with self.assertRaises(ValidationError):
+                salvar_relacao({"evidencia": "Tentativa antiga"}, self.usuario, r.pk, antiga)
+        r.refresh_from_db()
+        self.assertEqual(r.evidencia, "Alteração pelo cadastro administrativo")
 
     def test_campos_de_autoria_nao_podem_ser_injetados_no_servico(self):
         for extra in ({"criada_por_id": self.usuario.pk}, {"atualizado_em": timezone.now()}, {"id": 100}):

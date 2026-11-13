@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxLengthValidator
 from django.db import models
 from django.utils import timezone
-from inventario.models.base import ModeloAuditavel
+from inventario.models.base import DataHoraVersao, ModeloAuditavel
 
 
 class PerimetroRelacoes(ModeloAuditavel):
@@ -14,7 +14,7 @@ class PerimetroRelacoes(ModeloAuditavel):
     ativos = models.ManyToManyField("Ativo", through="MembroPerimetro")
     criada_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="perimetros_criados")
     atualizada_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="perimetros_atualizados")
-    atualizado_em = models.DateTimeField(auto_now=True)
+    atualizado_em = DataHoraVersao(auto_now=True)
 
     class Meta:
         ordering = ["nome"]
