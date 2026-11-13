@@ -24,6 +24,11 @@ class TipoEquipamento(str, Enum):
         return Equipamento.REGISTRO[self].ROTULO
 
 
+def normalizar_tipo_equipamento(tipo: TipoEquipamento | str) -> TipoEquipamento:
+    """Aceita a representação textual antiga ou o enum do domínio."""
+    return tipo if isinstance(tipo, TipoEquipamento) else TipoEquipamento(str(tipo))
+
+
 class SeveridadeCVSS(str, Enum):
     NENHUMA = "Nenhuma"
     BAIXA = "Baixa"
