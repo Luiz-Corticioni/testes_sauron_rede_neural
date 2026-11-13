@@ -1,4 +1,10 @@
-FROM python:3.12.12-slim-bookworm
+# Manifesto oficial multi-arquitetura consultado em 13/11/2026.
+FROM python:3.12-slim-bookworm@sha256:935c3c5b12357a7e10caa9c1e6ca5692344d97cf229832ef584be2cec9fc03df
+
+# Atualiza correções disponíveis no Debian no momento da construção. A imagem
+# continua sujeita à varredura Trivy e pode conter CVEs ainda sem correção.
+RUN apt-get update && apt-get upgrade -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

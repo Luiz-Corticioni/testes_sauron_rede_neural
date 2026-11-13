@@ -41,3 +41,22 @@ class ConsultasV1(BancoTeste):
         self.assertEqual(resposta.json()["resultados"][0]["ativo_id"], self.a.pk)
         self.assertEqual(self.client.get("/api/v1/vulnerabilidades/NAO-EXISTE/ativos/").status_code, 404)
         self.assertEqual(self.client.post("/api/v1/ativos/").status_code, 405)
+
+    def test_busca_maliciosa_e_tratada_como_texto(self):
+        resposta = self.client.get("/api/v1/ativos/", {"busca": "' OR 1=1 --"})
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.json()["total"], 0)
+        self.assertEqual(self.client.get("/api/v1/ativos/").json()["total"], 2)
+
+    def test_carregamento_antecipado_remove_consultas_n_mais_1(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from inventario.models import Ativo
+
+        with CaptureQueriesContext(connection) as lento:
+            nomes = [ativo.sala.nome for ativo in Ativo.objects.order_by("pk")]
+        with CaptureQueriesContext(connection) as rapido:
+            nomes_antecipados = [ativo.sala.nome for ativo in Ativo.objects.select_related("sala").order_by("pk")]
+        self.assertEqual(nomes, nomes_antecipados)
+        self.assertEqual(len(lento), 3)
+        self.assertEqual(len(rapido), 1)
