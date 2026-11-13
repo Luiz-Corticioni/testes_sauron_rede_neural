@@ -6,3 +6,4 @@ scipy==1.18.1
 django-otp==1.7.5
 cryptography==50.0.2
 packageurl-python==0.17.6
+argon2-cffi==25.1.0
