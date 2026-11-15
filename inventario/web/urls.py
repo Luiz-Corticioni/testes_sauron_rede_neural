@@ -5,6 +5,7 @@ from inventario.seguranca import LoginProtegido, proteger
 from inventario.web import views
 from inventario.web import api_v1
 from inventario.web import views_honeypot
+from inventario.web import views_fontes
 from inventario.web import views_documentos
 from inventario.web import views_relacoes
 from inventario.web import views_cobertura
@@ -33,6 +34,7 @@ PERMISSOES_RISCO = (
 
 
 urlpatterns = [
+    path("fontes/", proteger(views_fontes.painel, "inventario.view_vulnerabilidade"), name="estado_fontes"),
     path("honeypot/", proteger(views_honeypot.painel, "inventario.view_ativo", "inventario.view_sensorhoneypot", "inventario.view_eventohoneypot"), name="honeypot"),
     path("honeypot/novo/", proteger(views_honeypot.cadastrar, "inventario.view_ativo", "inventario.add_sensorhoneypot"), name="honeypot_novo"),
     path("honeypot/<int:pk>/editar/", proteger(views_honeypot.cadastrar, "inventario.view_ativo", "inventario.change_sensorhoneypot"), name="honeypot_editar"),
