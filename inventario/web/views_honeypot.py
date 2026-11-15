@@ -5,8 +5,8 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
 
-from inventario.aplicacao.honeypot import LIMITE_BYTES, salvar_sensor, importar_eventos, revisar_evento
-from inventario.models import EventoHoneypot, SensorHoneypot, RevisaoEventoHoneypot
+from inventario.aplicacao.honeypot import LIMITE_BYTES, salvar_sensor, importar_eventos, revisar_evento, alterar_retencao
+from inventario.models import EventoHoneypot, SensorHoneypot, RevisaoEventoHoneypot, PoliticaRetencaoHoneypot
 from inventario.web.paginacao import paginar
 
 
@@ -29,6 +29,10 @@ class ImportarForm(forms.Form):
 class RevisaoForm(forms.Form):
     classificacao = forms.ChoiceField(label="Classificação", choices=RevisaoEventoHoneypot.CLASSIFICACOES)
     observacao = forms.ChoiceField(label="Observação", choices=RevisaoEventoHoneypot.OBSERVACOES)
+
+
+class RetencaoForm(forms.Form):
+    dias = forms.IntegerField(label="Prazo de retenção em dias", min_value=30, max_value=180, initial=90)
 
 
 @require_GET
@@ -81,3 +85,14 @@ def revisar(request, pk):
         return redirect("honeypot_revisar", pk=evento.pk)
     return render(request, "inventario/honeypot_revisar.html", {"evento": evento, "form": form,
         "revisoes": evento.revisoes.select_related("autor")[:100]})
+
+
+@require_http_methods(["GET", "POST"])
+def retencao(request):
+    politica = PoliticaRetencaoHoneypot.objects.filter(pk=1).select_related("atualizado_por").first()
+    form = RetencaoForm(request.POST or None, initial={"dias": politica.dias if politica else 90})
+    if request.method == "POST" and form.is_valid():
+        alterar_retencao(form.cleaned_data["dias"], request.user)
+        messages.success(request, "Política salva; os dados vencidos serão tratados pela próxima rotina.")
+        return redirect("honeypot_retencao")
+    return render(request, "inventario/honeypot_retencao.html", {"form": form, "politica": politica})

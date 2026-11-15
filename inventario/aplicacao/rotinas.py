@@ -35,6 +35,7 @@ def executar_rotinas(sem_rede=False):
         return {"enriquecidas": enriquecer_kev(dados)}
 
     from inventario.infraestrutura.ancoras import ancorar
+    from inventario.aplicacao.honeypot import aplicar_retencao
     etapas = {
         "aceites": expirar_aceites,
         "kev": kev,
@@ -44,6 +45,7 @@ def executar_rotinas(sem_rede=False):
         "snapshot": lambda: gravar_snapshot_risco().pk,
         "tendencia": alertar_tendencia,
         "imune": executar_ciclo,
+        "retencao_isca": aplicar_retencao,
         "ancora": ancorar,
     }
     # Também serializa chamadas simultâneas de cron, Docker e terminal.

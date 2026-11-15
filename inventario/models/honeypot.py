@@ -1,5 +1,5 @@
 """Sensores declarados e eventos minimizados importados manualmente."""
-from django.core.validators import RegexValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.conf import settings
 from inventario.models.base import ModeloAuditavel
@@ -28,7 +28,7 @@ class EventoHoneypot(models.Model):
     identificador = models.CharField(max_length=100, validators=[RegexValidator(r"^[A-Za-z0-9_.:-]+$")])
     observado_em = models.DateTimeField()
     recebido_em = models.DateTimeField(auto_now_add=True)
-    origem_ip = models.GenericIPAddressField()
+    origem_ip = models.GenericIPAddressField(null=True, blank=True)
     tipo = models.CharField(max_length=20, choices=TIPOS)
 
     class Meta:
@@ -48,3 +48,14 @@ class RevisaoEventoHoneypot(models.Model):
 
     class Meta:
         ordering = ["-criado_em", "-pk"]
+
+
+class PoliticaRetencaoHoneypot(models.Model):
+    dias = models.PositiveSmallIntegerField(default=90, validators=[MinValueValidator(30), MaxValueValidator(180)])
+    atualizado_por = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.PROTECT)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        default_permissions = ("view", "change")
+        constraints = [models.CheckConstraint(condition=models.Q(pk=1), name="politica_honeypot_unica"),
+                       models.CheckConstraint(condition=models.Q(dias__gte=30, dias__lte=180), name="politica_honeypot_prazo")]

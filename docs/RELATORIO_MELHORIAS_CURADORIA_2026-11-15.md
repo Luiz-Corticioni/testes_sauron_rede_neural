@@ -41,3 +41,9 @@ Após esta implementação, a suíte completa passou com 446 testes, a verifica�
 O painel de fontes passou a apresentar a última tentativa e o último problema de NVD e EPSS, com data e categoria controlada, preservados em arquivos separados no diretório de dados. O registro não contém URLs, termos, chaves ou mensagens recebidas de terceiros. Não há gravação quando nenhuma consulta é realizada; resposta parcial e consulta desativada são identificadas. A falha da telemetria gera aviso no log e não interrompe a operação principal.
 
 A indicação NVD de resposta recebida descreve somente o transporte JSON; validação específica, atualização do cache e conexão atual não são inferidas. O histórico pode estar ausente ou desatualizado se sua gravação falhar; fica no volume de dados do host e não coordena instalações com diretórios separados. O painel mantém o último problema, não uma trilha completa por CVE. Testes específicos cobriram falha, resposta parcial, recuperação, conteúdo sanitizado, arquivo inválido e falha de gravação.
+
+## Retenção de iscas conforme decisão do usuário
+
+A política padrão é de 90 dias, configurável pelo gerente de 30 a 180, com auditoria e validação na aplicação e no banco. Em cada rotina, IPs vencidos pelo recebimento são eliminados e revisões vencidas por sua própria data são removidas. Eventos sem revisões restantes são removidos após o prazo; um evento com revisão recente pode permanecer anonimizando o IP até a revisão vencer. Processamento limitado a 1.000 por tipo por execução, transacional e auditado sem IP. Alertas, backups e arquivos importados são preservados e exigem política independente.
+
+Testes cobrem os limites da política, papéis, MFA, IP expirado com revisão recente, preservação de alertas, tratamento em lotes e rollback quando auditoria falha. O prazo depende do funcionamento do agendador; atrasos e fila são possíveis.

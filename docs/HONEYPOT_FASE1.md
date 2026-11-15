@@ -60,3 +60,11 @@ Os testes automatizados cobrem MFA e permissões, importação pela interface, f
 Na tabela de eventos, um gerente com as permissões de leitura dos sensores/eventos e de leitura e inclusão de revisões pode selecionar **Revisar**. Escolha uma classificação (teste autorizado, suspeito ou inconclusivo) e uma observação predefinida. Cada revisão registra autor e data, mantém as anteriores e cria uma entrada de auditoria sem copiar o IP. Revisões são associadas ao evento e ao ambiente original do sensor; classificar um evento não altera o alerta nem comprova um ataque.
 
 As observações não aceitam texto livre para reduzir o risco de inserir senhas ou comandos. Isso não prova que qualquer dado fornecido em outros campos seja inofensivo; use apenas dados sintéticos até definir responsáveis, prazo e processo de retenção e eliminação para dados reais. Operadores e auditores não recebem acesso às revisões por padrão.
+
+## Retenção de IPs e revisões
+
+O prazo padrão é **90 dias**; gerente autorizado pode alterá-lo entre **30 e 180 dias** em Sensores de isca → Configurar retenção. A mudança é auditada e só passa a ter efeito na execução seguinte da rotina. Reduzir prazo pode causar exclusão irreversível.
+
+A rotina usa a data de recebimento para eliminar IPs vencidos e a data de criação para eliminar revisões vencidas. Se uma revisão ainda estiver dentro do prazo, o evento antigo permanece com IP eliminado até a revisão vencer; depois o evento também pode ser removido. São processados até 1.000 eventos e 1.000 revisões por execução. O agendador deve estar ativo: os dados podem permanecer além do prazo enquanto a rotina não rodar ou houver fila. Alertas e auditoria são preservados; não guardam o IP do evento nesses registros de importação/revisão/retencão.
+
+A rotina não remove o arquivo JSON de origem nem apaga cópias em backups, exportações, logs de outros sistemas ou fornecedores; essas cópias exigem sua própria política e procedimento de eliminação. Não declare conformidade apenas por usar esta função. Ao anonimizar um IP, a reimportação com o mesmo identificador pode ser recusada como conflito porque a origem anterior já não pode ser comparada.

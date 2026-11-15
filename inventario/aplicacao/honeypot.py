@@ -2,17 +2,18 @@
 import ipaddress
 import json
 import re
-from datetime import UTC
+from datetime import UTC, timedelta
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from inventario.aplicacao.autorizacao import exigir
 from inventario.aplicacao.operacao import emitir_alerta
 from inventario.infraestrutura.auditoria import registrar_evento, travar_escrita, usar_usuario
-from inventario.models import EventoHoneypot, SensorHoneypot, RevisaoEventoHoneypot
+from inventario.models import EventoHoneypot, SensorHoneypot, RevisaoEventoHoneypot, PoliticaRetencaoHoneypot
 
 LIMITE_BYTES = 1024 * 1024
 LIMITE_EVENTOS = 500
@@ -114,3 +115,40 @@ def revisar_evento(evento_id, classificacao, observacao, usuario):
         registrar_evento("REVISAR", "EventoHoneypot", evento_id,
                          {"revisao": revisao.pk, "classificacao": classificacao, "observacao": observacao})
     return revisao
+
+
+@transaction.atomic
+def alterar_retencao(dias, usuario):
+    travar_escrita()
+    usuario = exigir(usuario, "inventario.view_ativo", "inventario.view_sensorhoneypot",
+                     "inventario.view_politicaretencaohoneypot", "inventario.change_politicaretencaohoneypot")
+    politica = PoliticaRetencaoHoneypot.objects.filter(pk=1).first() or PoliticaRetencaoHoneypot(pk=1)
+    politica.dias = dias
+    politica.atualizado_por = usuario
+    politica.full_clean()
+    with usar_usuario(usuario):
+        politica.save()
+        registrar_evento("CONFIGURAR_RETENCAO", "Honeypot", "politica", {"dias": politica.dias})
+    return politica
+
+
+@transaction.atomic
+def aplicar_retencao(limite=1000):
+    """Remove IPs e revisões expirados em lotes, sem alterar alertas nem backups."""
+    if type(limite) is not int or not 1 <= limite <= 1000:
+        raise ValueError("O limite deve estar entre 1 e 1000 registros.")
+    travar_escrita()
+    politica = PoliticaRetencaoHoneypot.objects.filter(pk=1).first()
+    dias = politica.dias if politica else 90
+    corte = timezone.now() - timedelta(days=dias)
+    ids_revisoes = list(RevisaoEventoHoneypot.objects.filter(criado_em__lte=corte).order_by("pk").values_list("pk", flat=True)[:limite])
+    revisoes = RevisaoEventoHoneypot.objects.filter(pk__in=ids_revisoes).delete()[0]
+    candidatos = EventoHoneypot.objects.filter(recebido_em__lte=corte).filter(Q(origem_ip__isnull=False) | Q(revisoes__isnull=True))
+    ids_eventos = list(candidatos.order_by("pk").values_list("pk", flat=True).distinct()[:limite])
+    eventos = EventoHoneypot.objects.filter(pk__in=ids_eventos)
+    ips = eventos.filter(origem_ip__isnull=False).update(origem_ip=None)
+    removidos = eventos.filter(revisoes__isnull=True).delete()[0]
+    resultado = {"dias": dias, "ips_eliminados": ips, "revisoes_eliminadas": revisoes, "eventos_eliminados": removidos}
+    if ips or revisoes or removidos:
+        registrar_evento("APLICAR_RETENCAO", "Honeypot", "politica", resultado)
+    return resultado
