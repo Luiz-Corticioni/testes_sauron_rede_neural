@@ -29,3 +29,7 @@ O Trivy local 0.76.2 identificou 47 combinações CVE/pacote HIGH, 11 CVEs disti
 O Dockerfile já executa atualização dos pacotes disponíveis na construção e a política do CI permanece exigente para HIGH/CRITICAL. O rastreador indicava o trixie vulnerável para os onze casos: não se deve alegar que esses CVEs foram corrigidos nem importar pacotes de outra distribuição sem avaliação de compatibilidade. O UID sem privilégios, remoção de capabilities, raiz somente leitura e no-new-privileges são defesa em profundidade, não prova de segurança.
 
 Monitorar atualizações do Debian, reconstruir com cache atualizado, repetir Trivy com base atualizada e executar testes e rollback. Confirmar alcance por fluxo e componentes efetivamente carregados, especialmente restauração de bancos SQLite, antes de classificar qualquer achado como não aplicável. O relatório é uma triagem, sem teste de exploração nem verificação formal; mudanças de imagem, host ou permissões invalidam conclusões anteriores.
+
+## Repetição após o cenário financeiro
+
+A imagem `sauronmedicao-sauron` construída com os commits locais de cenário e fontes foi exportada e analisada com Trivy 0.76.2 e banco baixado em 15/11/2026. O resultado foi novamente 47 ocorrências HIGH de 11 CVEs distintos, zero CRITICAL e nenhuma versão corrigida informada pelo scanner; não foram apontadas ocorrências HIGH/CRITICAL nos pacotes Python analisados. Resultado limitado à base e imagem analisadas; a ação Trivy do CI permanece ativa.
