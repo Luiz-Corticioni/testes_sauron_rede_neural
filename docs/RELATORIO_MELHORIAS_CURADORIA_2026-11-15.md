@@ -23,3 +23,7 @@ Os testes cobrem ausência, cache recente e vencido, lista vazia, entrada invál
 A suíte Django completa executou 440 testes com sucesso no Windows, incluindo os testes iniciais de Q1 e Q2. Após acrescentar uma verificação específica para o limite de leitura, os sete testes de fontes foram executados novamente e passaram. O Ruff também aprovou os arquivos Python novos. Os testes exibiram avisos esperados de testes que simulam falhas de SMTP e fontes externas, além de aviso sobre a pasta de arquivos estáticos não coletados.
 
 O comando Docker não está disponível nesta máquina: Q3 (varredura reproduzível) e Q4 (carga de logins sob limites de container) continuam pendentes. A triagem de iscas Q5 e as etapas posteriores ainda não foram implementadas; dependem de desenho e testes próprios, inclusive uma decisão sobre retenção antes de usar dados reais. Nenhum resultado de implantação ou de integração contínua remota é presumido por este relatório.
+
+## Atualização: ensaio com Docker instalado
+
+A imagem foi construída e o Compose de teste respondeu; foi verificada persistência simples após reinício. O scan e os ensaios preliminares de carga revelaram pendências, descritas em [ensaio Docker e varredura](RELATORIO_DOCKER_CURADORIA_2026-11-15.md). Q3 e Q4 continuam abertos; o parágrafo anterior registra o estado antes da instalação.

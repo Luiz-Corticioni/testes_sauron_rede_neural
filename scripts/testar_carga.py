@@ -52,7 +52,7 @@ def main():
         from django.conf import settings
         from django.db import connection, connections, transaction
         from django.contrib.auth import get_user_model
-        from django.contrib.auth.hashers import make_password
+        from django.contrib.auth.hashers import identify_hasher, make_password
         from django.contrib.auth.models import Group, Permission
         from django.utils import timezone
         from django_otp.oath import totp
@@ -60,8 +60,10 @@ def main():
         from django.core.servers.basehttp import ThreadedWSGIServer, WSGIRequestHandler
         from inventario.models import Ativo, Sala, Vulnerabilidade, Incidencia, Dependencia
         from inventario.infraestrutura.auditoria import verificar_cadeia
+        print('Preparando banco e arquivos estáticos...', flush=True)
         call_command('migrate', interactive=False, verbosity=0)
         call_command('collectstatic', interactive=False, verbosity=0)
+        print('Criando contas e inventário sintéticos...', flush=True)
         senha = secrets.token_urlsafe(24)
         hash_senha = make_password(senha)  # Mesmo custo real de verificação em cada login.
         contas = []
@@ -135,6 +137,7 @@ def main():
         resultados = []
 
         def medir(nome, funcao, indices=range(100), concorrencia=100):
+            print(f'Iniciando etapa: {nome}', flush=True)
             with trava:
                 metricas.update(pico=0, sql=0, escritas_sessao=0)
             inicio = perf_counter()
@@ -216,7 +219,7 @@ def main():
                     'cpus_logicas': os.cpu_count(), 'banco': 'SQLite/WAL', 'debug': False, 'servidor': 'WSGI local com threads; apenas teste',
                     'transporte': 'HTTP/loopback, sem TLS', 'cache': settings.CACHES['default']['BACKEND'], 'usuarios': 100, 'administradores': 4,
                     'comuns_somente_leitura': 96, 'ativos': 100, 'vulnerabilidades': 10, 'incidencias': 100, 'dependencias': 99,
-                    'senhas': 'PBKDF2 real, sem diminuir custo', 'rede_externa': False},
+                    'senhas': f'{identify_hasher(hash_senha).algorithm}, custo configurado', 'rede_externa': False},
                 'etapas': resultados, 'auditoria_integra': integridade['integra'], 'cache_commit_rollback_aprovado': True,
                 'funcional_aprovado': all(r['sucessos'] == r['fluxos'] for r in resultados[:-1]) and integridade['integra']}
             args.saida.parent.mkdir(parents=True, exist_ok=True)
