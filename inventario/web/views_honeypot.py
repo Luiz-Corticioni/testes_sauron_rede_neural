@@ -5,8 +5,8 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
 
-from inventario.aplicacao.honeypot import LIMITE_BYTES, salvar_sensor, importar_eventos
-from inventario.models import EventoHoneypot, SensorHoneypot
+from inventario.aplicacao.honeypot import LIMITE_BYTES, salvar_sensor, importar_eventos, revisar_evento
+from inventario.models import EventoHoneypot, SensorHoneypot, RevisaoEventoHoneypot
 from inventario.web.paginacao import paginar
 
 
@@ -24,6 +24,11 @@ class ImportarForm(forms.Form):
         if arquivo.size > LIMITE_BYTES:
             raise forms.ValidationError("Arquivo excede 1 MB.")
         return arquivo
+
+
+class RevisaoForm(forms.Form):
+    classificacao = forms.ChoiceField(label="Classificação", choices=RevisaoEventoHoneypot.CLASSIFICACOES)
+    observacao = forms.ChoiceField(label="Observação", choices=RevisaoEventoHoneypot.OBSERVACOES)
 
 
 @require_GET
@@ -64,3 +69,15 @@ def importar(request, pk):
             return redirect("honeypot")
     return render(request, "inventario/honeypot_form.html",
                   {"form": form, "titulo": "Importar eventos", "sensor": sensor})
+
+
+@require_http_methods(["GET", "POST"])
+def revisar(request, pk):
+    evento = get_object_or_404(EventoHoneypot.objects.select_related("sensor"), pk=pk)
+    form = RevisaoForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        revisar_evento(evento.pk, form.cleaned_data["classificacao"], form.cleaned_data["observacao"], request.user)
+        messages.success(request, "Revisão registrada. Uma classificação não comprova um ataque.")
+        return redirect("honeypot_revisar", pk=evento.pk)
+    return render(request, "inventario/honeypot_revisar.html", {"evento": evento, "form": form,
+        "revisoes": evento.revisoes.select_related("autor")[:100]})

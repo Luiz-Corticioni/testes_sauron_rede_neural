@@ -54,3 +54,9 @@ Os testes automatizados cobrem MFA e permissões, importação pela interface, f
 - Permissões explícitas protegem a leitura e a escrita; auditoria registra autoria e contagens. O backup antes de atualizar reconhece que as novas tabelas ainda não existem antes da migração.
 - A suíte Django completa passou com 429 testes antes de dois testes adicionais de interface e backup. Em seguida, os 14 testes específicos do módulo passaram. A suíte pytest teve 6 sucessos, e 12 cenários JavaScript passaram. Ruff e Bandit foram executados; o Bandit mostrou um aviso preexistente de `nosec` no backup. `makemigrations --check` não identificou alterações pendentes.
 - A CI da branch permanece sujeita à verificação da imagem Docker: o scan anterior identificou vulnerabilidades altas mesmo após a atualização da base. Nenhum teste desta fase comprova coleta real, operação 24 horas ou segurança de um servidor externo.
+
+## Triagem manual de eventos
+
+Na tabela de eventos, um gerente com as permissões de leitura dos sensores/eventos e de leitura e inclusão de revisões pode selecionar **Revisar**. Escolha uma classificação (teste autorizado, suspeito ou inconclusivo) e uma observação predefinida. Cada revisão registra autor e data, mantém as anteriores e cria uma entrada de auditoria sem copiar o IP. Revisões são associadas ao evento e ao ambiente original do sensor; classificar um evento não altera o alerta nem comprova um ataque.
+
+As observações não aceitam texto livre para reduzir o risco de inserir senhas ou comandos. Isso não prova que qualquer dado fornecido em outros campos seja inofensivo; use apenas dados sintéticos até definir responsáveis, prazo e processo de retenção e eliminação para dados reais. Operadores e auditores não recebem acesso às revisões por padrão.

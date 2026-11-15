@@ -27,3 +27,11 @@ O comando Docker não está disponível nesta máquina: Q3 (varredura reproduzí
 ## Atualização: ensaio com Docker instalado
 
 A imagem foi construída e o Compose de teste respondeu; foi verificada persistência simples após reinício. O scan e os ensaios preliminares de carga revelaram pendências, descritas em [ensaio Docker e varredura](RELATORIO_DOCKER_CURADORIA_2026-11-15.md). Q3 e Q4 continuam abertos; o parágrafo anterior registra o estado antes da instalação.
+
+## Q5 — Triagem manual de eventos de isca
+
+Cada evento pode receber revisões de classificação com autoria e histórico preservado, sem modificar o alerta original. As observações são opções predefinidas para reduzir a inclusão acidental de segredos; não é uma caixa de texto livre. A ação e o histórico exigem permissões específicas e MFA, com auditoria transacional; os papéis padrão de operador e auditor não recebem acesso. A origem de demonstração ou operacional permanece vinculada ao sensor e não pode ser alterada após a importação.
+
+Foram executados testes de autorização, formulário, MFA, histórico, auditoria, rollback e validação, além dos testes existentes de isca. Esta etapa não estabelece política de retenção para dados reais nem prova que outras entradas jamais contenham dados sensíveis. Antes do uso operacional é necessário definir retenção e responsáveis.
+
+Após esta implementação, a suíte completa passou com 446 testes, a verificação de migrações não encontrou diferenças e o Ruff aprovou os arquivos Python alterados. A imagem foi reconstruída na instância Docker descartável: a migração 0030 foi aplicada, os serviços ficaram saudáveis e a rota de saúde retornou HTTP 200.

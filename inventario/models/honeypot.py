@@ -1,6 +1,7 @@
 """Sensores declarados e eventos minimizados importados manualmente."""
 from django.core.validators import RegexValidator
 from django.db import models
+from django.conf import settings
 from inventario.models.base import ModeloAuditavel
 
 
@@ -33,3 +34,17 @@ class EventoHoneypot(models.Model):
     class Meta:
         ordering = ["-observado_em", "-pk"]
         constraints = [models.UniqueConstraint(fields=["sensor", "identificador"], name="honeypot_evento_unico")]
+
+
+class RevisaoEventoHoneypot(models.Model):
+    CLASSIFICACOES = [("TESTE", "Teste autorizado"), ("SUSPEITO", "Suspeito"), ("INCONCLUSIVO", "Inconclusivo")]
+    OBSERVACOES = [("EXERCICIO", "Exercício autorizado informado"), ("ANALISAR", "Requer análise adicional"),
+                   ("SEM_CONTEXTO", "Contexto insuficiente")]
+    evento = models.ForeignKey(EventoHoneypot, on_delete=models.PROTECT, related_name="revisoes")
+    autor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    classificacao = models.CharField(max_length=15, choices=CLASSIFICACOES)
+    observacao = models.CharField(max_length=15, choices=OBSERVACOES)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-criado_em", "-pk"]

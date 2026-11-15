@@ -22,4 +22,4 @@ from inventario.models.documentos import DocumentoInventario, ItemSBOM, AchadoCo
 from inventario.models.relacoes import RelacaoAtivos
 from inventario.models.cobertura import PerimetroRelacoes, MembroPerimetro, RevisaoCobertura
 
-from inventario.models.honeypot import SensorHoneypot, EventoHoneypot
+from inventario.models.honeypot import SensorHoneypot, EventoHoneypot, RevisaoEventoHoneypot

@@ -1,0 +1,7 @@
+{% extends "inventario/base.html" %}
+{% block title %}Triagem de evento — Sauron{% endblock %}
+{% block content %}
+<section class="page-heading"><div><h1>Triagem de evento</h1><p>{{ evento.sensor.nome }} · {{ evento.sensor.get_ambiente_display }} · {{ evento.get_tipo_display }} · {{ evento.observado_em }}</p></div></section>
+<article class="panel"><p>Uma classificação é uma avaliação manual, não uma confirmação de ataque. As observações são opções predefinidas para evitar registrar senhas ou comandos.</p><p>Dados reais exigem política de retenção antes do uso operacional.</p><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Registrar revisão</button></form></article>
+<article class="panel"><h2>Histórico de revisões</h2><p>As últimas 100 revisões, sem apagar avaliações anteriores.</p><ul>{% for revisao in revisoes %}<li>{{ revisao.criado_em }} · {{ revisao.autor.username }} · {{ revisao.get_classificacao_display }} · {{ revisao.get_observacao_display }}</li>{% empty %}<li>Sem revisões.</li>{% endfor %}</ul><a href="{% url 'honeypot' %}">Voltar aos sensores</a></article>
+{% endblock %}

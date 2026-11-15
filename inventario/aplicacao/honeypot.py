@@ -12,7 +12,7 @@ from django.utils.dateparse import parse_datetime
 from inventario.aplicacao.autorizacao import exigir
 from inventario.aplicacao.operacao import emitir_alerta
 from inventario.infraestrutura.auditoria import registrar_evento, travar_escrita, usar_usuario
-from inventario.models import EventoHoneypot, SensorHoneypot
+from inventario.models import EventoHoneypot, SensorHoneypot, RevisaoEventoHoneypot
 
 LIMITE_BYTES = 1024 * 1024
 LIMITE_EVENTOS = 500
@@ -98,3 +98,19 @@ def importar_eventos(sensor_id, conteudo, usuario):
         registrar_evento("IMPORTAR", "SensorHoneypot", sensor.pk,
                          {"recebidos": total, "novos": len(novos), "duplicados": total - len(novos)})
     return {"recebidos": total, "novos": len(novos), "duplicados": total - len(novos)}
+
+
+@transaction.atomic
+def revisar_evento(evento_id, classificacao, observacao, usuario):
+    usuario = exigir(usuario, "inventario.view_ativo", "inventario.view_sensorhoneypot",
+                     "inventario.view_eventohoneypot", "inventario.view_revisaoeventohoneypot",
+                     "inventario.add_revisaoeventohoneypot")
+    travar_escrita()
+    revisao = RevisaoEventoHoneypot(evento=EventoHoneypot.objects.get(pk=evento_id), autor=usuario,
+                                    classificacao=classificacao, observacao=observacao)
+    revisao.full_clean()
+    with usar_usuario(usuario):
+        revisao.save()
+        registrar_evento("REVISAR", "EventoHoneypot", evento_id,
+                         {"revisao": revisao.pk, "classificacao": classificacao, "observacao": observacao})
+    return revisao
