@@ -16,6 +16,7 @@ em que foram escritos. Eles não são um certificado de que um servidor está se
 | Entender funções e limitações em linguagem simples | [Guia simples](GUIA_SIMPLES_REANALISE_2026-11-10.md) |
 | Criar conta inicial, configurar SMTP/TOTP e recuperar acesso | [E-mail e MFA](EMAIL_E_MFA.md) |
 | Entender CVSS 3.1 e comparação com 4.0 | [Comparação CVSS](COMPARACAO_CVSS.md) |
+| Criar e interpretar um cenário financeiro contextual | [Cenários financeiros em 30 dias](CENARIOS_FINANCEIROS.md) |
 | Cadastrar sensores de isca e importar eventos de demonstração | [Sensores de isca — fase 1](HONEYPOT_FASE1.md) |
 | Executar com Docker, HTTPS e reunir evidências de 24 horas | [Docker para o trabalho](DOCKER_TRABALHO_2.md) |
 | Configurar servidor, atualização, backups e diagnóstico | [Implantação](IMPLANTACAO.md) |
@@ -27,6 +28,7 @@ e ações depende das permissões de cada conta.
 - [Sprint 5: requisitos, evidências e pendências](SPRINT5_RASTREABILIDADE.md).
 
 - [Melhorias da curadoria — relatório e testes](RELATORIO_MELHORIAS_CURADORIA_2026-11-15.md).
+- [Análise dos CVEs da imagem Docker](RELATORIO_ANALISE_CVES_DOCKER_2026-11-15.md).
 - [Curadoria de soluções e roadmap](curadoria/00-resumo-executivo.md).
 - [Proposta: Monte Carlo com contexto empresarial](PROPOSTA_MONTE_CARLO_CONTEXTO.md).
 - [Pesquisa: modelos financeiros, dados e grafos](PESQUISA_MODELOS_FINANCEIROS_E_GRAFOS_2026-11-15.md).
