@@ -1,0 +1,37 @@
+"""Simulação didática de interrupção em 30 dias; entradas não calibradas."""
+import numpy as np
+
+from inventario.matematica.montecarlo import numero, pert, resumo
+
+
+def simular_interrupcao(cenario, n=20000, seed=42, limite=None):
+    if type(n) is not int or not 100 <= n <= 100000:
+        raise ValueError("Informe entre 100 e 100000 cenários.")
+    if type(seed) is not int or not 0 <= seed <= 2**32 - 1:
+        raise ValueError("Semente inválida.")
+    probabilidade = numero(float(cenario.probabilidade), "Probabilidade", 0, 1)
+    apos = None if cenario.probabilidade_apos is None else numero(float(cenario.probabilidade_apos), "Probabilidade após controle", 0, 1)
+    minimo, moda, maximo = (float(cenario.horas_min), float(cenario.horas_moda), float(cenario.horas_max))
+    custo_hora = numero(float(cenario.custo_hora), "Custo por hora", 0, 1000000000)
+    adicional = numero(float(cenario.custo_adicional), "Custo adicional", 0, 1000000000000)
+    if limite is not None:
+        limite = numero(limite, "Limite financeiro", 0, 1e15)
+    rng = np.random.default_rng(seed)
+    sorteios = rng.random(n)
+    duracao = pert(minimo, moda, maximo, n, rng)
+    # Na ausência de informação mais específica, o início é uniforme dentro
+    # da janela; contabiliza-se apenas a interrupção que ocorre até seu fim.
+    inicio_horas = rng.uniform(0, 720, n)
+    impacto = np.minimum(duracao, 720 - inicio_horas) * custo_hora + adicional
+    evento = sorteios < probabilidade
+    perda = np.where(evento, impacto, 0.0)
+    resultado = {"versao_modelo": "sauron.interrupcao/30d-v2", "horizonte_dias": 30, "n": n, "seed": seed,
+                 "atual": resumo(perda), "eventos": int(evento.sum()),
+                 "perda_media_condicional": float(impacto[evento].mean()) if evento.any() else None,
+                 "limite": limite, "excedencia": float((perda > limite).mean()) if limite is not None else None,
+                 "apos": None, "diferenca_media": None}
+    if apos is not None:
+        alternativa = np.where(sorteios < apos, impacto, 0.0)
+        resultado["apos"] = resumo(alternativa)
+        resultado["diferenca_media"] = float((perda - alternativa).mean())
+    return resultado

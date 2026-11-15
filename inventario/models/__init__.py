@@ -23,3 +23,4 @@ from inventario.models.relacoes import RelacaoAtivos
 from inventario.models.cobertura import PerimetroRelacoes, MembroPerimetro, RevisaoCobertura
 
 from inventario.models.honeypot import SensorHoneypot, EventoHoneypot, RevisaoEventoHoneypot
+from inventario.models.cenario_financeiro import CenarioFinanceiro

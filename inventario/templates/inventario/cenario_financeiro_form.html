@@ -1,0 +1,4 @@
+{% extends "inventario/base.html" %}
+{% block title %}Cadastrar cenário — Sauron{% endblock %}
+{% block content %}<section class="page-heading"><div><h1>Cadastrar cenário de interrupção</h1><p>Exemplo fictício: interrupção do faturamento. Informe as premissas de uma única ocorrência e justifique sua origem.</p></div></section>
+<article class="panel"><p>A probabilidade é uma hipótese local informada pelo responsável. Não use EPSS como probabilidade de perda da empresa. Duração e custos são separados; não conte os mesmos prejuízos duas vezes.</p><p>Um cenário é registrado como uma fotografia: para alterar premissas, crie outro. Não registre senhas ou dados pessoais.</p><form method="post" class="form">{% csrf_token %}{{ form.as_p }}<button class="button" type="submit">Registrar cenário</button></form><a href="{% url 'cenarios_financeiros' %}">Voltar</a></article>{% endblock %}
