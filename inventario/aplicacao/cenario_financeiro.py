@@ -9,8 +9,8 @@ from inventario.matematica.cenario_financeiro import simular_interrupcao
 
 @transaction.atomic
 def criar_cenario(cenario, usuario):
-    usuario = exigir(usuario, "inventario.view_ativo", "inventario.view_cenariofinanceiro", "inventario.add_cenariofinanceiro")
     travar_escrita()
+    usuario = exigir(usuario, "inventario.view_ativo", "inventario.view_cenariofinanceiro", "inventario.add_cenariofinanceiro")
     cenario.criado_por = usuario
     cenario.full_clean()
     with usar_usuario(usuario):

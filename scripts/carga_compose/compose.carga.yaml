@@ -1,0 +1,6 @@
+services:
+  sauron:
+    ports: !override
+      - "127.0.0.1:2230:8000"
+    volumes:
+      - "${SAURON_CARGA_DIR:?Defina um diretorio temporario descartavel}:/bench"

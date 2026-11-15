@@ -19,6 +19,7 @@ em que foram escritos. Eles não são um certificado de que um servidor está se
 | Criar e interpretar um cenário financeiro contextual | [Cenários financeiros em 30 dias](CENARIOS_FINANCEIROS.md) |
 | Cadastrar sensores de isca e importar eventos de demonstração | [Sensores de isca — fase 1](HONEYPOT_FASE1.md) |
 | Executar com Docker, HTTPS e reunir evidências de 24 horas | [Docker para o trabalho](DOCKER_TRABALHO_2.md) |
+| Repetir teste sintético de 100 logins no Docker | [Ensaio de carga no Compose](TESTE_CARGA_DOCKER.md) |
 | Configurar servidor, atualização, backups e diagnóstico | [Implantação](IMPLANTACAO.md) |
 
 Dentro da interface web, o menu **Guia rápido** oferece uma orientação resumida para
