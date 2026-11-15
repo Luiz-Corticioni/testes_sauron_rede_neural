@@ -1,0 +1,29 @@
+# 04 — Visão de quem opera um SOC
+
+[Análise por solução](03-analise-por-solucao.md) · [Matriz](05-matriz-comparativa.md)
+
+**Critério:** a coluna de encaixe é opinião sobre uma equipe com inventário e SOC pequenos, não pesquisa de adoção. **FATO** e fontes de arquitetura e função constam por ferramenta em [03](03-analise-por-solucao.md). Todas as linhas abaixo são **INFERÊNCIA**; taxas de falso positivo, MTTD, MTTR, número de pessoas e custo em reais são **NÃO VERIFICADOS**. Nenhum resultado é garantido. A categoria `alto/médio/baixo` é esforço relativo para instalar, operar e ajustar, não benchmark.
+
+| Solução | Fadiga e qualidade do alerta / evidência | Decisão e fluxo de trabalho | Manutenção e adoção SOC |
+|---|---|---|---|
+| [Wazuh](https://documentation.wazuh.com/current/getting-started/architecture.html) | Regras e telemetria podem enriquecer alertas; configuração ruidosa pode aumentar a fila. Checar origem, host, regra e eventos antes/depois. | Pode encurtar a obtenção de evidência quando coleta já existe; MTTD/MTTR não medidos. Tickets/playbooks dependem das integrações realmente configuradas. | **Alto**: agentes, indexação, retenção e tuning. Um SOC que precise de telemetria de endpoints pode adotar, desde que sustente operação e capacidade. |
+| [Sigma](https://sigmahq.io/sigma-specification/specification/sigma-rules-specification.html) | Os campos de nível, fonte e falso positivo ajudam a documentar triagem; regras genéricas podem gerar ruído. | Só produz alerta quando um backend executa a regra. MTTD/MTTR dependem do pipeline; encaminhamento a tickets precisa ser verificado no backend. | **Médio/alto**: mapeamento e testes por fonte. SOC com engenharia de detecção pode adotar o catálogo; não basta baixar YAML. |
+| [YARA-X](https://virustotal.github.io/yara-x/docs/intro/getting-started/) | Um match traz regra e arquivo, mas não prova que o arquivo causou incidente; ruído depende do conjunto. | Pode apoiar triagem de amostra quando há processo seguro de coleta; sem fluxo instalado, não há tempo medido nem ticket automático demonstrado. | **Médio/alto**: regras, amostras e isolamento. SOC com análise de malware pode usar como componente; não como motor central do Sauron. |
+| [MISP](https://github.com/MISP/MISP) | Origem, contexto e atualização podem qualificar indicadores; correspondências genéricas e listas antigas podem cansar a equipe. | Facilita consulta de contexto se existe partilha de inteligência; não quantificamos tempo e playbook/ticket do cliente não foi validado. | **Alto**: curadoria, comunidades e qualidade de feeds. SOC com fontes confiáveis pode adotar; instalação isolada sem processo não cria inteligência. |
+| [Greenbone/OpenVAS](https://greenbone.github.io/docs/latest/background) | O resultado pode orientar revisão de ativo; falso positivo/ausência de achado exige confirmar versão e configuração. | Importação com evidência pode acelerar planejamento de correção; MTTD/MTTR e tickets não verificados. | **Alto**: autorização, credenciais, feed, janelas e impacto no alvo. Adequado à equipe que opera varredura com escopo aprovado. |
+| [DefectDojo](https://docs.defectdojo.com/triage_findings/finding_deduplication/about_deduplication/) | Deduplicação e estados podem reduzir repetição; chave incorreta pode fundir achados que merecem revisão separada. | Histórico do achado ajuda a organizar triagem; impacto temporal e integrações de ticket na edição concreta não verificados. | **Médio/alto**: fontes, formatos, cadastros e políticas. SOC/AppSec com vários scanners pode adotar; não substitui os scanners. |
+| [Cowrie](https://docs.cowrie.org/en/latest/OUTPUT.html) | Interação com isca pode ser sinal relevante, mas varreduras e testes autorizados criam ruído; logs podem conter dados sensíveis. | Session/timestamp ajudam a investigar; MTTD/MTTR e integração efetiva de ticket não verificados. | **Médio/alto**: isolamento, atualizações e retenção. SOC que possa manter sensor segregado pode usar; não expor em rede de terceiros sem permissão. |
+| [IntelOwl](https://intelowlproject.github.io/docs/IntelOwl/usage/) | Resultados de analisadores acrescentam contexto, mas fontes discordantes ou repetidas podem aumentar trabalho. | O job concentra consultas; quotas, atrasos e falhas externas influenciam decisão. MTTD/MTTR e tickets reais não verificados. | **Alto**: banco, broker, integrações, credenciais e privacidade. Útil a equipe de CTI que já tenha política e fontes; custo oculto para protótipo pequeno. |
+| [IVRE](https://github.com/ivre/ivre) | Observações de rede ajudam a investigar superfície; dados incompletos ou antigos não provam exposição atual. | Unir visões pode reduzir buscas manuais, mas decisão exige correlação/validação. Tempo e ticket não verificados. | **Médio/alto**: coleta autorizada, armazenamento e conciliação. Pode servir a SOC com gestão de superfície; a release antiga requer avaliação. |
+
+## Como medir antes de prometer valor
+
+1. Definir fonte, janela e amostra rotulada com revisão humana; separar teste/simulação da operação.
+2. Registrar horário de observação, ingestão, geração de alerta, início de triagem, decisão e conclusão; publicar denominadores e percentis, não apenas média.
+3. Para cada regra/tipo, contar alertas, duplicatas, verdadeiros/falsos positivos e inconclusivos; medir acordo entre analistas e custo de revisão. Não calcular taxa sem rótulos confiáveis.
+4. Comparar o mesmo conjunto e capacidade de equipe antes/depois; registrar latência, falhas, perda de eventos, backlog e limites dos conectores.
+5. Revisar retenção, dados pessoais, sigilo e privilégios antes de encaminhar eventos a terceiros. Adoção comercial ou conformidade depende de validação do ambiente.
+
+## Limitações
+
+Não houve entrevista com SOC, operação de campo ou experimento pareado. Custos e vantagens são hipóteses priorizadas; não se afirma economia, detecção garantida, atendimento 24×7 ou certificação.

@@ -25,7 +25,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--operacional",
             action="store_true",
-            help="Inclui prazos vencidos, aceite fictício e série simulada.",
+            help="Inclui prazo vencido, aceite fictício válido e série simulada.",
         )
 
     @transaction.atomic

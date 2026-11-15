@@ -12,20 +12,27 @@ from inventario.models import Incidencia, SnapshotRisco, Software, Vulnerabilida
 
 
 def preparar_demo_operacional():
-    autor = get_user_model().objects.create(
-        username=f"demo_aceitante_{uuid.uuid4().hex[:8]}", is_active=True
-    )
-    autor.set_unusable_password()  # Conta de cenário não pode autenticar por senha.
-    autor.save()
-    autor.groups.add(Group.objects.get(name="Gerentes"))
+    grupo = Group.objects.get(name="Gerentes")
+    usuarios = []
+    for papel in ("solicitante", "aprovador"):
+        usuario = get_user_model().objects.create(
+            username=f"demo_{papel}_{uuid.uuid4().hex[:8]}", is_active=True
+        )
+        usuario.set_unusable_password()  # Identidades fictícias não iniciam sessão.
+        usuario.save()
+        usuario.groups.add(grupo)
+        usuarios.append(usuario)
     i = Incidencia.objects.get(pk="INC-0001")
     i.prazo_correcao = timezone.localdate() - timedelta(days=1)
     i.save()
-    i = Incidencia.objects.get(pk="INC-0002")
-    i.status, i.aceita_por = "ACEITA", autor
-    i.justificativa = "SIMULAÇÃO acadêmica de aceite vencido; sem decisão operacional real."
-    i.aceita_ate = timezone.localdate() - timedelta(days=1)
-    i.save()
+    # Um aceite válido percorre os mesmos serviços e a mesma dupla aprovação
+    # exigidos para usuários reais; nunca forçamos um aceite vencido no banco.
+    from inventario.aplicacao.operacao import alterar_status, decidir_pendencia
+
+    alterar_status("INC-0002", "ACEITA", usuarios[0],
+                   justificativa="SIMULAÇÃO acadêmica; sem decisão operacional real.",
+                   aceita_ate=timezone.localdate() + timedelta(days=15))
+    decidir_pendencia("INC-0002", True, usuarios[1])
     v = Vulnerabilidade.objects.get(pk="VUL-RCE-0001")
     v.kev = True
     v.fonte = "Cenário demonstrativo; KEV simulado"

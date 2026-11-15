@@ -26,6 +26,9 @@ e ações depende das permissões de cada conta.
 
 - [Sprint 5: requisitos, evidências e pendências](SPRINT5_RASTREABILIDADE.md).
 
+- [Melhorias da curadoria — relatório e testes](RELATORIO_MELHORIAS_CURADORIA_2026-11-15.md).
+- [Curadoria de soluções e roadmap](curadoria/00-resumo-executivo.md).
+
 ## Para compreender e avaliar
 
 - [Explicação técnica do projeto](EXPLICACAO_SAURON.md): domínio, relações e cálculo.
