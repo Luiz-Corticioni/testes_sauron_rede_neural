@@ -22,6 +22,8 @@ docker compose -p sauroncarga -f compose.yaml -f scripts/carga_compose/compose.c
 # Prossiga somente se a fixture confirmar o banco descartável.
 Push-Location $env:SAURON_CARGA_DIR
 python (Join-Path $repositorio 'scripts/carga_compose/cliente_100.py')
+# Opcional: bloqueia uma conta sintética por até 15 minutos.
+python (Join-Path $repositorio 'scripts/carga_compose/tentativas_invalidas.py')
 Pop-Location
 
 docker inspect --format 'status={{.State.Status}} oom={{.State.OOMKilled}} reinicios={{.RestartCount}}' sauroncarga-sauron-1
@@ -32,4 +34,4 @@ Remove-Item -LiteralPath (Join-Path $env:SAURON_CARGA_DIR 'credentials.json')
 docker compose -p sauroncarga -f compose.yaml -f scripts/carga_compose/compose.carga.yaml down
 ```
 
-O volume sintético continua existindo após `down`; não remova volumes de outros projetos. `memory.peak` é cumulativo desde a criação do container e inclui preparação. O cliente sai com código diferente de zero se os resultados de quatro administradores e 96 operadores não forem os esperados. A versão da imagem, a carga concorrente da máquina, os limites do Docker e a política de autenticação devem ser registrados com os resultados.
+O volume sintético continua existindo após `down`; não remova volumes de outros projetos. `memory.peak` é cumulativo desde a criação do container e inclui preparação. O cliente sai com código diferente de zero se os resultados de quatro administradores e 96 operadores não forem os esperados. O ensaio opcional de senha inválida espera cinco respostas de falha e uma resposta 429; ele bloqueia a conta sintética e deve rodar depois dos logins válidos. A versão da imagem, a carga concorrente da máquina, os limites do Docker e a política de autenticação devem ser registrados com os resultados.
