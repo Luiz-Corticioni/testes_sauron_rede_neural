@@ -29,6 +29,7 @@ e ações depende das permissões de cada conta.
 - [Melhorias da curadoria — relatório e testes](RELATORIO_MELHORIAS_CURADORIA_2026-11-15.md).
 - [Curadoria de soluções e roadmap](curadoria/00-resumo-executivo.md).
 - [Proposta: Monte Carlo com contexto empresarial](PROPOSTA_MONTE_CARLO_CONTEXTO.md).
+- [Pesquisa: modelos financeiros, dados e grafos](PESQUISA_MODELOS_FINANCEIROS_E_GRAFOS_2026-11-15.md).
 
 ## Para compreender e avaliar
 
