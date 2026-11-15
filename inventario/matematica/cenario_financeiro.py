@@ -30,6 +30,16 @@ def simular_interrupcao(cenario, n=20000, seed=42, limite=None):
                  "perda_media_condicional": float(impacto[evento].mean()) if evento.any() else None,
                  "limite": limite, "excedencia": float((perda > limite).mean()) if limite is not None else None,
                  "apos": None, "diferenca_media": None}
+    # Mantém ocorrência e início comuns e varia somente a duração, tratando
+    # mínimo e máximo declarados como valores fixos, não como probabilidades.
+    restante = 720 - inicio_horas
+    perdas_minimas = np.where(evento, np.minimum(minimo, restante) * custo_hora + adicional, 0.0)
+    perdas_maximas = np.where(evento, np.minimum(maximo, restante) * custo_hora + adicional, 0.0)
+    resultado["sensibilidade_duracao"] = {
+        "horas_min": minimo, "media_min": float(perdas_minimas.mean()),
+        "media_base": resultado["atual"]["media"],
+        "horas_max": maximo, "media_max": float(perdas_maximas.mean()),
+    }
     if apos is not None:
         alternativa = np.where(sorteios < apos, impacto, 0.0)
         resultado["apos"] = resumo(alternativa)

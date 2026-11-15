@@ -49,3 +49,11 @@ A política padrão é de 90 dias, configurável pelo gerente de 30 a 180, com a
 Testes cobrem os limites da política, papéis, MFA, IP expirado com revisão recente, preservação de alertas, tratamento em lotes e rollback quando auditoria falha. O prazo depende do funcionamento do agendador; atrasos e fila são possíveis.
 
 Após retenção e carga reproduzível, a suíte completa passou com 464 testes no Windows. O roteiro versionado de 100 clientes também foi executado em Compose descartável, com quatro administradores e 96 operadores; o relatório Docker registra tempos, limites e 429 em teste separado. A migração de retenção foi aplicada na prévia local após criar backup cifrado, e a saúde HTTP e dados demonstrativos foram verificados.
+
+## Cenário contextual: dependências e sensibilidade da duração
+
+A partir do cenário financeiro é possível consultar relações de negócio por escopo, usando o mesmo serviço de grafo e as mesmas regras de elegibilidade da aplicação. A consulta exige permissão para cenário e relações; segue fornecedor para consumidor, indica exclusões, recorte e limites, e não altera as perdas. Foram testados direção, escopo, relação vencida, caminhos paralelos, ciclo, ausência de relação e acesso negado.
+
+A simulação compara sua média base às médias com duração fixa no mínimo e no máximo fornecidos, usando as mesmas ocorrências e horários. Isso evita criar coeficientes arbitrários e facilita entender a influência da duração. Testes cobrem limites e o caso de probabilidade zero. Não é análise global, nem inclui custos de serviços dependentes ou efeitos comuns.
+
+Verificação: a suíte completa executou 467 testes no Windows. Após ajuste de apresentação dos nomes dos ativos, os 10 testes específicos de cenário passaram novamente e o Ruff aprovou os arquivos alterados. A prévia Docker foi reconstruída, respondeu HTTP 200 e preservou quatro ativos e seis incidências demonstrativas.

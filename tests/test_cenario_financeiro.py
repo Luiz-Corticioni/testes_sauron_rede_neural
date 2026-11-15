@@ -113,6 +113,63 @@ class CenáriosFinanceiros(BancoTeste):
         self.autenticar(self.usuario, cliente)
         self.assertEqual(cliente.post(url, {"n": 100, "seed": 42}).status_code, 403)
 
+    def test_sensibilidade_usa_mesmas_amostras_e_casos_extremos(self):
+        c = self.salvar(probabilidade=Decimal("1"))
+        resultado = calcular_cenario(c, self.usuario, n=1000, seed=11)
+        faixa = resultado["sensibilidade_duracao"]
+        self.assertLessEqual(faixa["media_min"], faixa["media_base"])
+        self.assertLessEqual(faixa["media_base"], faixa["media_max"])
+        self.assertEqual(faixa["media_base"], resultado["atual"]["media"])
+        c.probabilidade = Decimal("0")
+        faixa = calcular_cenario(c, self.usuario, n=100, seed=11)["sensibilidade_duracao"]
+        self.assertEqual((faixa["media_min"], faixa["media_base"], faixa["media_max"]), (0, 0, 0))
+
+    def test_dependencias_de_negocio_respeitam_direcao_escopo_e_permissoes(self):
+        from django.contrib.auth.models import Permission
+        from inventario.aplicacao.relacoes import salvar_relacao
+        c = self.salvar()
+        hoje = timezone.localdate()
+        dados = {"origem_id": self.a.pk, "destino_id": self.b.pk, "tipo": "NEGOCIO", "escopo": "Faturamento",
+                 "protocolo": "", "porta": 0, "principal": "", "privilegio": "", "fonte": "Exemplo",
+                 "evidencia": "Declaração sintética", "observada_em": hoje, "revisar_em": hoje + timedelta(days=30), "vigente": True}
+        salvar_relacao(dados, self.usuario)
+        salvar_relacao({**dados, "escopo": "Outro escopo", "origem_id": self.b.pk, "destino_id": self.a.pk}, self.usuario)
+        url = f"/cenarios-financeiros/{c.pk}/dependencias/"
+        r = self.client.get(url, {"escopo": "Faturamento"})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.context["resultado"]["alcance_base"], 1)
+        self.assertEqual(r.context["resultado"]["itens"][0]["id"], self.b.pk)
+        self.assertContains(r, "não modifica a simulação financeira")
+        r = self.client.get(url, {"escopo": "Não cadastrado"})
+        self.assertEqual(r.context["resultado"]["alcance_base"], 0)
+        self.assertContains(r, "Relação ausente não comprova isolamento")
+        sem_relacoes = get_user_model().objects.create_user("somente-financeiro")
+        sem_relacoes.user_permissions.add(*Permission.objects.filter(content_type__app_label="inventario", codename__in=["view_ativo", "view_cenariofinanceiro"]))
+        self.autenticar(sem_relacoes)
+        self.assertEqual(self.client.get(url, {"escopo": "Faturamento"}).status_code, 403)
+        self.assertNotContains(self.client.get(f"/cenarios-financeiros/{c.pk}/"), "Analisar dependências")
+
+    def test_dependencias_nao_duplicam_ciclo_e_excluem_relacao_vencida(self):
+        from inventario.aplicacao.relacoes import salvar_relacao
+        from inventario.models import Ativo
+        c = self.salvar()
+        terceiro = Ativo.objects.create(tipo="1", nome="Sistema dependente", fabricante="Exemplo", sala=self.sala)
+        quarto = Ativo.objects.create(tipo="1", nome="Sistema vencido", fabricante="Exemplo", sala=self.sala)
+        hoje = timezone.localdate()
+        base = {"tipo": "NEGOCIO", "escopo": "Empresa", "protocolo": "", "porta": 0, "principal": "", "privilegio": "",
+                "fonte": "Exemplo", "evidencia": "Dado sintético", "observada_em": hoje - timedelta(days=1),
+                "revisar_em": hoje + timedelta(days=30), "vigente": True}
+        for origem, destino in ((self.a, self.b), (self.b, terceiro), (self.a, terceiro), (terceiro, self.a)):
+            salvar_relacao({**base, "origem_id": origem.pk, "destino_id": destino.pk}, self.usuario)
+        salvar_relacao({**base, "origem_id": self.a.pk, "destino_id": quarto.pk, "revisar_em": hoje}, self.usuario)
+        r = self.client.get(f"/cenarios-financeiros/{c.pk}/dependencias/", {"escopo": "Empresa"})
+        self.assertEqual(r.status_code, 200)
+        resultado = r.context["resultado"]
+        self.assertEqual(resultado["alcance_base"], 2)
+        self.assertEqual(resultado["excluidas"], 1)
+        self.assertEqual({item["id"] for item in resultado["itens"]}, {self.b.pk, terceiro.pk})
+        self.assertEqual(resultado["ciclos_base"]["total_grupos"], 1)
+
     def test_papeis_padrao_restringem_contexto_financeiro(self):
         call_command("configurar_grupos", verbosity=0)
         for nome in ("Operadores", "Auditores"):

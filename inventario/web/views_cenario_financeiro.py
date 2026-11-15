@@ -6,7 +6,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from inventario.aplicacao.cenario_financeiro import calcular_cenario, criar_cenario
 from inventario.infraestrutura.limite_simulacoes import LimiteSimulacoes
-from inventario.models import CenarioFinanceiro
+from inventario.models import Ativo, CenarioFinanceiro
 from inventario.web.paginacao import paginar
 
 
@@ -26,6 +26,10 @@ class SimulacaoForm(forms.Form):
     n = forms.IntegerField(label="Quantidade de simulações", min_value=100, max_value=100000, initial=20000)
     seed = forms.IntegerField(label="Semente", min_value=0, max_value=2**32 - 1, initial=42)
     limite = forms.DecimalField(label="Limiar de perda em R$ (opcional)", min_value=0, max_value=10**15, required=False)
+
+
+class DependenciasForm(forms.Form):
+    escopo = forms.CharField(label="Escopo exato das relações de negócio", max_length=200, strip=True)
 
 
 @require_GET
@@ -66,3 +70,22 @@ def detalhe(request, pk):
                 resultado["excedencia_percentual"] = 100 * resultado["excedencia"]
     return render(request, "inventario/cenario_financeiro_detalhe.html",
                   {"cenario": cenario, "form": form, "resultado": resultado}, status=status)
+
+
+@require_GET
+def dependencias(request, pk):
+    from inventario.aplicacao.relacoes import analisar_relacoes
+    cenario = get_object_or_404(CenarioFinanceiro.objects.select_related("ativo"), pk=pk)
+    form = DependenciasForm(request.GET if request.GET else None)
+    resultado = None
+    if form.is_bound and form.is_valid():
+        try:
+            resultado = analisar_relacoes(request.user, tipo="NEGOCIO", escopo=form.cleaned_data["escopo"],
+                                           origem=cenario.ativo_id, limite=20)
+            nomes = dict(Ativo.objects.filter(pk__in=[item["id"] for item in resultado["itens"]]).values_list("pk", "nome"))
+            for item in resultado["itens"]:
+                item["nome"] = nomes.get(item["id"], "Ativo não disponível")
+        except ValueError as erro:
+            form.add_error(None, str(erro))
+    return render(request, "inventario/cenario_financeiro_dependencias.html",
+                  {"cenario": cenario, "form": form, "resultado": resultado})
