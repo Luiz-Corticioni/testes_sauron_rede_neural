@@ -35,3 +35,9 @@ Cada evento pode receber revisões de classificação com autoria e histórico p
 Foram executados testes de autorização, formulário, MFA, histórico, auditoria, rollback e validação, além dos testes existentes de isca. Esta etapa não estabelece política de retenção para dados reais nem prova que outras entradas jamais contenham dados sensíveis. Antes do uso operacional é necessário definir retenção e responsáveis.
 
 Após esta implementação, a suíte completa passou com 446 testes, a verificação de migrações não encontrou diferenças e o Ruff aprovou os arquivos Python alterados. A imagem foi reconstruída na instância Docker descartável: a migração 0030 foi aplicada, os serviços ficaram saudáveis e a rota de saúde retornou HTTP 200.
+
+## Registro de tentativas de NVD e EPSS
+
+O painel de fontes passou a apresentar a última tentativa e o último problema de NVD e EPSS, com data e categoria controlada, preservados em arquivos separados no diretório de dados. O registro não contém URLs, termos, chaves ou mensagens recebidas de terceiros. Não há gravação quando nenhuma consulta é realizada; resposta parcial e consulta desativada são identificadas. A falha da telemetria gera aviso no log e não interrompe a operação principal.
+
+A indicação NVD de resposta recebida descreve somente o transporte JSON; validação específica, atualização do cache e conexão atual não são inferidas. O histórico pode estar ausente ou desatualizado se sua gravação falhar; fica no volume de dados do host e não coordena instalações com diretórios separados. O painel mantém o último problema, não uma trilha completa por CVE. Testes específicos cobriram falha, resposta parcial, recuperação, conteúdo sanitizado, arquivo inválido e falha de gravação.

@@ -7,10 +7,21 @@ from django.db.models import Count, F, Max, Q
 from django.utils import timezone
 
 from inventario.infraestrutura.cve_client import CisaKevClient, IntegracaoCVEError, MAXIMO_DOWNLOAD, NvdClient
+from inventario.infraestrutura.estado_consultas_fontes import ler_estado
 from inventario.models import Vulnerabilidade
 
 LIMITE_NVD = 100
 LIMITE_BYTES_NVD = 4 * 1024 * 1024
+DESCRICOES = {"resposta": "resposta recebida", "falha": "falha de rede ou resposta", "limitada": "fonte limitou a consulta",
+              "desativada": "consulta desativada na configuração", "parcial": "resposta incompleta"}
+
+
+def estado_consulta(fonte):
+    dados = ler_estado(fonte)
+    if not dados:
+        return None
+    return {chave: {"data": valor["data"], "descricao": DESCRICOES[valor["estado"]]}
+            for chave, valor in dados.items()}
 
 
 def _rotina_kev():
@@ -91,6 +102,8 @@ def resumo_fontes(ver_isca=False):
     qs = Vulnerabilidade.objects.exclude(cve_id__isnull=True).exclude(cve_id="")
     total = qs.count()
     resultado = {"kev": estado_kev(), "nvd": estado_nvd(qs, total), "epss": estado_epss(qs, total)}
+    resultado["nvd"]["consulta"] = estado_consulta("nvd")
+    resultado["epss"]["consulta"] = estado_consulta("epss")
     if ver_isca:
         from inventario.models import EventoHoneypot, SensorHoneypot
         resultado["isca"] = {"sensores": SensorHoneypot.objects.count(),

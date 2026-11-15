@@ -183,15 +183,23 @@ class NvdClient:
 
     def baixar(self, url, api_key=None):
         from inventario.infraestrutura.auditoria import registrar_evento
+        from inventario.infraestrutura.estado_consultas_fontes import registrar_estado
         registrar_evento("CONSULTA_CVE", "NVD", "consulta", {"url":url})
         for tentativa in range(4):
-            self.reservar_requisicao()
             try:
-                return _baixar_json(url, self.api_key)
+                self.reservar_requisicao()
+                resposta = _baixar_json(url, self.api_key)
             except FonteLimitada as erro:
                 if tentativa == 3:
+                    registrar_estado("nvd", "limitada")
                     raise
                 time.sleep(min(30, max(erro.espera, 2**tentativa)))
+            except IntegracaoCVEError:
+                registrar_estado("nvd", "falha")
+                raise
+            else:
+                registrar_estado("nvd", "resposta")
+                return resposta
 
     def _caminho(self, cve_id):
         if not isinstance(cve_id, str):

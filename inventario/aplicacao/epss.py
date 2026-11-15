@@ -8,6 +8,7 @@ from inventario.infraestrutura.auditoria import registrar_evento, travar_escrita
 from inventario.infraestrutura.cve_client import EpssClient, IntegracaoCVEError
 from inventario.models import ObservacaoEPSS, Vulnerabilidade
 from inventario.aplicacao.autorizacao import exigir
+from inventario.infraestrutura.estado_consultas_fontes import registrar_estado
 
 
 def sincronizar_epss(usuario=None, limite=None):
@@ -20,12 +21,16 @@ def sincronizar_epss(usuario=None, limite=None):
     cves = list((qs[:limite] if limite else qs).values_list("cve_id", flat=True))
     resultado = {"atualizadas": 0, "nao_atualizadas": 0, "observacoes_novas": 0, "avisos": []}
     cliente = EpssClient()
+    estado = "resposta"
     for inicio in range(0, len(cves), 50):  # Respeita também o limite de caracteres da API.
         lote = cves[inicio:inicio + 50]
         try:
             encontrados = cliente.buscar(lote)
         except IntegracaoCVEError as erro:
             resultado["avisos"].append(str(erro))
+            from inventario.infraestrutura.cve_client import FonteLimitada
+            import os
+            estado = "desativada" if os.getenv("SAURON_ROTINAS_SEM_REDE") == "1" else ("limitada" if isinstance(erro, FonteLimitada) else "falha")
             break
         with transaction.atomic():
             travar_escrita()
@@ -53,11 +58,14 @@ def sincronizar_epss(usuario=None, limite=None):
                 registrar_evento("EPSS_SINCRONIZADO", "Inteligencia", "FIRST", {"cves_recebidas": len(encontrados), "observacoes_novas": resultado["observacoes_novas"]})
         ausentes = len(set(lote) - encontrados.keys())
         if ausentes:
+            estado = "parcial"
             resultado["avisos"].append(f"FIRST não retornou {ausentes} CVE(s) do lote; dados anteriores preservados.")
     resultado["nao_atualizadas"] = len(cves) - resultado["atualizadas"]
     resultado["cves_no_catalogo"], resultado["cves_consultadas"] = total, len(cves)
     if limite and total > limite:
         resultado["avisos"].append("Execução limitada a 50 CVEs com datas mais antigas/ausentes. Para catálogos grandes, agende sync_epss no servidor.")
+    if cves:
+        registrar_estado("epss", estado)
     return resultado
 
 
