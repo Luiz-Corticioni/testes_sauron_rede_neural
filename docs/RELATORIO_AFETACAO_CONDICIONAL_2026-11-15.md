@@ -1,0 +1,5 @@
+# Afetação condicional por serviço
+
+A causa compartilhada admite chance informada de cada serviço ser afetado quando o evento comum ocorrer. O evento continua limitado a 30 dias e usa a probabilidade do cenário, nunca EPSS. Na ausência de valor, a chance é 1 e o resultado anterior é preservado. Para chances menores, os serviços são sorteados independentemente entre si condicionados à ocorrência, e os afetados compartilham a duração da causa. Custos individuais não podem se sobrepor; os totais exibidos são máximos se todos forem afetados.
+
+Testes cobrem probabilidades 0 e 1, resultado médio aproximado para 0,5, reprodução com a mesma semente, rejeição de entrada inválida, formulário e compatibilidade com o modelo anterior. Essa modelagem não mede correlação, não aprende parâmetros e não comprova probabilidade ou perda reais. Em sistemas com dependências correlacionadas, sua hipótese de independência condicional pode subestimar ou superestimar perdas. As premissas e os resultados são transitórios e devem ser revisados por quem conhece a operação.

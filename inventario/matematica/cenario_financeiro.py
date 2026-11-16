@@ -45,3 +45,39 @@ def simular_interrupcao(cenario, n=20000, seed=42, limite=None):
         resultado["apos"] = resumo(alternativa)
         resultado["diferenca_media"] = float((perda - alternativa).mean())
     return resultado
+
+
+def simular_afetacao_condicional(cenario, impactos, n=20000, seed=42, limite=None):
+    """Evento comum; serviços sorteados independentemente, condicionados ao evento."""
+    # Reutiliza as validações do modelo individual e conserva seus sorteios iniciais.
+    base = simular_interrupcao(cenario, n=n, seed=seed, limite=limite)
+    rng = np.random.default_rng(seed)
+    ocorrencia = rng.random(n)
+    minimo, moda, maximo = (float(cenario.horas_min), float(cenario.horas_moda), float(cenario.horas_max))
+    duracao = pert(minimo, moda, maximo, n, rng)
+    restante = 720 - rng.uniform(0, 720, n)
+    horas = np.minimum(duracao, restante)
+    custo = np.full(n, float(cenario.custo_hora))
+    adicional = np.full(n, float(cenario.custo_adicional))
+    contagens = []
+    evento = ocorrencia < float(cenario.probabilidade)
+    for item in impactos:
+        afetado = rng.random(n) < float(item['probabilidade_condicional'])
+        custo += afetado * float(item['custo_hora'])
+        adicional += afetado * float(item['custo_adicional'])
+        contagens.append(int((evento & afetado).sum()))
+    impacto = horas * custo + adicional
+    perda = np.where(evento, impacto, 0.0)
+    base.update(versao_modelo='sauron.afetacao-condicional/30d-v1', atual=resumo(perda),
+                eventos=int(evento.sum()), perda_media_condicional=float(impacto[evento].mean()) if evento.any() else None,
+                excedencia=float((perda > limite).mean()) if limite is not None else None,
+                afetacoes_por_servico=contagens,
+                sensibilidade_duracao={'horas_min': minimo,
+                    'media_min': float(np.where(evento, np.minimum(minimo, restante)*custo+adicional, 0).mean()),
+                    'media_base': float(perda.mean()), 'horas_max': maximo,
+                    'media_max': float(np.where(evento, np.minimum(maximo, restante)*custo+adicional, 0).mean())})
+    if cenario.probabilidade_apos is not None:
+        alternativa = np.where(ocorrencia < float(cenario.probabilidade_apos), impacto, 0.0)
+        base['apos'] = resumo(alternativa)
+        base['diferenca_media'] = float((perda-alternativa).mean())
+    return base

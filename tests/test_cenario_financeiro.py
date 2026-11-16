@@ -189,6 +189,17 @@ class CenáriosFinanceiros(BancoTeste):
         self.assertEqual(resultado["versao_modelo"], "sauron.interrupcao-compartilhada/30d-v1")
         self.assertEqual(len(resultado["custos_servicos"]), 2)
         self.assertEqual(resultado, calcular_compartilhado(c, self.usuario, "Empresa", impactos, True, n=100, seed=1))
+        parciais = [{**impactos[0], "probabilidade_condicional": 0}, {**impactos[1], "probabilidade_condicional": 1}]
+        parcial = calcular_compartilhado(c, self.usuario, "Empresa", parciais, True, n=100, seed=1)
+        self.assertEqual(parcial["atual"]["media"], 40)
+        self.assertEqual(parcial["afetacoes_por_servico"], [0, 100])
+        self.assertEqual(parcial, calcular_compartilhado(c, self.usuario, "Empresa", parciais, True, n=100, seed=1))
+        meio = [{**impactos[0], "probabilidade_condicional": .5}]
+        resultado_meio = calcular_compartilhado(c, self.usuario, "Empresa", meio, True, n=10000, seed=1)
+        self.assertGreater(resultado_meio["atual"]["media"], 19)
+        self.assertLess(resultado_meio["atual"]["media"], 21)
+        with self.assertRaises(ValueError):
+            calcular_compartilhado(c, self.usuario, "Empresa", [{**impactos[0], "probabilidade_condicional": 1.1}], True, n=100)
         for lista, declaracao in ((impactos + [impactos[0]], True), (impactos, False),
                                   ([{**impactos[0], "ativo_id": self.a.pk}], True)):
             with self.subTest(lista=lista, declaracao=declaracao), self.assertRaises(ValueError):
@@ -214,6 +225,10 @@ class CenáriosFinanceiros(BancoTeste):
         resposta = self.client.post(url, dados)
         self.assertContains(resposta, "Resultado da hipótese compartilhada")
         self.assertEqual(resposta.context["resultado"]["atual"]["media"], 30)
+        dados["servicos-0-probabilidade_condicional"] = "0"
+        resposta = self.client.post(url, dados)
+        self.assertContains(resposta, "chance condicional")
+        self.assertEqual(resposta.context["resultado"]["atual"]["media"], 10)
         dados.pop("sem_sobreposicao")
         self.assertNotContains(self.client.post(url, dados), "Resultado da hipótese compartilhada")
         sem = get_user_model().objects.create_user("sem-relacao-compartilhada")

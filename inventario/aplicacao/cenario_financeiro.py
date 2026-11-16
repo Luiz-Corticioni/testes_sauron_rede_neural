@@ -30,7 +30,7 @@ def calcular_cenario(cenario, usuario, n=20000, seed=42, limite=None):
 
 
 def calcular_compartilhado(cenario, usuario, escopo, impactos, sem_sobreposicao, n=20000, seed=42, limite=None):
-    """Uma causa comum afeta todos os serviços selecionados pelo mesmo período."""
+    """Causa comum; chances condicionais são premissas informadas, não estimativas do grafo."""
     from inventario.aplicacao.relacoes import analisar_relacoes
     exigir(usuario, "inventario.view_ativo", "inventario.view_cenariofinanceiro", "inventario.view_relacaoativos")
     cenario.full_clean()
@@ -44,7 +44,8 @@ def calcular_compartilhado(cenario, usuario, escopo, impactos, sem_sobreposicao,
     permitidos = {item["id"] for item in grafo["itens"]}
     vistos, custos, adicionais = set(), Decimal(cenario.custo_hora), Decimal(cenario.custo_adicional)
     for item in impactos:
-        if not isinstance(item, dict) or set(item) != {"ativo_id", "custo_hora", "custo_adicional", "justificativa"}:
+        obrigatorios = {"ativo_id", "custo_hora", "custo_adicional", "justificativa"}
+        if not isinstance(item, dict) or not obrigatorios <= set(item) or set(item) - obrigatorios - {"probabilidade_condicional"}:
             raise ValueError("Informe ativo, custos e justificativa de cada serviço.")
         identificador = item["ativo_id"]
         justificativa = item["justificativa"]
@@ -52,6 +53,10 @@ def calcular_compartilhado(cenario, usuario, escopo, impactos, sem_sobreposicao,
             raise ValueError("Serviço repetido ou fora do alcance elegível no escopo informado.")
         if not isinstance(justificativa, str) or not justificativa.strip() or len(justificativa) > 300:
             raise ValueError("Informe a origem ou justificativa de cada custo, com até 300 caracteres.")
+        probabilidade = item.get("probabilidade_condicional", 1)
+        if isinstance(probabilidade, bool) or not isinstance(probabilidade, (int, float, Decimal)):
+            raise ValueError("A chance condicional deve ser um número entre 0 e 1.")
+        numero(float(probabilidade), "Chance condicional", 0, 1)
         for chave, teto in (("custo_hora", 1000000000), ("custo_adicional", 1000000000000)):
             valor = item[chave]
             if isinstance(valor, bool) or not isinstance(valor, (int, float, Decimal)):
@@ -64,11 +69,17 @@ def calcular_compartilhado(cenario, usuario, escopo, impactos, sem_sobreposicao,
         raise ValueError("A soma dos custos supera o limite permitido para a simulação.")
     combinado = copy(cenario)
     combinado.custo_hora, combinado.custo_adicional = custos, adicionais
+    selecionados = [{**item, "probabilidade_condicional": item.get("probabilidade_condicional", 1)} for item in impactos]
     with vaga_simulacao():
-        resultado = simular_interrupcao(combinado, n=n, seed=seed, limite=limite)
-    resultado.update(versao_modelo="sauron.interrupcao-compartilhada/30d-v1", escopo=grafo["escopo"],
+        if all(float(item["probabilidade_condicional"]) == 1 for item in selecionados):
+            resultado = simular_interrupcao(combinado, n=n, seed=seed, limite=limite)
+            resultado["versao_modelo"] = "sauron.interrupcao-compartilhada/30d-v1"
+        else:
+            from inventario.matematica.cenario_financeiro import simular_afetacao_condicional
+            resultado = simular_afetacao_condicional(cenario, selecionados, n=n, seed=seed, limite=limite)
+    resultado.update(escopo=grafo["escopo"],
                      snapshot_sha256=grafo["snapshot_sha256"], relacoes_excluidas=grafo["excluidas"],
-                     custos_servicos=impactos, custo_total_hora=float(custos), custo_total_adicional=float(adicionais))
+                     custos_servicos=selecionados, custo_total_hora=float(custos), custo_total_adicional=float(adicionais))
     return resultado
 
 

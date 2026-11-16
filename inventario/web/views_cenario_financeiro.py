@@ -40,6 +40,8 @@ class ImpactoForm(forms.Form):
     ativo = forms.ModelChoiceField(label="Serviço dependente", queryset=Ativo.objects.exclude(status__in=["INATIVO", "BAIXADO"]))
     custo_hora = forms.DecimalField(label="Custo incremental por hora (R$)", min_value=0, max_value=1000000000, decimal_places=2)
     custo_adicional = forms.DecimalField(label="Custo adicional único (R$)", min_value=0, max_value=1000000000000, decimal_places=2)
+    probabilidade_condicional = forms.DecimalField(label="Chance de afetar este serviço se a causa ocorrer (0 a 1)",
+        min_value=0, max_value=1, required=False, help_text="Premissa informada; em branco significa 1. Não é calculada pelo grafo nem pelo EPSS.")
     justificativa = forms.CharField(label="Origem ou justificativa dos custos", max_length=300)
 
 
@@ -140,7 +142,8 @@ def compartilhado(request, pk):
     status = 200
     if request.method == "POST" and form.is_valid() and linhas.is_valid():
         impactos = [{"ativo_id": item["ativo"].pk, "custo_hora": item["custo_hora"],
-                     "custo_adicional": item["custo_adicional"], "justificativa": item["justificativa"]}
+                     "custo_adicional": item["custo_adicional"], "justificativa": item["justificativa"],
+                     "probabilidade_condicional": item["probabilidade_condicional"] if item["probabilidade_condicional"] is not None else 1}
                     for item in linhas.cleaned_data if item]
         valores = form.cleaned_data
         try:
