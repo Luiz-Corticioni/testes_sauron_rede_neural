@@ -2,10 +2,12 @@ from django import forms
 from django.contrib import messages
 from django.core import signing
 from django.core.exceptions import ValidationError
+from django.db.models import Max, Subquery
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
 from inventario.aplicacao.scanner import LIMITE, extrair, gravar, revisar
 from inventario.models import Ativo, RelatorioScanner, RevisaoAchadoScanner
+from inventario.web.paginacao import paginar
 
 
 class ScannerForm(forms.Form):
@@ -54,7 +56,22 @@ def importar(request):
 
 @require_GET
 def detalhe(request, pk):
-    return render(request, "inventario/scanner_detalhe.html", {"relatorio": get_object_or_404(RelatorioScanner.objects.select_related("ativo", "importado_por"), pk=pk)})
+    relatorio = get_object_or_404(RelatorioScanner.objects.select_related("ativo", "importado_por"), pk=pk)
+    ultimas = relatorio.revisoes.order_by().values("indice").annotate(ultimo=Max("pk")).values("ultimo")
+    revisoes = dict(RevisaoAchadoScanner.objects.filter(pk__in=Subquery(ultimas)).values_list("indice", "classificacao"))
+    escolhas = [("TODOS", "Todos"), ("PENDENTE", "Sem revisão"), *RevisaoAchadoScanner.CLASSIFICACOES]
+    filtro = request.GET.get("estado", "TODOS")
+    if filtro not in dict(escolhas):
+        filtro = "TODOS"
+    linhas = [{**item, "indice": indice, "estado": revisoes.get(indice, "PENDENTE")}
+              for indice, item in enumerate(relatorio.achados)]
+    for item in linhas:
+        item["estado_rotulo"] = dict(escolhas).get(item["estado"], "Desconhecido")
+    resumo = {chave: sum(item["estado"] == chave for item in linhas) for chave, _ in escolhas if chave != "TODOS"}
+    if filtro != "TODOS":
+        linhas = [item for item in linhas if item["estado"] == filtro]
+    return render(request, "inventario/scanner_detalhe.html", {"relatorio": relatorio, "escolhas": escolhas,
+        "estado": filtro, "resumo": resumo, **paginar(linhas, request)})
 
 
 class RevisaoForm(forms.Form):

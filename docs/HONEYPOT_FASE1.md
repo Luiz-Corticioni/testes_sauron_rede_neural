@@ -38,7 +38,7 @@ Campos extras, incluindo senha, usuário e comando, são rejeitados em vez de ar
 
 ## Privacidade e operação
 
-O IP de origem é armazenado para investigação e pode ser dado pessoal. A leitura requer permissões de sensor, evento e ativo; o acesso administrativo deve ser restrito. O backup lógico cifrado inclui esses registros. Esta fase **não implementa expiração automática, anonimização, exclusão seletiva ou encaminhamento a SIEM**; defina política de retenção antes de importar dados reais. A auditoria registra quem criou ou editou sensor e quem importou um lote, além de contagens, sem registrar os IPs do lote nessa entrada de auditoria.
+O IP de origem é armazenado para investigação e pode ser dado pessoal. A leitura requer permissões de sensor, evento e ativo; o acesso administrativo deve ser restrito. O backup lógico cifrado inclui esses registros. A rotina agendada elimina IPs e revisões vencidos conforme o prazo configurado; veja a seção de retenção abaixo. Não há encaminhamento automático a SIEM; defina responsabilidades antes de importar dados reais. A auditoria registra quem criou ou editou sensor e quem importou um lote, além de contagens, sem registrar os IPs do lote nessa entrada de auditoria.
 
 Antes de ligar uma isca real, obtenha autorização, use isolamento de rede e regras de saída adequadas, planeje a coleta e revise riscos do sensor. Nunca instale sensores ou abra portas no servidor compartilhado sem autorização. A integração futura deve validar limites, autenticidade, duplicação, atraso e perda de eventos; conteúdo recebido nunca deve ser executado.
 

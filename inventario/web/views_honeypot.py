@@ -1,10 +1,12 @@
 """Demonstração manual de sensores: nenhum serviço de isca é instalado."""
+from datetime import timedelta
 from django import forms
 import hashlib
 from django.core import signing
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_GET, require_http_methods
 
 from inventario.aplicacao.honeypot import LIMITE_BYTES, salvar_sensor, importar_eventos, revisar_evento, alterar_retencao
@@ -133,4 +135,9 @@ def retencao(request):
         alterar_retencao(form.cleaned_data["dias"], request.user)
         messages.success(request, "Política salva; os dados vencidos serão tratados pela próxima rotina.")
         return redirect("honeypot_retencao")
-    return render(request, "inventario/honeypot_retencao.html", {"form": form, "politica": politica})
+    pendencias = None
+    if request.user.has_perms(("inventario.view_eventohoneypot", "inventario.view_revisaoeventohoneypot")):
+        corte = timezone.now() - timedelta(days=politica.dias if politica else 90)
+        pendencias = {"ips": EventoHoneypot.objects.filter(recebido_em__lte=corte, origem_ip__isnull=False).count(),
+                      "revisoes": RevisaoEventoHoneypot.objects.filter(criado_em__lte=corte).count()}
+    return render(request, "inventario/honeypot_retencao.html", {"form": form, "politica": politica, "pendencias": pendencias})

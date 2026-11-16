@@ -61,3 +61,21 @@ class ScannerTeste(BancoTeste):
         exemplo = Path(__file__).resolve().parent.parent / "docs/exemplos/trivy-demo.json"
         _, achados, ignorados, _ = extrair(exemplo.read_bytes())
         self.assertEqual((len(achados), ignorados), (1, 0))
+
+    def test_filtro_usa_revisao_mais_recente_e_indice_original(self):
+        self.doc['Results'][0]['Vulnerabilities'].append(
+            {'VulnerabilityID': 'CVE-2026-99999', 'PkgName': 'outro', 'InstalledVersion': '2.0'})
+        dados = {'ativo': self.a.pk, 'escopo': 'imagem', 'origem': 'Trivy local'}
+        previa = self.client.post('/scanner/', dados | {'arquivo': self.upload()})
+        token = previa.context['form'].initial['confirmacao']
+        self.client.post('/scanner/', dados | {'arquivo': self.upload(), 'confirmacao': token})
+        relatorio = RelatorioScanner.objects.get()
+        url = f'/scanner/{relatorio.pk}/achados/1/revisar/'
+        self.client.post(url, {'classificacao': 'APLICAVEL', 'justificativa': 'Primeira avaliação'})
+        self.client.post(url, {'classificacao': 'INCONCLUSIVO', 'justificativa': 'Evidência insuficiente'})
+        resposta = self.client.get(f'/scanner/{relatorio.pk}/', {'estado': 'INCONCLUSIVO'})
+        self.assertEqual(resposta.context['resumo']['PENDENTE'], 1)
+        self.assertEqual(resposta.context['resumo']['INCONCLUSIVO'], 1)
+        self.assertEqual(resposta.context['resumo']['APLICAVEL'], 0)
+        self.assertEqual(resposta.context['pagina'][0]['indice'], 1)
+        self.assertContains(resposta, url)

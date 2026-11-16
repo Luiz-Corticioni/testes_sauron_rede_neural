@@ -112,3 +112,17 @@ class RetencaoHoneypot(BancoTeste):
         self.assertEqual(self.client.get(url).status_code, 403)
         self.client.force_login(self.usuario)
         self.assertEqual(self.client.get(url).url, "/mfa/")
+
+    def test_pendencias_na_tela_respeitam_permissoes_e_prazo(self):
+        from django.contrib.auth.models import Permission
+        revisao = revisar_evento(self.evento.pk, "INCONCLUSIVO", "SEM_CONTEXTO", self.usuario)
+        RevisaoEventoHoneypot.objects.filter(pk=revisao.pk).update(criado_em=timezone.now()-timedelta(days=100))
+        resposta = self.client.get('/honeypot/retencao/')
+        self.assertEqual(resposta.context['pendencias'], {'ips': 1, 'revisoes': 1})
+        alterar_retencao(180, self.usuario)
+        self.assertEqual(self.client.get('/honeypot/retencao/').context['pendencias'], {'ips': 0, 'revisoes': 0})
+        gerente = get_user_model().objects.create_user('politica-sem-eventos')
+        gerente.user_permissions.add(*Permission.objects.filter(content_type__app_label='inventario', codename__in=(
+            'view_ativo', 'view_sensorhoneypot', 'view_politicaretencaohoneypot', 'change_politicaretencaohoneypot')))
+        self.autenticar(gerente)
+        self.assertIsNone(self.client.get('/honeypot/retencao/').context['pendencias'])
