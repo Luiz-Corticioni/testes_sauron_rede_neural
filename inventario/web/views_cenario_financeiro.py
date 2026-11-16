@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
 
-from inventario.aplicacao.cenario_financeiro import calcular_cenario, criar_cenario
+from inventario.aplicacao.cenario_financeiro import calcular_cenario, calcular_compartilhado, criar_cenario
 from inventario.infraestrutura.limite_simulacoes import LimiteSimulacoes
 from inventario.models import Ativo, CenarioFinanceiro
 from inventario.web.paginacao import paginar
@@ -30,6 +30,20 @@ class SimulacaoForm(forms.Form):
 
 class DependenciasForm(forms.Form):
     escopo = forms.CharField(label="Escopo exato das relações de negócio", max_length=200, strip=True)
+
+
+class CompartilhadoForm(SimulacaoForm, DependenciasForm):
+    sem_sobreposicao = forms.BooleanField(label="Confirmo que os custos informados são incrementais e não duplicam outras perdas.")
+
+
+class ImpactoForm(forms.Form):
+    ativo = forms.ModelChoiceField(label="Serviço dependente", queryset=Ativo.objects.exclude(status__in=["INATIVO", "BAIXADO"]))
+    custo_hora = forms.DecimalField(label="Custo incremental por hora (R$)", min_value=0, max_value=1000000000, decimal_places=2)
+    custo_adicional = forms.DecimalField(label="Custo adicional único (R$)", min_value=0, max_value=1000000000000, decimal_places=2)
+    justificativa = forms.CharField(label="Origem ou justificativa dos custos", max_length=300)
+
+
+ImpactosFormSet = forms.formset_factory(ImpactoForm, extra=3, max_num=10, absolute_max=10, validate_max=True)
 
 
 @require_GET
@@ -89,3 +103,31 @@ def dependencias(request, pk):
             form.add_error(None, str(erro))
     return render(request, "inventario/cenario_financeiro_dependencias.html",
                   {"cenario": cenario, "form": form, "resultado": resultado})
+
+
+@require_http_methods(["GET", "POST"])
+def compartilhado(request, pk):
+    cenario = get_object_or_404(CenarioFinanceiro.objects.select_related("ativo"), pk=pk)
+    dados = request.POST if request.method == "POST" else None
+    form, linhas = CompartilhadoForm(dados), ImpactosFormSet(dados, prefix="servicos")
+    resultado = None
+    status = 200
+    if request.method == "POST" and form.is_valid() and linhas.is_valid():
+        impactos = [{"ativo_id": item["ativo"].pk, "custo_hora": item["custo_hora"],
+                     "custo_adicional": item["custo_adicional"], "justificativa": item["justificativa"]}
+                    for item in linhas.cleaned_data if item]
+        valores = form.cleaned_data
+        try:
+            resultado = calcular_compartilhado(cenario, request.user, valores["escopo"], impactos,
+                valores["sem_sobreposicao"], n=valores["n"], seed=valores["seed"],
+                limite=float(valores["limite"]) if valores["limite"] is not None else None)
+            nomes = dict(Ativo.objects.filter(pk__in=[item["ativo_id"] for item in impactos]).values_list("pk", "nome"))
+            for item in resultado["custos_servicos"]:
+                item["nome"] = nomes.get(item["ativo_id"], "Ativo não disponível")
+        except LimiteSimulacoes:
+            form.add_error(None, "Há muitas simulações em andamento. Tente novamente em alguns segundos.")
+            status = 429
+        except ValueError as erro:
+            form.add_error(None, str(erro))
+    return render(request, "inventario/cenario_financeiro_compartilhado.html",
+                  {"cenario": cenario, "form": form, "linhas": linhas, "resultado": resultado}, status=status)

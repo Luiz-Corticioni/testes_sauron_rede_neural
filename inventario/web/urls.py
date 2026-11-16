@@ -39,6 +39,7 @@ urlpatterns = [
     path("cenarios-financeiros/novo/", proteger(views_cenario_financeiro.novo, "inventario.view_ativo", "inventario.add_cenariofinanceiro", "inventario.view_cenariofinanceiro"), name="cenario_financeiro_novo"),
     path("cenarios-financeiros/<int:pk>/", proteger(views_cenario_financeiro.detalhe, "inventario.view_ativo", "inventario.view_cenariofinanceiro"), name="cenario_financeiro_detalhe"),
     path("cenarios-financeiros/<int:pk>/dependencias/", proteger(views_cenario_financeiro.dependencias, "inventario.view_ativo", "inventario.view_cenariofinanceiro", "inventario.view_relacaoativos"), name="cenario_financeiro_dependencias"),
+    path("cenarios-financeiros/<int:pk>/compartilhado/", proteger(views_cenario_financeiro.compartilhado, "inventario.view_ativo", "inventario.view_cenariofinanceiro", "inventario.view_relacaoativos"), name="cenario_financeiro_compartilhado"),
     path("fontes/", proteger(views_fontes.painel, "inventario.view_vulnerabilidade"), name="estado_fontes"),
     path("honeypot/", proteger(views_honeypot.painel, "inventario.view_ativo", "inventario.view_sensorhoneypot", "inventario.view_eventohoneypot"), name="honeypot"),
     path("honeypot/novo/", proteger(views_honeypot.cadastrar, "inventario.view_ativo", "inventario.add_sensorhoneypot"), name="honeypot_novo"),

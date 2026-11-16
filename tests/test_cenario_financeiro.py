@@ -170,6 +170,57 @@ class CenáriosFinanceiros(BancoTeste):
         self.assertEqual({item["id"] for item in resultado["itens"]}, {self.b.pk, terceiro.pk})
         self.assertEqual(resultado["ciclos_base"]["total_grupos"], 1)
 
+    def test_causa_compartilhada_conta_servicos_uma_vez_em_ciclos_e_caminhos_paralelos(self):
+        from inventario.aplicacao.cenario_financeiro import calcular_compartilhado
+        from inventario.aplicacao.relacoes import salvar_relacao
+        from inventario.models import Ativo, RelacaoAtivos
+        terceiro = Ativo.objects.create(tipo="1", nome="Banco de teste", fabricante="Exemplo", sala=self.sala)
+        c = self.salvar(probabilidade=Decimal("1"), custo_hora=Decimal("0"), custo_adicional=Decimal("10"))
+        hoje = timezone.localdate()
+        base = {"tipo": "NEGOCIO", "escopo": "Empresa", "protocolo": "", "porta": 0, "principal": "", "privilegio": "",
+                "fonte": "Exemplo", "evidencia": "Dado sintético", "observada_em": hoje - timedelta(days=1),
+                "revisar_em": hoje + timedelta(days=30), "vigente": True}
+        for origem, destino in ((self.a, self.b), (self.a, terceiro), (self.b, terceiro), (terceiro, self.a)):
+            salvar_relacao({**base, "origem_id": origem.pk, "destino_id": destino.pk}, self.usuario)
+        impactos = [{"ativo_id": self.b.pk, "custo_hora": Decimal("0"), "custo_adicional": Decimal("20"), "justificativa": "Despesa distinta B"},
+                    {"ativo_id": terceiro.pk, "custo_hora": Decimal("0"), "custo_adicional": Decimal("30"), "justificativa": "Despesa distinta C"}]
+        resultado = calcular_compartilhado(c, self.usuario, "Empresa", impactos, True, n=100, seed=1)
+        self.assertEqual(resultado["atual"]["media"], 60)
+        self.assertEqual(resultado["versao_modelo"], "sauron.interrupcao-compartilhada/30d-v1")
+        self.assertEqual(len(resultado["custos_servicos"]), 2)
+        self.assertEqual(resultado, calcular_compartilhado(c, self.usuario, "Empresa", impactos, True, n=100, seed=1))
+        for lista, declaracao in ((impactos + [impactos[0]], True), (impactos, False),
+                                  ([{**impactos[0], "ativo_id": self.a.pk}], True)):
+            with self.subTest(lista=lista, declaracao=declaracao), self.assertRaises(ValueError):
+                calcular_compartilhado(c, self.usuario, "Empresa", lista, declaracao, n=100)
+        RelacaoAtivos.objects.filter(origem=self.a, destino=terceiro, escopo="Empresa").update(vigente=False)
+        RelacaoAtivos.objects.filter(origem=self.b, destino=terceiro, escopo="Empresa").update(vigente=False)
+        with self.assertRaises(ValueError):
+            calcular_compartilhado(c, self.usuario, "Empresa", impactos, True, n=100)
+
+    def test_causa_compartilhada_web_e_permissoes(self):
+        from django.contrib.auth.models import Permission
+        from inventario.aplicacao.relacoes import salvar_relacao
+        c = self.salvar(probabilidade=Decimal("1"), custo_hora=Decimal("0"), custo_adicional=Decimal("10"))
+        hoje = timezone.localdate()
+        salvar_relacao({"origem_id": self.a.pk, "destino_id": self.b.pk, "tipo": "NEGOCIO", "escopo": "Empresa",
+            "protocolo": "", "porta": 0, "principal": "", "privilegio": "", "fonte": "Exemplo", "evidencia": "Sintético",
+            "observada_em": hoje, "revisar_em": hoje + timedelta(days=30), "vigente": True}, self.usuario)
+        url = f"/cenarios-financeiros/{c.pk}/compartilhado/"
+        dados = {"escopo": "Empresa", "sem_sobreposicao": "on", "n": 100, "seed": 42, "limite": "",
+                 "servicos-TOTAL_FORMS": "3", "servicos-INITIAL_FORMS": "0", "servicos-MIN_NUM_FORMS": "0", "servicos-MAX_NUM_FORMS": "10",
+                 "servicos-0-ativo": self.b.pk, "servicos-0-custo_hora": "0", "servicos-0-custo_adicional": "20",
+                 "servicos-0-justificativa": "Custo adicional independente"}
+        resposta = self.client.post(url, dados)
+        self.assertContains(resposta, "Resultado da hipótese compartilhada")
+        self.assertEqual(resposta.context["resultado"]["atual"]["media"], 30)
+        dados.pop("sem_sobreposicao")
+        self.assertNotContains(self.client.post(url, dados), "Resultado da hipótese compartilhada")
+        sem = get_user_model().objects.create_user("sem-relacao-compartilhada")
+        sem.user_permissions.add(*Permission.objects.filter(content_type__app_label="inventario", codename__in=["view_ativo", "view_cenariofinanceiro"]))
+        self.autenticar(sem)
+        self.assertEqual(self.client.post(url, dados).status_code, 403)
+
     def test_papeis_padrao_restringem_contexto_financeiro(self):
         call_command("configurar_grupos", verbosity=0)
         for nome in ("Operadores", "Auditores"):
