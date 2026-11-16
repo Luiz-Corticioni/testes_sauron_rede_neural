@@ -47,6 +47,7 @@ urlpatterns = [
     path("honeypot/retencao/", proteger(views_honeypot.retencao, "inventario.view_ativo", "inventario.view_sensorhoneypot", "inventario.view_politicaretencaohoneypot", "inventario.change_politicaretencaohoneypot"), name="honeypot_retencao"),
     path("honeypot/<int:pk>/editar/", proteger(views_honeypot.cadastrar, "inventario.view_ativo", "inventario.change_sensorhoneypot"), name="honeypot_editar"),
     path("honeypot/<int:pk>/importar/", proteger(views_honeypot.importar, "inventario.view_sensorhoneypot", "inventario.add_eventohoneypot"), name="honeypot_importar"),
+    path("honeypot/<int:pk>/cowrie/", proteger(views_honeypot.importar_cowrie, "inventario.view_sensorhoneypot", "inventario.add_eventohoneypot"), name="honeypot_cowrie"),
     path("honeypot/eventos/<int:pk>/revisar/", proteger(views_honeypot.revisar, "inventario.view_ativo", "inventario.view_sensorhoneypot", "inventario.view_eventohoneypot", "inventario.view_revisaoeventohoneypot", "inventario.add_revisaoeventohoneypot"), name="honeypot_revisar"),
     path("api/v1/docs/", api_v1.documentacao, name="api_v1_docs"),
     path("api/v1/openapi.json", api_v1.especificacao, name="api_v1_especificacao"),

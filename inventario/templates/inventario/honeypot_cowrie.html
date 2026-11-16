@@ -1,0 +1,6 @@
+{% extends "inventario/base.html" %}
+{% block title %}Importar Cowrie — Sauron{% endblock %}
+{% block content %}<section class="page-heading"><h1>Importar eventos Cowrie</h1></section>
+<article class="panel"><p>Sensor: {{ sensor.nome }}. Arquivo JSONL offline, até 1 MB e 500 linhas. Somente conexões e logins são aproveitados; nomes de usuário, senhas e comandos não são gravados. O arquivo original continua sob responsabilidade do operador.</p>
+{% if previa %}<h2>Prévia: {{ previa.eventos|length }} eventos, {{ previa.ignorados }} linhas de outros tipos ignoradas</h2><p>Confira os dados e reenvie o mesmo arquivo para confirmar a importação em até 10 minutos.</p><div class="table-wrap"><table><thead><tr><th>Data</th><th>IP</th><th>Tipo</th></tr></thead><tbody>{% for evento in previa.eventos %}<tr><td>{{ evento.observado_em }}</td><td>{{ evento.origem_ip }}</td><td>{{ evento.tipo }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+<form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.as_p }}<button class="button" type="submit">{% if previa %}Confirmar importação{% else %}Ver prévia{% endif %}</button> <a href="{% url 'honeypot' %}">Cancelar</a></form></article>{% endblock %}

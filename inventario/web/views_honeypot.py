@@ -1,11 +1,14 @@
 """Demonstração manual de sensores: nenhum serviço de isca é instalado."""
 from django import forms
+import hashlib
+from django.core import signing
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
 
 from inventario.aplicacao.honeypot import LIMITE_BYTES, salvar_sensor, importar_eventos, revisar_evento, alterar_retencao
+from inventario.aplicacao.cowrie import converter
 from inventario.models import EventoHoneypot, SensorHoneypot, RevisaoEventoHoneypot, PoliticaRetencaoHoneypot
 from inventario.web.paginacao import paginar
 
@@ -24,6 +27,11 @@ class ImportarForm(forms.Form):
         if arquivo.size > LIMITE_BYTES:
             raise forms.ValidationError("Arquivo excede 1 MB.")
         return arquivo
+
+
+class CowrieForm(ImportarForm):
+    lote = forms.UUIDField(label="UUID do lote", help_text="Use o mesmo UUID ao reimportar o mesmo arquivo.")
+    confirmacao = forms.CharField(required=False, widget=forms.HiddenInput)
 
 
 class RevisaoForm(forms.Form):
@@ -73,6 +81,36 @@ def importar(request, pk):
             return redirect("honeypot")
     return render(request, "inventario/honeypot_form.html",
                   {"form": form, "titulo": "Importar eventos", "sensor": sensor})
+
+
+@require_http_methods(["GET", "POST"])
+def importar_cowrie(request, pk):
+    sensor = get_object_or_404(SensorHoneypot, pk=pk)
+    form = CowrieForm(request.POST or None, request.FILES or None)
+    previa = None
+    if request.method == "POST" and form.is_valid():
+        try:
+            conteudo, ignorados = converter(form.cleaned_data["arquivo"].read(LIMITE_BYTES + 1), form.cleaned_data["lote"])
+            vinculo = {"sensor": sensor.pk, "usuario": request.user.pk,
+                       "sha256": hashlib.sha256(conteudo).hexdigest(), "ignorados": ignorados}
+            token = form.cleaned_data["confirmacao"]
+            if token:
+                try:
+                    validado = signing.loads(token, salt="cowrie-previa", max_age=600)
+                except signing.BadSignature as erro:
+                    raise ValidationError("Prévia inválida ou expirada; gere outra.") from erro
+                if validado != vinculo:
+                    raise ValidationError("O arquivo ou sensor mudou; gere outra prévia.")
+                resultado = importar_eventos(sensor.pk, conteudo, request.user)
+                messages.success(request, f"Importados: {resultado['novos']}; repetidos: {resultado['duplicados']}.")
+                return redirect("honeypot")
+            import json
+            previa = {"eventos": json.loads(conteudo), "ignorados": ignorados}
+            form.fields["confirmacao"].initial = signing.dumps(vinculo, salt="cowrie-previa")
+            form = CowrieForm(initial={"lote": form.cleaned_data["lote"], "confirmacao": form.fields["confirmacao"].initial})
+        except ValidationError as erro:
+            form.add_error(None, erro)
+    return render(request, "inventario/honeypot_cowrie.html", {"form": form, "sensor": sensor, "previa": previa})
 
 
 @require_http_methods(["GET", "POST"])
