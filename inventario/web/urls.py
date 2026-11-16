@@ -8,11 +8,13 @@ from inventario.web import views_honeypot
 from inventario.web import views_fontes
 from inventario.web import views_cenario_financeiro
 from inventario.web import views_documentos
+from inventario.web import views_scanner
 from inventario.web import views_relacoes
 from inventario.web import views_cobertura
 from inventario.aplicacao.cobertura import LEITURA as LEITURA_COBERTURA
 from inventario.aplicacao.relacoes import LEITURA as LEITURA_RELACOES
 from inventario.aplicacao.documentos import LEITURA as LEITURA_DOCUMENTOS
+from inventario.aplicacao.documentos import ESCRITA as ESCRITA_DOCUMENTOS
 from inventario.web import views_ssvc
 from inventario.aplicacao.ssvc import PERMISSOES_LEITURA
 from inventario.web import views_epss
@@ -67,6 +69,8 @@ urlpatterns = [
     path("grafo-relacoes/", proteger(views_relacoes.painel, *LEITURA_RELACOES), name="grafo_relacoes"),
     path("api/grafo-relacoes/", proteger(views_relacoes.api, *LEITURA_RELACOES), name="api_grafo_relacoes"),
     path("documentos/", proteger(views_documentos.lista, *LEITURA_DOCUMENTOS), name="documentos"),
+    path("scanner/", proteger(views_scanner.importar, *ESCRITA_DOCUMENTOS), name="scanner_importar"),
+    path("scanner/<int:pk>/", proteger(views_scanner.detalhe, *LEITURA_DOCUMENTOS), name="scanner_detalhe"),
     path("documentos/<int:pk>/", proteger(views_documentos.detalhe, *LEITURA_DOCUMENTOS), name="documento"),
     path("documentos/<int:pk>/baixar/", proteger(views_documentos.baixar, *LEITURA_DOCUMENTOS), name="baixar_documento"),
     path("incidencias/<str:pk>/ssvc/", proteger(views_ssvc.painel, *PERMISSOES_LEITURA), name="ssvc_incidencia"),
