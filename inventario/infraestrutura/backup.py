@@ -75,6 +75,16 @@ def backup_sqlite(retencao=None):
                     continue
                 if modelo._meta.model_name in ("sensorhoneypot", "eventohoneypot") and ("inventario", "0029_alter_alerta_tipo_sensorhoneypot_eventohoneypot") not in aplicadas:
                     continue
+                criacao_recente = {
+                    "inventario.revisaoeventohoneypot": "0030_revisaoeventohoneypot",
+                    "inventario.cenariofinanceiro": "0031_cenariofinanceiro",
+                    "inventario.politicaretencaohoneypot": "0032_alter_eventohoneypot_origem_ip_and_more",
+                    "inventario.relatorioscanner": "0033_relatorioscanner",
+                    "inventario.revisaoachadoscanner": "0034_revisaoachadoscanner",
+                }
+                migracao = criacao_recente.get(modelo._meta.label_lower)
+                if migracao and ("inventario", migracao) not in aplicadas:
+                    continue
                 raise ValueError(f"Tabela ausente para {modelo._meta.label}; backup interrompido.")
             registros=modelo.objects.order_by(modelo._meta.pk.name)
             if modelo._meta.label_lower == "inventario.software" and ("inventario", "0024_documentos_componentes") not in aplicadas:
@@ -127,7 +137,7 @@ def restaurar_backup(arquivo,saida):
                         SAURON_AUDIT_HMAC_KEY=settings.SAURON_AUDIT_HMAC_KEY)
         raiz=Path(__file__).resolve().parents[2]
         try:
-            for comando in (["migrate","--noinput"],["loaddata",str(fixture)],["verificar_auditoria", "--somente-cadeia"]):
+            for comando in (["migrate","--noinput"],["carregar_fixture_restauracao",str(fixture)],["verificar_auditoria", "--somente-cadeia"]):
                 subprocess.run([sys.executable,str(raiz/"manage.py"),*comando],cwd=raiz,env=ambiente,check=True,capture_output=True,text=True)  # nosec B603
             with closing(sqlite3.connect(temporario)) as banco:
                 banco.execute("PRAGMA wal_checkpoint(TRUNCATE)")

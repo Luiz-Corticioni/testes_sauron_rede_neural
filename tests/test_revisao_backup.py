@@ -9,6 +9,35 @@ from .base import BancoTeste
 
 
 class PublicacaoBackup(BancoTeste):
+    def test_carga_interna_recusa_banco_normal(self):
+        from django.core.management import call_command, CommandError
+        with self.assertRaisesMessage(CommandError, 'banco temporário isolado'):
+            call_command('carregar_fixture_restauracao', 'nao-usado.json')
+
+    def test_tabelas_recentes_ausentes_somente_antes_da_respectiva_migracao(self):
+        from django.db import connection
+        from django.db.migrations.recorder import MigrationRecorder
+
+        tabelas = connection.introspection.table_names()
+        aplicadas = MigrationRecorder(connection).applied_migrations()
+        casos = {
+            'inventario_revisaoeventohoneypot': '0030_revisaoeventohoneypot',
+            'inventario_cenariofinanceiro': '0031_cenariofinanceiro',
+            'inventario_politicaretencaohoneypot': '0032_alter_eventohoneypot_origem_ip_and_more',
+            'inventario_relatorioscanner': '0033_relatorioscanner',
+            'inventario_revisaoachadoscanner': '0034_revisaoachadoscanner',
+        }
+        with override_settings(SAURON_BACKUP_KEY=Fernet.generate_key().decode(), SAURON_BACKUP_DESTINO_ADICIONAL=''):
+            for tabela, migracao in casos.items():
+                with self.subTest(tabela=tabela):
+                    sem_tabela = [t for t in tabelas if t != tabela]
+                    anteriores = {k: v for k, v in aplicadas.items() if k != ('inventario', migracao)}
+                    with patch.object(connection.introspection, 'table_names', return_value=sem_tabela):
+                        with patch.object(MigrationRecorder, 'applied_migrations', return_value=anteriores):
+                            self.assertTrue(backup_sqlite().exists())
+                        with self.assertRaisesMessage(ValueError, 'Tabela ausente'):
+                            backup_sqlite()
+
     def test_interrupcao_nao_deixa_banco_parcial(self):
         destino = settings.DATA_DIR / "interrompido.sqlite3"
         with override_settings(SAURON_BACKUP_KEY=Fernet.generate_key().decode()):
