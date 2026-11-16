@@ -31,6 +31,13 @@ e ações depende das permissões de cada conta.
 - [Melhorias da curadoria — relatório e testes](RELATORIO_MELHORIAS_CURADORIA_2026-11-15.md).
 - [Análise dos CVEs da imagem Docker](RELATORIO_ANALISE_CVES_DOCKER_2026-11-15.md).
 - [Avaliação da imagem Alpine e resultados dos testes](RELATORIO_IMAGEM_ALPINE_2026-11-15.md).
+- [Demonstração integrada com login e TOTP](RELATORIO_DEMONSTRACAO_INTEGRADA_2026-11-15.md).
+- [Atualização e recuperação com backup](RELATORIO_RECUPERACAO_UPGRADE_2026-11-15.md).
+- [Afetação condicional no cenário financeiro](RELATORIO_AFETACAO_CONDICIONAL_2026-11-15.md).
+- [Triagem de scanner e retenção de iscas](RELATORIO_TRIAGEM_RETENCAO_2026-11-15.md).
+- [Capacidade da imagem Alpine](RELATORIO_CARGA_ALPINE_2026-11-15.md).
+- [Preparação para o servidor compartilhado](RELATORIO_PREPARACAO_SERVIDOR_2026-11-15.md).
+- [Pesquisa em repositórios e melhoria aplicada](RELATORIO_PESQUISA_REPOSITORIOS_2026-11-15.md).
 - [Curadoria de soluções e roadmap](curadoria/00-resumo-executivo.md).
 - [Proposta: Monte Carlo com contexto empresarial](PROPOSTA_MONTE_CARLO_CONTEXTO.md).
 - [Pesquisa: modelos financeiros, dados e grafos](PESQUISA_MODELOS_FINANCEIROS_E_GRAFOS_2026-11-15.md).
