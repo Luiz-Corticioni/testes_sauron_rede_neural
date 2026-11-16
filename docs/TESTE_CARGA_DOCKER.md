@@ -22,6 +22,8 @@ docker compose -p sauroncarga -f compose.yaml -f scripts/carga_compose/compose.c
 # Prossiga somente se a fixture confirmar o banco descartável.
 Push-Location $env:SAURON_CARGA_DIR
 python (Join-Path $repositorio 'scripts/carga_compose/cliente_100.py')
+# Em outro projeto e banco descartável, compare também grupos de 10 ou 20:
+# python (Join-Path $repositorio 'scripts/carga_compose/cliente_100.py') --concorrencia 10
 # Opcional: bloqueia uma conta sintética por até 15 minutos.
 python (Join-Path $repositorio 'scripts/carga_compose/tentativas_invalidas.py')
 Pop-Location

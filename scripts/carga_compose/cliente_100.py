@@ -1,4 +1,5 @@
 """Cem fluxos sintéticos no Compose local; execute somente em ambiente descartável."""
+import argparse
 import json
 import re
 import statistics
@@ -21,10 +22,14 @@ class SemRedirect(HTTPRedirectHandler):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--concorrencia', type=int, choices=(10, 20, 100), default=100,
+                        help='Clientes simultâneos em grupos de 10, 20 ou 100.')
+    concorrencia = parser.parse_args().concorrencia
     dados = json.loads(Path("credentials.json").read_text(encoding="utf-8"))
     if len(dados.get("users", [])) != 100 or any(not u["username"].startswith("bench-") for u in dados["users"]):
         raise ValueError("São necessárias 100 contas sintéticas bench- criadas no banco descartável.")
-    barreira = Barrier(100, timeout=60)
+    barreira = Barrier(concorrencia, timeout=60)
 
     def fluxo(usuario):
         comeco = time.monotonic()
@@ -77,11 +82,11 @@ def main():
             return resultado("erro " + type(erro).__name__)
 
     inicio = time.monotonic()
-    with ThreadPoolExecutor(max_workers=100) as pool:
+    with ThreadPoolExecutor(max_workers=concorrencia) as pool:
         saidas = list(pool.map(fluxo, dados["users"]))
     contagem = {s: sum(item[0] == s for item in saidas) for s in sorted({item[0] for item in saidas})}
     tempos = sorted(item[1] for item in saidas)
-    print(json.dumps({"fluxos": len(saidas), "concorrencia_cliente": 100, "status": contagem,
+    print(json.dumps({"fluxos": len(saidas), "concorrencia_cliente": concorrencia, "status": contagem,
         "duracao_segundos": round(time.monotonic() - inicio, 2), "p50_todos_s": statistics.median(tempos),
         "p95_todos_s": tempos[94], "max_s": max(tempos)}, ensure_ascii=False), flush=True)
     return 0 if contagem == {"sucesso_admin": 4, "sucesso_comum": 96} else 1
