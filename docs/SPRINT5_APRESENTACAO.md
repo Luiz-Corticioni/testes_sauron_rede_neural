@@ -13,6 +13,16 @@ Este é um roteiro proposto de cinco minutos; ajuste ao tempo do professor. Não
 
 Plano alternativo: ensaiar o roteiro em uma instalação reserva e gravar uma demonstração sem dados reais. A gravação e o ensaio ainda precisam ser feitos; não afirmar que foram produzidos.
 
+## Demonstração das etapas recentes
+
+Use um banco de demonstração isolado. Com uma conta autorizada e MFA concluído, prepare o cenário do [exemplo financeiro](CENARIOS_FINANCEIROS.md), escolhendo dados fictícios. Em **Analisar sensibilidade**, informe uma faixa contendo a premissa original e uma origem; compare os extremos. Para causa compartilhada, cadastre primeiro relações de negócio no mesmo escopo, da origem para os serviços consumidores; informe custos incrementais distintos, justificativas e confirme que não se sobrepõem. Explique que todos os serviços selecionados são afetados pelo mesmo evento e duração: não é uma previsão garantida.
+
+Em **Documentos de componentes → Importar relatório Trivy offline**, escolha um ativo fictício e [trivy-demo.json](exemplos/trivy-demo.json). Informe origem e escopo, confira a prévia e reenvie o arquivo para confirmar. Abra o relatório e registre uma revisão inconclusiva para o achado: ela não cria incidência. O CVE de exemplo é real, mas o pacote e a ligação com o ativo são fictícios.
+
+Em **Sensores de isca**, crie um sensor de demonstração e escolha **Importar Cowrie**. Use [cowrie-demo.jsonl](exemplos/cowrie-demo.jsonl) e um UUID como `a47ac10b-58cc-4372-a567-0e02b2c3d479`; confira a prévia e reenvie o mesmo arquivo. São dois eventos aproveitados e uma linha ignorada. IPs são reservados para documentação e as credenciais de exemplo são fictícias; o adaptador não as grava. A repetição com o mesmo UUID é idempotente se as linhas não forem alteradas.
+
+Esses passos são um roteiro reproduzível, não prova de apresentação ou ensaio realizado. Nunca use os dados de exemplo para afirmar exposição real de um cliente.
+
 ## Perguntas possíveis
 
 1. **O Sauron é antivírus?** Não: ajuda a inventariar, relacionar e priorizar informações; não impede diretamente todo ataque.

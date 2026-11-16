@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from inventario.aplicacao.scanner import extrair
@@ -55,3 +56,8 @@ class ScannerTeste(BancoTeste):
         self.assertEqual(RevisaoAchadoScanner.objects.count(), 1)
         self.assertEqual(Incidencia.objects.count(), antes)
         self.assertEqual(self.client.get(f"/scanner/{relatorio.pk}/achados/99/revisar/").status_code, 404)
+
+    def test_arquivo_de_demonstracao(self):
+        exemplo = Path(__file__).resolve().parent.parent / "docs/exemplos/trivy-demo.json"
+        _, achados, ignorados, _ = extrair(exemplo.read_bytes())
+        self.assertEqual((len(achados), ignorados), (1, 0))

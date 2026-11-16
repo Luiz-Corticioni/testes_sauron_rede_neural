@@ -1,0 +1,3 @@
+{"eventid":"cowrie.session.connect","timestamp":"2026-11-13T12:00:00Z","src_ip":"192.0.2.10"}
+{"eventid":"cowrie.login.failed","timestamp":"2026-11-13T12:00:05Z","src_ip":"192.0.2.10","username":"exemplo-ficticio","password":"nao-e-uma-senha-real"}
+{"eventid":"cowrie.session.input","timestamp":"2026-11-13T12:00:10Z","input":"comando-ficticio-descartado"}

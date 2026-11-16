@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from inventario.aplicacao.cowrie import converter
@@ -49,3 +50,9 @@ class CowrieTeste(BancoTeste):
         resposta = self.client.post(endereco, {"arquivo": SimpleUploadedFile("a", alterado), "lote": LOTE, "confirmacao": token})
         self.assertEqual(resposta.status_code, 200)
         self.assertFalse(EventoHoneypot.objects.exists())
+
+    def test_arquivo_de_demonstracao(self):
+        exemplo = Path(__file__).resolve().parent.parent / "docs/exemplos/cowrie-demo.jsonl"
+        reduzido, ignorados = converter(exemplo.read_bytes(), LOTE)
+        self.assertEqual((len(json.loads(reduzido)), ignorados), (2, 1))
+        self.assertNotIn(b"senha", reduzido)
