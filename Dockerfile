@@ -1,10 +1,9 @@
-# Manifesto oficial multi-arquitetura consultado em 13/11/2026.
-FROM python:3.12-slim-trixie@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b
+# Manifesto oficial multi-arquitetura consultado em 15/11/2026.
+FROM python:3.12-alpine@sha256:c5ba3deef00c7758561a0f03c26f44f10589263d40e732b8748e0d1f38f6dd89
 
-# Atualiza correções disponíveis no Debian no momento da construção. A imagem
+# Atualiza correções disponíveis no Alpine no momento da construção. A imagem
 # continua sujeita à varredura Trivy e pode conter CVEs ainda sem correção.
-RUN apt-get update && apt-get upgrade -y --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk update && apk upgrade --no-cache
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -12,8 +11,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     SAURON_DATA_DIR=/app/dados
 
 WORKDIR /app
-RUN groupadd --system --gid 10001 sauron \
-    && useradd --system --uid 10001 --gid sauron --home /app sauron
+RUN addgroup -g 10001 -S sauron \
+    && adduser -S -D -H -u 10001 -G sauron sauron
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
