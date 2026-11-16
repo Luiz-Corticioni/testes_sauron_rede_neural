@@ -1,0 +1,5 @@
+# Fluxo de demonstração integrado
+
+Foi criado um teste com cliente HTTP e proteção CSRF ativa que autentica um administrador por senha e TOTP real. O roteiro cadastra uma relação de negócio, cria e simula um cenário financeiro de 30 dias, faz prévia e confirmação dos arquivos sintéticos Trivy e Cowrie e verifica que nenhuma importação ocorre antes da confirmação. Em outra sessão, um usuário comum autentica-se por TOTP e recebe 403 ao tentar acessar administração, scanner e iscas.
+
+O teste passou com dados e banco temporários, sem rede externa. Na primeira tentativa, o formulário de relação rejeitou a porta não informada; o roteiro foi corrigido para enviar `0`, conforme a ajuda para relações de negócio. Foram usados ativos e um administrador preparados pela fixture: este teste não comprova a criação do primeiro administrador, envio SMTP, apresentação por navegador físico ou funcionamento em servidor externo. A geração do TOTP e a validação da senha e do CSRF são reais, mas o cliente é automatizado.
