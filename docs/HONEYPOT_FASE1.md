@@ -4,7 +4,7 @@
 
 ## Objetivo e limites
 
-O Sauron cadastra sensores e importa **manualmente** um formato próprio e minimizado de eventos. Esta fase **não instala Cowrie**, não simula SSH, não abre portas, não recebe eventos automaticamente e não confirma que ocorreu um ataque. O formato abaixo não é o formato nativo do Cowrie; um adaptador, autenticação de origem e testes de entrega seriam necessários antes de uma integração real.
+O Sauron cadastra sensores e importa **manualmente** um formato próprio e minimizado de eventos. Também aceita um subconjunto de JSONL Cowrie por meio de prévia e confirmação, conforme [relatório do adaptador](RELATORIO_IMPORTACAO_COWRIE_2026-11-15.md). Não instala Cowrie, não simula SSH, não abre portas, não recebe eventos automaticamente e não autentica a origem. Uma importação não confirma que ocorreu um ataque.
 
 Sensores são marcados como demonstração ou operacionais; o padrão é demonstração. Após importar o primeiro evento, o ambiente e o ativo vinculado não podem ser alterados pela aplicação: crie outro sensor para outro contexto. O rótulo depende da informação do operador e não comprova que a origem é genuína. Uma interação isolada pode ser teste, varredura ou ação maliciosa; ausência de eventos não demonstra ausência de ataques. A fase não calcula CVSS, EPSS, probabilidade de invasão nem altera incidências ou risco.
 

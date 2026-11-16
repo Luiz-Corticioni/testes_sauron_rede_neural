@@ -17,3 +17,17 @@ class RelatorioScanner(models.Model):
         ordering = ["-importado_em", "-pk"]
         default_permissions = ()
         constraints = [models.UniqueConstraint(fields=["ativo", "escopo", "origem", "sha256"], name="scanner_relatorio_unico")]
+
+
+class RevisaoAchadoScanner(models.Model):
+    CLASSIFICACOES = [("APLICAVEL", "Aplicável"), ("NAO_APLICAVEL", "Não aplicável"), ("INCONCLUSIVO", "Inconclusivo")]
+    relatorio = models.ForeignKey(RelatorioScanner, on_delete=models.PROTECT, related_name="revisoes")
+    indice = models.PositiveIntegerField()
+    classificacao = models.CharField(max_length=20, choices=CLASSIFICACOES)
+    justificativa = models.CharField(max_length=500)
+    autor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-criado_em", "-pk"]
+        default_permissions = ()

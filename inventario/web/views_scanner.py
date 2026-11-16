@@ -4,8 +4,8 @@ from django.core import signing
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
-from inventario.aplicacao.scanner import LIMITE, extrair, gravar
-from inventario.models import Ativo, RelatorioScanner
+from inventario.aplicacao.scanner import LIMITE, extrair, gravar, revisar
+from inventario.models import Ativo, RelatorioScanner, RevisaoAchadoScanner
 
 
 class ScannerForm(forms.Form):
@@ -55,3 +55,24 @@ def importar(request):
 @require_GET
 def detalhe(request, pk):
     return render(request, "inventario/scanner_detalhe.html", {"relatorio": get_object_or_404(RelatorioScanner.objects.select_related("ativo", "importado_por"), pk=pk)})
+
+
+class RevisaoForm(forms.Form):
+    classificacao = forms.ChoiceField(choices=RevisaoAchadoScanner.CLASSIFICACOES)
+    justificativa = forms.CharField(max_length=500, label="Justificativa", widget=forms.Textarea(attrs={"rows": 3}))
+
+
+@require_http_methods(["GET", "POST"])
+def revisao(request, pk, indice):
+    relatorio = get_object_or_404(RelatorioScanner, pk=pk)
+    if indice >= len(relatorio.achados):
+        from django.http import Http404
+        raise Http404
+    form = RevisaoForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        revisar(pk, indice, form.cleaned_data["classificacao"], form.cleaned_data["justificativa"], request.user)
+        messages.success(request, "Revisão registrada. Nenhuma incidência foi alterada.")
+        return redirect("scanner_revisao", pk=pk, indice=indice)
+    return render(request, "inventario/scanner_revisao.html", {"form": form, "relatorio": relatorio,
+        "indice": indice, "achado": relatorio.achados[indice],
+        "revisoes": relatorio.revisoes.filter(indice=indice).select_related("autor")[:100]})

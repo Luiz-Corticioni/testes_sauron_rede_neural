@@ -71,6 +71,7 @@ urlpatterns = [
     path("documentos/", proteger(views_documentos.lista, *LEITURA_DOCUMENTOS), name="documentos"),
     path("scanner/", proteger(views_scanner.importar, *ESCRITA_DOCUMENTOS), name="scanner_importar"),
     path("scanner/<int:pk>/", proteger(views_scanner.detalhe, *LEITURA_DOCUMENTOS), name="scanner_detalhe"),
+    path("scanner/<int:pk>/achados/<int:indice>/revisar/", proteger(views_scanner.revisao, *ESCRITA_DOCUMENTOS), name="scanner_revisao"),
     path("documentos/<int:pk>/", proteger(views_documentos.detalhe, *LEITURA_DOCUMENTOS), name="documento"),
     path("documentos/<int:pk>/baixar/", proteger(views_documentos.baixar, *LEITURA_DOCUMENTOS), name="baixar_documento"),
     path("incidencias/<str:pk>/ssvc/", proteger(views_ssvc.painel, *PERMISSOES_LEITURA), name="ssvc_incidencia"),

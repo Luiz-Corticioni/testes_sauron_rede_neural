@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from inventario.aplicacao.documentos import autorizar
 from inventario.infraestrutura.auditoria import registrar_evento, travar_escrita, usar_usuario
-from inventario.models import Ativo, RelatorioScanner
+from inventario.models import Ativo, RelatorioScanner, RevisaoAchadoScanner
 
 LIMITE = 2 * 1024 * 1024
 
@@ -62,3 +62,20 @@ def gravar(ativo_id, escopo, origem, conteudo, usuario):
             defaults={"observado_em": data, "achados": achados, "ignorados": ignorados, "importado_por": usuario})
         registrar_evento("IMPORTAR_SCANNER", "RelatorioScanner", relatorio.pk, {"novo": novo, "achados": len(achados), "ignorados": ignorados})
     return relatorio, novo
+
+
+@transaction.atomic
+def revisar(relatorio_id, indice, classificacao, justificativa, usuario):
+    usuario = autorizar(usuario)
+    travar_escrita()
+    relatorio = RelatorioScanner.objects.get(pk=relatorio_id)
+    if type(indice) is not int or not 0 <= indice < len(relatorio.achados):
+        raise ValidationError("Achado não encontrado.")
+    revisao = RevisaoAchadoScanner(relatorio=relatorio, indice=indice, classificacao=classificacao,
+                                   justificativa=justificativa, autor=usuario)
+    revisao.full_clean()
+    with usar_usuario(usuario):
+        revisao.save()
+        registrar_evento("REVISAR_SCANNER", "RelatorioScanner", relatorio.pk,
+                         {"indice": indice, "classificacao": classificacao, "revisao": revisao.pk})
+    return revisao

@@ -2,7 +2,7 @@ import json
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from inventario.aplicacao.scanner import extrair
-from inventario.models import Incidencia, RelatorioScanner
+from inventario.models import Incidencia, RelatorioScanner, RevisaoAchadoScanner
 from .base import BancoTeste
 
 
@@ -41,3 +41,17 @@ class ScannerTeste(BancoTeste):
         self.assertFalse(RelatorioScanner.objects.exists())
         with self.assertRaises(ValidationError):
             extrair(b"{}")
+
+    def test_revisao_registra_historico_sem_alterar_incidencias(self):
+        dados = {"ativo": self.a.pk, "escopo": "imagem", "origem": "Trivy local"}
+        resposta = self.client.post("/scanner/", dados | {"arquivo": self.upload()})
+        token = resposta.context["form"].initial["confirmacao"]
+        self.client.post("/scanner/", dados | {"arquivo": self.upload(), "confirmacao": token})
+        relatorio = RelatorioScanner.objects.get()
+        url = f"/scanner/{relatorio.pk}/achados/0/revisar/"
+        antes = Incidencia.objects.count()
+        resposta = self.client.post(url, {"classificacao": "INCONCLUSIVO", "justificativa": "Verificar versão em produção"})
+        self.assertEqual(resposta.status_code, 302)
+        self.assertEqual(RevisaoAchadoScanner.objects.count(), 1)
+        self.assertEqual(Incidencia.objects.count(), antes)
+        self.assertEqual(self.client.get(f"/scanner/{relatorio.pk}/achados/99/revisar/").status_code, 404)
