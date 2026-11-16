@@ -18,13 +18,13 @@ def extrair(conteudo):
         raise ValidationError("Arquivo inválido ou maior que 2 MB.")
     try:
         doc = json.loads(conteudo.decode("utf-8"))
-        if not isinstance(doc, dict) or doc.get("SchemaVersion") != 2 or not isinstance(doc.get("Results"), list):
+        if not isinstance(doc, dict) or doc.get("SchemaVersion") != 2 or not isinstance(doc.get("Results", []), list):
             raise ValidationError("Esperado relatório Trivy JSON SchemaVersion 2.")
         data = parse_datetime(doc.get("CreatedAt", ""))
         if data is None or timezone.is_naive(data):
             raise ValidationError("O relatório deve informar CreatedAt com fuso horário.")
         achados, ignorados = set(), 0
-        resultados = doc["Results"]
+        resultados = doc.get("Results", [])
         if len(resultados) > 500:
             raise ValidationError("Muitos grupos de resultados.")
         total = 0
@@ -40,8 +40,6 @@ def extrair(conteudo):
                     ignorados += 1
                     continue
                 achados.add((cve, nome, versao))
-        if not achados:
-            raise ValidationError("Nenhum achado CVE com pacote e versão reconhecível.")
         dados = [{"cve": c, "pacote": n, "versao": v} for c, n, v in sorted(achados)]
         assinatura = hashlib.sha256(json.dumps({"data": data.isoformat(), "achados": dados, "ignorados": ignorados}, sort_keys=True).encode()).hexdigest()
         return data, dados, ignorados, assinatura

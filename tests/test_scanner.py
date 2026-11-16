@@ -62,6 +62,21 @@ class ScannerTeste(BancoTeste):
         _, achados, ignorados, _ = extrair(exemplo.read_bytes())
         self.assertEqual((len(achados), ignorados), (1, 0))
 
+    def test_resultado_vazio_ou_ausente_nao_afirma_seguranca(self):
+        dados = {'ativo': self.a.pk, 'escopo': 'imagem', 'origem': 'Trivy fictício'}
+        for resultados in ([], None):
+            with self.subTest(resultados=resultados):
+                if resultados is None:
+                    self.doc.pop('Results', None)
+                else:
+                    self.doc['Results'] = resultados
+                resposta = self.client.post('/scanner/', dados | {'arquivo': self.upload()})
+                self.assertEqual(resposta.context['previa']['achados'], [])
+                self.assertContains(resposta, 'não comprova ausência de vulnerabilidades')
+                token = resposta.context['form'].initial['confirmacao']
+                self.assertEqual(self.client.post('/scanner/', dados | {'arquivo': self.upload(), 'confirmacao': token}).status_code, 302)
+        self.assertEqual(RelatorioScanner.objects.count(), 1)
+
     def test_filtro_usa_revisao_mais_recente_e_indice_original(self):
         self.doc['Results'][0]['Vulnerabilities'].append(
             {'VulnerabilityID': 'CVE-2026-99999', 'PkgName': 'outro', 'InstalledVersion': '2.0'})
