@@ -171,3 +171,20 @@ A porta continua vinculada a `127.0.0.1` do servidor, evitando exposição acide
 Para acesso remoto, combine com o administrador um proxy HTTPS ou túnel autorizado.
 A matrícula e os arquivos não comprovam acesso, implantação nem funcionamento
 contínuo de 24 horas: as evidências devem ser coletadas no servidor após liberação.
+
+### Acesso de laboratório pelo túnel SSH
+
+Se o docente permitir túnel SSH, o servidor estiver acessível pela rede da faculdade e a porta local 2235 estiver livre, execute **no seu computador** e mantenha o terminal aberto:
+
+```sh
+ssh -N -L 2235:127.0.0.1:2228 12621CBS228@10.0.99.150
+```
+
+Abra `http://127.0.0.1:2235/entrar/` no seu computador. O trecho entre computador e servidor passa pelo SSH; o HTTP restante fica no loopback do servidor. O túnel não torna o serviço público nem substitui HTTPS para acesso direto de outras máquinas. Para o ensaio de 24 horas com a sobreposição da faculdade, evite a detecção pelo Compose padrão e identifique explicitamente o container:
+
+```sh
+python3 scripts/prova_24h.py --horas 24 --container trab02_2026_2_12621cbs228 --saida dados/prova-faculdade-nova.log
+python3 scripts/verificar_disponibilidade.py dados/prova-faculdade-nova.log
+```
+
+Antes da implantação, verifique se a conta tem acesso ao Docker, se a porta 2228 está livre e se o nome e a forma de publicação atendem à orientação do docente. Se o Docker negar acesso, peça a configuração ao responsável; não altere privilégios do servidor por conta própria. A publicação apenas em loopback pode não satisfazer uma exigência de acesso direto pela rede: confirme esse ponto. Este roteiro não foi executado no servidor.
