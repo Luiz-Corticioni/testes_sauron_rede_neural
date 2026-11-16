@@ -70,3 +70,39 @@ def calcular_compartilhado(cenario, usuario, escopo, impactos, sem_sobreposicao,
                      snapshot_sha256=grafo["snapshot_sha256"], relacoes_excluidas=grafo["excluidas"],
                      custos_servicos=impactos, custo_total_hora=float(custos), custo_total_adicional=float(adicionais))
     return resultado
+
+
+def analisar_sensibilidade(cenario, usuario, faixas, n=10000, seed=42):
+    """Varia uma premissa por vez com faixas informadas e sorteios comuns."""
+    exigir(usuario, "inventario.view_ativo", "inventario.view_cenariofinanceiro")
+    cenario.full_clean()
+    if type(n) is not int or not 100 <= n <= 20000:
+        raise ValueError("A sensibilidade aceita de 100 a 20000 simulações.")
+    limites = {"probabilidade": 1, "custo_hora": 1000000000, "custo_adicional": 1000000000000}
+    if not isinstance(faixas, dict) or not faixas or set(faixas) - set(limites):
+        raise ValueError("Informe ao menos uma faixa conhecida.")
+    verificadas = {}
+    for campo, faixa in faixas.items():
+        if not isinstance(faixa, (list, tuple)) or len(faixa) != 2:
+            raise ValueError("Cada faixa exige mínimo e máximo.")
+        valores = []
+        for valor in faixa:
+            if isinstance(valor, bool) or not isinstance(valor, (int, float, Decimal)):
+                raise ValueError("Faixas devem conter números finitos.")
+            valores.append(numero(float(valor), campo, 0, limites[campo]))
+        if not valores[0] <= float(getattr(cenario, campo)) <= valores[1]:
+            raise ValueError("Cada faixa deve incluir o valor original do cenário.")
+        verificadas[campo] = valores
+    with vaga_simulacao():
+        base = simular_interrupcao(cenario, n=n, seed=seed)["atual"]["media"]
+        resultados = []
+        for campo, (baixo, alto) in verificadas.items():
+            medias = []
+            for valor in (baixo, alto):
+                variante = copy(cenario)
+                setattr(variante, campo, valor)
+                medias.append(simular_interrupcao(variante, n=n, seed=seed)["atual"]["media"])
+            resultados.append({"campo": campo, "minimo": baixo, "maximo": alto,
+                               "media_min": medias[0], "media_max": medias[1]})
+    return {"versao_modelo": "sauron.sensibilidade/30d-v1", "n": n, "seed": seed,
+            "media_base": base, "faixas": resultados}

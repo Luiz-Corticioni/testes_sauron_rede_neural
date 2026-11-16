@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
 
-from inventario.aplicacao.cenario_financeiro import calcular_cenario, calcular_compartilhado, criar_cenario
+from inventario.aplicacao.cenario_financeiro import analisar_sensibilidade, calcular_cenario, calcular_compartilhado, criar_cenario
 from inventario.infraestrutura.limite_simulacoes import LimiteSimulacoes
 from inventario.models import Ativo, CenarioFinanceiro
 from inventario.web.paginacao import paginar
@@ -44,6 +44,32 @@ class ImpactoForm(forms.Form):
 
 
 ImpactosFormSet = forms.formset_factory(ImpactoForm, extra=3, max_num=10, absolute_max=10, validate_max=True)
+
+
+class SensibilidadeForm(forms.Form):
+    origem = forms.CharField(label="Origem ou justificativa das faixas", max_length=300)
+    probabilidade_min = forms.DecimalField(label="Probabilidade mínima (0 a 1)", min_value=0, max_value=1, required=False)
+    probabilidade_max = forms.DecimalField(label="Probabilidade máxima (0 a 1)", min_value=0, max_value=1, required=False)
+    custo_hora_min = forms.DecimalField(label="Custo por hora mínimo (R$)", min_value=0, max_value=1000000000, required=False)
+    custo_hora_max = forms.DecimalField(label="Custo por hora máximo (R$)", min_value=0, max_value=1000000000, required=False)
+    custo_adicional_min = forms.DecimalField(label="Custo adicional mínimo (R$)", min_value=0, max_value=1000000000000, required=False)
+    custo_adicional_max = forms.DecimalField(label="Custo adicional máximo (R$)", min_value=0, max_value=1000000000000, required=False)
+    n = forms.IntegerField(label="Simulações por variação", min_value=100, max_value=20000, initial=10000)
+    seed = forms.IntegerField(label="Semente", min_value=0, max_value=2**32-1, initial=42)
+
+    def clean(self):
+        dados = super().clean()
+        faixas = {}
+        for nome in ("probabilidade", "custo_hora", "custo_adicional"):
+            baixo, alto = dados.get(nome + "_min"), dados.get(nome + "_max")
+            if (baixo is None) != (alto is None):
+                raise forms.ValidationError("Informe mínimo e máximo para cada faixa escolhida.")
+            if baixo is not None:
+                faixas[nome] = (baixo, alto)
+        if not faixas:
+            raise forms.ValidationError("Informe ao menos uma faixa completa.")
+        dados["faixas"] = faixas
+        return dados
 
 
 @require_GET
@@ -131,3 +157,21 @@ def compartilhado(request, pk):
             form.add_error(None, str(erro))
     return render(request, "inventario/cenario_financeiro_compartilhado.html",
                   {"cenario": cenario, "form": form, "linhas": linhas, "resultado": resultado}, status=status)
+
+
+@require_http_methods(["GET", "POST"])
+def sensibilidade(request, pk):
+    cenario = get_object_or_404(CenarioFinanceiro.objects.select_related("ativo"), pk=pk)
+    form = SensibilidadeForm(request.POST or None)
+    resultado, status = None, 200
+    if request.method == "POST" and form.is_valid():
+        valores = form.cleaned_data
+        try:
+            resultado = analisar_sensibilidade(cenario, request.user, valores["faixas"], n=valores["n"], seed=valores["seed"])
+        except LimiteSimulacoes:
+            form.add_error(None, "Há muitas simulações em andamento. Tente novamente em alguns segundos.")
+            status = 429
+        except ValueError as erro:
+            form.add_error(None, str(erro))
+    return render(request, "inventario/cenario_financeiro_sensibilidade.html",
+                  {"cenario": cenario, "form": form, "resultado": resultado}, status=status)

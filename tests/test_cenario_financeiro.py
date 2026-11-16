@@ -221,6 +221,42 @@ class CenáriosFinanceiros(BancoTeste):
         self.autenticar(sem)
         self.assertEqual(self.client.post(url, dados).status_code, 403)
 
+    def test_faixas_de_custo_e_probabilidade_usam_amostras_comuns(self):
+        from inventario.aplicacao.cenario_financeiro import analisar_sensibilidade
+        c = self.salvar(probabilidade=Decimal("0.5"), custo_hora=Decimal("0"), custo_adicional=Decimal("100"))
+        faixas = {"probabilidade": (0, 1), "custo_adicional": (0, 200)}
+        r = analisar_sensibilidade(c, self.usuario, faixas, n=1000, seed=7)
+        self.assertEqual(r, analisar_sensibilidade(c, self.usuario, faixas, n=1000, seed=7))
+        self.assertEqual(r["media_base"], calcular_cenario(c, self.usuario, n=1000, seed=7)["atual"]["media"])
+        prob, custo = r["faixas"]
+        self.assertEqual((prob["media_min"], prob["media_max"]), (0, 100))
+        self.assertEqual(custo["media_min"], 0)
+        self.assertEqual(custo["media_max"], r["media_base"] * 2)
+        self.assertEqual(c.probabilidade, Decimal("0.5"))
+        self.assertEqual(c.custo_adicional, Decimal("100"))
+        for intervalo in ({}, {"probabilidade": (.6, .9)}, {"probabilidade": (0, float("nan"))}, {"outro": (0, 1)}):
+            with self.subTest(intervalo=intervalo), self.assertRaises(ValueError):
+                analisar_sensibilidade(c, self.usuario, intervalo, n=100)
+        with self.assertRaises(ValueError):
+            analisar_sensibilidade(c, self.usuario, faixas, n=20001)
+
+    def test_sensibilidade_formulario_e_acesso(self):
+        c = self.salvar()
+        url = f"/cenarios-financeiros/{c.pk}/sensibilidade/"
+        dados = {"origem": "Estimativa sintética", "probabilidade_min": "0.1", "probabilidade_max": "0.8", "n": 100, "seed": 42}
+        r = self.client.post(url, dados)
+        self.assertContains(r, "Resultado por premissa")
+        self.assertEqual(r.context["resultado"]["faixas"][0]["campo"], "probabilidade")
+        dados["probabilidade_min"] = "0.6"
+        self.assertContains(self.client.post(url, dados), "deve incluir o valor original")
+        dados["probabilidade_min"] = ""
+        self.assertContains(self.client.post(url, dados), "Informe mínimo e máximo")
+        sem = get_user_model().objects.create_user("sem-sensibilidade")
+        self.autenticar(sem)
+        self.assertEqual(self.client.post(url, dados).status_code, 403)
+        self.client.force_login(self.usuario)
+        self.assertEqual(self.client.get(url).url, "/mfa/")
+
     def test_papeis_padrao_restringem_contexto_financeiro(self):
         call_command("configurar_grupos", verbosity=0)
         for nome in ("Operadores", "Auditores"):
