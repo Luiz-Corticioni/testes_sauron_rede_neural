@@ -3,12 +3,14 @@ from django import forms
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.http import JsonResponse
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
 
-from inventario.aplicacao.fair import calcular, comparar, criar
+from inventario.aplicacao.fair import comparar, criar, executar
 from inventario.infraestrutura.limite_simulacoes import LimiteSimulacoes
 from inventario.matematica.fair import validar
-from inventario.models import Ativo, CenarioFAIR
+from inventario.models import Ativo, CenarioFAIR, ExecucaoFAIR
 from inventario.web.paginacao import paginar
 
 MODOS = [('LEF', 'Frequência de perda informada (LEF)'), ('TEF', 'Ameaças e suscetibilidade (TEF)'),
@@ -100,6 +102,15 @@ class SimularForm(forms.Form):
     seed = forms.IntegerField(label='Semente para reprodução', min_value=0, max_value=2**32 - 1, initial=42)
 
 
+class SimularRegistroForm(SimularForm):
+    guardar = forms.BooleanField(label='Guardar resultado e cópia das premissas para revisão', required=False)
+
+    def __init__(self, *args, pode_guardar, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not pode_guardar:
+            self.fields['guardar'].widget = forms.HiddenInput()
+
+
 class CompararForm(SimularForm):
     alternativa = forms.ModelChoiceField(queryset=CenarioFAIR.objects.none(), label='Análise alternativa')
 
@@ -111,11 +122,13 @@ class CompararForm(SimularForm):
         self.fields['alternativa'].label_from_instance = lambda c: f'{c.nome} (#{c.pk}, {c.data_referencia})'
 
 
+@never_cache
 @require_GET
 def lista(request):
     return render(request, 'inventario/fair_lista.html', paginar(CenarioFAIR.objects.select_related('ativo', 'criado_por'), request))
 
 
+@never_cache
 @require_http_methods(['GET', 'POST'])
 def novo(request):
     form = CenarioForm(request.POST or None)
@@ -137,15 +150,18 @@ def novo(request):
     return render(request, 'inventario/fair_form.html', {'form': form, 'perdas': perdas})
 
 
+@never_cache
 @require_http_methods(['GET', 'POST'])
 def detalhe(request, pk):
     cenario = get_object_or_404(CenarioFAIR.objects.select_related('ativo', 'criado_por'), pk=pk)
-    form = SimularForm(request.POST or None)
+    pode_guardar = request.user.has_perms(('inventario.view_ativo', 'inventario.view_cenariofinanceiro', 'inventario.add_cenariofinanceiro'))
+    form = SimularRegistroForm(request.POST or None, pode_guardar=pode_guardar)
     resultado = None
+    execucao = None
     status = 200
     if request.method == 'POST' and form.is_valid():
         try:
-            resultado = calcular(cenario, request.user, **form.cleaned_data)
+            resultado, execucao = executar(cenario, request.user, **form.cleaned_data)
             resultado['percentual_evento'] = resultado['probabilidade_evento'] * 100
             resultado['percentual_perda'] = resultado['perda']['probabilidade_perda'] * 100
         except LimiteSimulacoes:
@@ -153,10 +169,32 @@ def detalhe(request, pk):
             status = 429
         except (ValueError, ValidationError) as erro:
             form.add_error(None, '; '.join(erro.messages) if isinstance(erro, ValidationError) else str(erro))
-    return render(request, 'inventario/fair_detalhe.html', {'cenario': cenario, 'form': form,
-        'resultado': resultado, 'modos': dict(MODOS), 'categorias': dict(CATEGORIAS)}, status=status)
+    execucoes = cenario.execucoes.select_related('criado_por').only('id', 'criado_em', 'criado_por__username', 'cenario_id')[:10]
+    return render(request, 'inventario/fair_detalhe.html', {'cenario': cenario, 'form': form, 'execucao': execucao,
+        'execucoes': execucoes, 'resultado': resultado, 'modos': dict(MODOS), 'categorias': dict(CATEGORIAS)}, status=status)
 
 
+@never_cache
+@require_GET
+def execucao(request, pk, execucao_id):
+    registro = get_object_or_404(ExecucaoFAIR.objects.select_related('criado_por'), pk=execucao_id, cenario_id=pk)
+    return render(request, 'inventario/fair_execucao.html', {'registro': registro})
+
+
+@never_cache
+@require_GET
+def exportar(request, pk, execucao_id):
+    registro = get_object_or_404(ExecucaoFAIR, pk=execucao_id, cenario_id=pk)
+    dados = {'versao_modelo': registro.versao_modelo, 'n': registro.n, 'seed': registro.seed,
+             'versao_python': registro.versao_python, 'versao_numpy': registro.versao_numpy,
+             'criado_em': registro.criado_em.isoformat(), 'premissas': registro.premissas_snapshot, 'resultado': registro.resultado}
+    resposta = JsonResponse(dados, json_dumps_params={'allow_nan': False, 'ensure_ascii': False})
+    resposta['Content-Disposition'] = f'attachment; filename="sauron-fair-{registro.pk}.json"'
+    resposta['Cache-Control'] = 'no-store'
+    return resposta
+
+
+@never_cache
 @require_http_methods(['GET', 'POST'])
 def comparacao(request, pk):
     atual = get_object_or_404(CenarioFAIR.objects.select_related('ativo'), pk=pk)

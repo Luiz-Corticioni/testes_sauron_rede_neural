@@ -1,0 +1,7 @@
+# Registro e exportação de simulações FAIR
+
+O responsável com permissão de criação de cenário financeiro pode optar por guardar uma simulação. O registro contém cópia do escopo, fontes, premissas, versão do modelo, resultado, semente, quantidade de simulações, versões de Python e NumPy, autor e data. A auditoria registra a criação sem copiar os valores financeiros. Usuários apenas com leitura podem simular sem gravar e consultar registros, mas não podem criar uma execução nem contornar essa regra pelo formulário.
+
+A criação verifica, dentro de transação, se as premissas mudaram durante o cálculo; em caso de divergência não guarda o resultado. O histórico mostra os dez registros mais recentes e permite baixar JSON com o retrato das premissas e o resultado. As telas e o download usam cabeçalhos para evitar armazenamento em cache. Esses dados são sensíveis, pertencem ao banco e aos backups e o arquivo baixado precisa ser protegido pelo responsável.
+
+Testes cobriram gravação, snapshot após alteração do cenário, exportação, permissão, conflito concorrente, cadeia de auditoria e backup/restauração. A migração 0036 cria a tabela e a rotina de backup reconhece a situação anterior à migração. A semente e versões registradas ajudam na reprodução, mas não garantem resultados idênticos com versões futuras ou ambientes diferentes. A exportação não é assinatura criptográfica, e não há política automática de retenção ou exclusão das execuções nesta etapa.

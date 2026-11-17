@@ -48,3 +48,20 @@ class CenarioFAIR(models.Model):
             raise ValidationError({'origem_suscetibilidade': 'Informe a origem da suscetibilidade ou da capacidade e resistência.'})
         if self.ativo_id and self.ativo.status in ('INATIVO', 'BAIXADO'):
             raise ValidationError({'ativo': 'Selecione um ativo ativo ou em manutenção.'})
+
+
+class ExecucaoFAIR(models.Model):
+    cenario = models.ForeignKey(CenarioFAIR, on_delete=models.PROTECT, related_name='execucoes')
+    versao_modelo = models.CharField(max_length=40)
+    n = models.PositiveIntegerField()
+    seed = models.BigIntegerField()
+    premissas_snapshot = models.JSONField()
+    resultado = models.JSONField()
+    versao_python = models.CharField(max_length=40)
+    versao_numpy = models.CharField(max_length=40)
+    criado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-criado_em', '-pk']
+        default_permissions = ()

@@ -27,6 +27,7 @@ class PublicacaoBackup(BancoTeste):
             'inventario_relatorioscanner': '0033_relatorioscanner',
             'inventario_revisaoachadoscanner': '0034_revisaoachadoscanner',
             'inventario_cenariofair': '0035_cenariofair',
+            'inventario_execucaofair': '0036_execucaofair',
         }
         with override_settings(SAURON_BACKUP_KEY=Fernet.generate_key().decode(), SAURON_BACKUP_DESTINO_ADICIONAL=''):
             for tabela, migracao in casos.items():

@@ -38,7 +38,7 @@ class Regressao(BancoTeste):
                     kwargs[chave] = "ativos"
                 elif chave == "cve_id":
                     kwargs[chave] = self.v.cve_id
-                elif chave == "indice":
+                elif chave in ("indice", "execucao_id"):
                     kwargs[chave] = 0
                 elif chave == "pk":
                     nome = padrao.name

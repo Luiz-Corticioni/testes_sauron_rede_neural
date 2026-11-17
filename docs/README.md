@@ -38,6 +38,7 @@ e ações depende das permissões de cada conta.
 - [Cenários por fatores FAIR](RELATORIO_FAIR_APLICACAO_2026-11-16.md) e [motor matemático](RELATORIO_FAIR_MOTOR_2026-11-16.md).
 - [Comparação de análises FAIR](RELATORIO_FAIR_COMPARACAO_2026-11-16.md).
 - [Profundidade e vias de entrada FAIR](RELATORIO_FAIR_PROFUNDIDADE_2026-11-16.md).
+- [Registro e exportação de simulações FAIR](RELATORIO_FAIR_REGISTRO_2026-11-16.md).
 - [Triagem de scanner e retenção de iscas](RELATORIO_TRIAGEM_RETENCAO_2026-11-15.md).
 - [Capacidade da imagem Alpine](RELATORIO_CARGA_ALPINE_2026-11-15.md).
 - [Preparação para o servidor compartilhado](RELATORIO_PREPARACAO_SERVIDOR_2026-11-15.md).

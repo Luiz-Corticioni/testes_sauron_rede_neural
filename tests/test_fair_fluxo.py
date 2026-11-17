@@ -5,8 +5,8 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.test import Client
 from django.utils import timezone
 
-from inventario.aplicacao.fair import calcular, comparar, criar
-from inventario.models import CenarioFAIR, RegistroAuditoria
+from inventario.aplicacao.fair import calcular, comparar, criar, executar
+from inventario.models import CenarioFAIR, ExecucaoFAIR, RegistroAuditoria
 from .base import BancoTeste
 from .test_fair_matematica import exemplo
 
@@ -129,14 +129,62 @@ class FluxoFAIR(BancoTeste):
         from django.test import override_settings
         from inventario.infraestrutura.backup import backup_sqlite, restaurar_backup
         cenario = criar(self.modelo(), self.usuario, True)
+        _, execucao = executar(cenario, self.usuario, n=100, seed=42, guardar=True)
         destino = settings.DATA_DIR / 'fair-restaurado.sqlite3'
         with override_settings(SAURON_BACKUP_KEY=Fernet.generate_key().decode(), SAURON_BACKUP_DESTINO_ADICIONAL=''):
             backup = backup_sqlite()
             restaurar_backup(backup, destino)
         with closing(sqlite3.connect(destino)) as banco:
             nome, premissas = banco.execute('SELECT nome, premissas FROM inventario_cenariofair WHERE id = ?', [cenario.pk]).fetchone()
+            salvo = banco.execute('SELECT resultado FROM inventario_execucaofair WHERE id = ?', [execucao.pk]).fetchone()[0]
         self.assertEqual(nome, cenario.nome)
         self.assertEqual(json.loads(premissas), cenario.premissas)
+        self.assertEqual(json.loads(salvo), execucao.resultado)
+
+    def test_guardar_e_baixar_execucao_preserva_snapshot_e_permissoes(self):
+        cenario = criar(self.modelo(), self.usuario, True)
+        url = f'/fair/{cenario.pk}/'
+        resposta = self.client.post(url, {'n': 100, 'seed': 7, 'guardar': 'on'})
+        self.assertContains(resposta, 'Abrir simulação guardada')
+        registro = ExecucaoFAIR.objects.get()
+        self.assertEqual(registro.premissas_snapshot['premissas'], cenario.premissas)
+        self.assertEqual(registro.resultado, calcular(cenario, self.usuario, n=100, seed=7))
+        auditoria = RegistroAuditoria.objects.filter(acao='SIMULAR', entidade='CenarioFAIR').latest('id')
+        self.assertNotIn('100', str(auditoria.detalhes))
+        CenarioFAIR.objects.filter(pk=cenario.pk).update(nome='Nome alterado depois')
+        detalhe = self.client.get(f'/fair/{cenario.pk}/execucoes/{registro.pk}/')
+        self.assertContains(detalhe, 'Serviço fictício')
+        self.assertIn('no-store', detalhe['Cache-Control'])
+        self.assertNotContains(detalhe, 'Nome alterado depois')
+        arquivo = self.client.get(f'/fair/{cenario.pk}/execucoes/{registro.pk}/baixar/')
+        self.assertEqual(arquivo.status_code, 200)
+        self.assertIn('no-store', arquivo['Cache-Control'])
+        self.assertEqual(arquivo.json()['premissas']['nome'], 'Serviço fictício')
+        self.assertEqual(self.client.get(f'/fair/999999/execucoes/{registro.pk}/').status_code, 404)
+        sem = get_user_model().objects.create_user('sem-exportar-fair')
+        self.autenticar(sem)
+        self.assertEqual(self.client.get(f'/fair/{cenario.pk}/execucoes/{registro.pk}/baixar/').status_code, 403)
+
+    def test_guardar_exige_escrita_e_recusa_mudanca_concorrente(self):
+        from unittest.mock import patch
+        cenario = criar(self.modelo(), self.usuario, True)
+        leitor = get_user_model().objects.create_user('leitor-fair')
+        leitor.user_permissions.add(*Permission.objects.filter(content_type__app_label='inventario',
+            codename__in=['view_ativo', 'view_cenariofinanceiro']))
+        with self.assertRaises(PermissionDenied):
+            executar(cenario, leitor, n=100, guardar=True)
+        self.assertIsNone(executar(cenario, leitor, n=100, guardar=False)[1])
+        self.autenticar(leitor)
+        self.assertEqual(self.client.post(f'/fair/{cenario.pk}/', {'n': 100, 'seed': 42, 'guardar': 'on'}).status_code, 403)
+        self.autenticar(self.usuario)
+        resultado = calcular(cenario, self.usuario, n=100)
+        def mudar(*args, **kwargs):
+            CenarioFAIR.objects.filter(pk=cenario.pk).update(nome='Mudança concorrente')
+            return resultado
+        with patch('inventario.aplicacao.fair.calcular', side_effect=mudar):
+            with self.assertRaisesMessage(ValueError, 'cenário mudou'):
+                executar(cenario, self.usuario, n=100, guardar=True)
+        self.assertFalse(ExecucaoFAIR.objects.exists())
 
     def test_comparacao_exige_mesmo_contexto_e_nao_inventa_eficacia(self):
         base = criar(self.modelo(), self.usuario, True)
