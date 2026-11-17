@@ -1,0 +1,1 @@
+{% load static %}<svg class="asset-sigil" aria-hidden="true" focusable="false"><use href="{% static 'inventario/sigilos.svg' %}#{% if tipo == '1' %}servidor{% elif tipo == '8' %}banco{% elif tipo == '2' or tipo == '3' or tipo == '6' %}endpoint{% elif tipo == '4' or tipo == '5' %}rede{% else %}aplicacao{% endif %}"></use></svg>

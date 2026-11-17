@@ -1,0 +1,13 @@
+/* Vocabulário visual único. As aliases preservam componentes legados. */
+:root {
+  --abismo:#0a090a; --carvao:#100e0e; --painel:#171514; --linha:#514238;
+  --osso:#f4e8d4; --cinza:#d2c4b5; --incandescente:#ffd09e;
+  --brasa:#ec7650; --carmesim:#ba4637; --carmesim-escuro:#7a0a14;
+  --baixo:#b2c4d4; --medio:#e0c18b; --alto:#ffad9d; --critico:#ffd4c3;
+  --saudavel:#e8c98f; --risco:0;
+  --text:var(--osso); --muted:var(--cinza); --line:var(--linha); --bg:var(--abismo);
+  --panel:var(--painel); --ember:var(--brasa); --gold:var(--incandescente);
+  --font-titulo:Georgia,"Times New Roman",serif;
+  --font-corpo:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-dados:ui-monospace,SFMono-Regular,Consolas,monospace;
+}

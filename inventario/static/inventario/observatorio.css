@@ -1,5 +1,4 @@
 /* Observatório: instrumento de leitura, sem dependências externas. */
-:root{--abismo:#0a0b0d;--carvao:#101112;--painel:#171819;--linha:#3b3835;--osso:#f3ece0;--cinza:#c5bdb1;--incandescente:#f6c99a;--brasa:#ef7048;--carmesim:#c43e32}
 body.sauron-observatorio{background:#0c0d0f;color:var(--osso);font-size:15px}
 .sauron-observatorio .ambient{background:radial-gradient(ellipse at 83% 5%,#5c211525,transparent 38%),#0c0d0f}
 .sauron-observatorio .sidebar{background:#101111;border-color:#494039;padding-top:24px}
