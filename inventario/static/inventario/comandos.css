@@ -1,0 +1,9 @@
+/* Busca local: as opções são limitadas aos links já autorizados no menu. */
+#comandos{width:min(42rem,calc(100vw - 2rem));max-height:min(80vh,46rem);background:var(--surface,#191411);color:var(--text,#f4e5d1);border:1px solid #9d7654;padding:1.5rem;box-shadow:0 1rem 5rem #000}
+#comandos::backdrop{background:rgba(0,0,0,.8)}
+#comandos .command-head{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+#comandos input{width:100%;margin:.5rem 0}
+#comandos ul{padding:0;list-style:none}
+#comandos li a{display:flex;justify-content:space-between;gap:1rem;padding:.7rem;border-bottom:1px solid #514036;color:inherit}
+#comandos li small{color:#c4b5a3}
+.command-open kbd{margin-left:.35rem}

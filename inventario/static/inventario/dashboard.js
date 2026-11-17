@@ -1,5 +1,29 @@
 /* Barras vetoriais locais. Números e rótulos permanecem acessíveis. */
 document.addEventListener("DOMContentLoaded", () => {
+  const limite = document.getElementById('timeline-limite');
+  if (limite) {
+    const eventos = [...document.querySelectorAll('#timeline li')];
+    document.getElementById('timeline-controle').hidden = false;
+    limite.addEventListener('input', () => {
+      const quantidade = Number(limite.value);
+      eventos.forEach((item, indice) => { item.hidden = indice >= quantidade; });
+      document.getElementById('timeline-total').value = String(quantidade);
+    });
+  }
+  const tendencia = document.getElementById('tendencia-risco');
+  const dadosTendencia = document.getElementById('tendencia-dados');
+  if (tendencia && dadosTendencia) {
+    const amostras = JSON.parse(dadosTendencia.textContent);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const linha = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    const maximo = Math.max(1, ...amostras.map(item => item.risco_total));
+    svg.setAttribute('viewBox', '0 0 600 120'); svg.setAttribute('class', 'trend-chart');
+    const pontos = amostras.map((item, i) => [10 + i * 580 / Math.max(1, amostras.length - 1), 110 - item.risco_total * 100 / maximo]);
+    linha.setAttribute('points', pontos.map(ponto => ponto.join(',')).join(' '));
+    svg.append(linha);
+    pontos.forEach(([x, y]) => { const ponto = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); ponto.setAttribute('cx', x); ponto.setAttribute('cy', y); ponto.setAttribute('r', 3); svg.append(ponto); });
+    tendencia.append(svg);
+  }
   const host = document.getElementById("riskChart");
   const raw = document.getElementById("risk-data");
   if (!host || !raw) return;

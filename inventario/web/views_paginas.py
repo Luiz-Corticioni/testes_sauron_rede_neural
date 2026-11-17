@@ -25,6 +25,11 @@ def dashboard(request: HttpRequest):
         contexto = contexto_painel(request.GET.get("perfil", "puro"),
             ver_alertas=request.user.has_perm("inventario.view_alerta"),
             ver_certificados=request.user.has_perm("inventario.view_certificadodigital"))
+        from inventario.aplicacao.recorte_painel import recorte_painel
+        contexto = dict(contexto)  # Não modificar o resumo compartilhado em cache.
+        contexto['recorte'] = recorte_painel(request.GET, contexto['risco'])
+        if contexto['recorte']['ativo']:
+            contexto['risco_json'] = contexto['recorte']['grafico']
     except ValueError as erro:
         return HttpResponseBadRequest(str(erro), content_type='text/plain; charset=utf-8')
     from inventario.models import Vulnerabilidade
@@ -32,10 +37,35 @@ def dashboard(request: HttpRequest):
     from inventario.aplicacao.demo_realista import FONTE as FONTE_REALISTA
     contexto['empresa_ficticia'] = Vulnerabilidade.objects.filter(fonte__in=[FONTE, FONTE_REALISTA]).exists()
     contexto['demo_realista'] = Vulnerabilidade.objects.filter(fonte=FONTE_REALISTA).exists()
+    if request.user.has_perm('inventario.view_snapshotrisco') and not contexto['recorte']['ativo']:
+        from inventario.models import SnapshotRisco
+        amostras = list(SnapshotRisco.objects.filter(perfil=contexto['perfil'])
+                        .order_by('-ts', '-pk').values('ts', 'risco_total', 'chave')[:30])
+        contexto['amostras_risco'] = list(reversed(amostras))
     if request.user.has_perm('inventario.view_registroauditoria'):
         from django.core import signing
         ultimo = RegistroAuditoria.objects.order_by('-pk').values_list('pk', flat=True).first() or 0
         contexto['cursor_olho'] = signing.dumps(ultimo, salt='sauron.olho.eventos')
+        # Resumo sem detalhes, limitado aos eventos de inventário permitidos ao painel.
+        registros_painel = RegistroAuditoria.objects.filter(
+            entidade__in=['Ativo', 'Vulnerabilidade', 'Incidencia'],
+            acao__in=['CRIAR', 'ALTERAR'],
+        )
+        if contexto['recorte']['ativo']:
+            from django.db.models import Q
+            from inventario.models import Incidencia
+            ativos = contexto['recorte']['_ativos']
+            incidencias = Incidencia.objects.filter(ativo__in=ativos.values('pk'))
+            registros_painel = registros_painel.filter(
+                Q(entidade='Ativo', entidade_id__in=ativos.values('pk')) |
+                Q(entidade='Incidencia', entidade_id__in=incidencias.values('pk')) |
+                Q(entidade='Vulnerabilidade', entidade_id__in=incidencias.values('vulnerabilidade_id')))
+        contexto['eventos_painel'] = list(registros_painel.values('acao', 'entidade', 'entidade_id', 'ocorrido_em').order_by('-ocorrido_em', '-pk')[:30])
+        from inventario.models import HistoricoIncidencia
+        transicoes = HistoricoIncidencia.objects.filter(para__in=['MITIGADA', 'CORRIGIDA'])
+        if contexto['recorte']['ativo']:
+            transicoes = transicoes.filter(incidencia__ativo__in=contexto['recorte']['_ativos'].values('pk'))
+        contexto['mitigacoes_painel'] = list(transicoes.order_by('-em', '-pk').values('em', 'para', 'incidencia_codigo')[:10])
     return render(request, "inventario/dashboard.html", contexto)
 
 

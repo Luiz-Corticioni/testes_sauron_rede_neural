@@ -12,12 +12,14 @@
   <link rel="stylesheet" href="{% static 'inventario/interface.css' %}">
   <link rel="stylesheet" href="{% static 'inventario/observatorio.css' %}">
   <link rel="stylesheet" href="{% static 'inventario/sentinela.css' %}">
+  <link rel="stylesheet" href="{% static 'inventario/comandos.css' %}">
   <script src="{% static 'inventario/http.js' %}" defer></script>
   <script src="{% static 'inventario/autocomplete.js' %}" defer></script>
   <script src="{% static 'inventario/shell.js' %}" defer></script>
   <script src="{% static 'inventario/busca-menu.js' %}" defer></script>
   <script src="{% static 'inventario/olho.js' %}" defer></script>
   <script src="{% static 'inventario/reacoes.js' %}" defer></script>
+  <script src="{% static 'inventario/comandos.js' %}" defer></script>
   {% block head %}{% endblock %}
 </head>
 <body class="sauron-observatorio {% block body_class %}{% endblock %}">
@@ -71,7 +73,7 @@
   <main id="conteudo">
     <header class="topbar">
       <div class="topbar-start"><button class="menu-toggle" type="button" aria-controls="sidebar" aria-expanded="false"><span></span><span></span><span></span><span class="sr-only">Abrir navegação</span></button><div><small>SAURON /</small> {% block eyebrow %}Centro de observação{% endblock %}</div></div>
-      <div class="topbar-end"><span class="live-badge" id="service-eye" aria-label="Verificando o serviço">{% include 'inventario/componentes/olho.html' with olho_id='saude' compacto=True %}<span id="service-state">verificando</span></span>
+      <div class="topbar-end"><button class="button secondary command-open" type="button" id="comandos-abrir" hidden>Buscar seção <kbd>Ctrl K</kbd></button><span class="live-badge" id="service-eye" aria-label="Verificando o serviço">{% include 'inventario/componentes/olho.html' with olho_id='saude' compacto=True %}<span id="service-state">verificando</span></span>
         {% if request.user.is_authenticated %}
           <span class="user-chip"><span>{{ request.user.username|first|upper }}</span>{{ request.user.username }}</span>
           <form class="logout-form" action="{% url 'sair' %}" method="post">
@@ -90,6 +92,12 @@
       <footer class="site-footer"><span>Sauron · Inventário científico de cibersegurança</span><span>O risco que se vê pode ser governado.</span></footer>
     </div>
   </main>
+  <dialog id="comandos" aria-labelledby="comandos-titulo">
+    <div class="command-head"><h2 id="comandos-titulo">Navegar pelo Observatório</h2><form method="dialog"><button class="button secondary" aria-label="Fechar busca">Fechar</button></form></div>
+    <label for="comandos-busca">Buscar seções disponíveis para sua conta</label>
+    <input id="comandos-busca" type="search" autocomplete="off" placeholder="Ex.: ativos, risco, fontes">
+    <p id="comandos-resultado" role="status" aria-live="polite"></p><ul id="comandos-lista"></ul>
+  </dialog>
   {% block scripts %}{% endblock %}
 </body>
 </html>

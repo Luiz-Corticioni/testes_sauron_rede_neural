@@ -8,6 +8,53 @@ from .base import BancoTeste
 
 
 class InterfaceVisual(BancoTeste):
+    def test_recorte_filtra_dados_sem_mutar_cache_global(self):
+        resposta = self.client.get(reverse('dashboard'), {'severidade': 'critica'})
+        self.assertEqual(resposta.status_code, 200)
+        recorte = resposta.context['recorte']
+        self.assertTrue(recorte['ativo'])
+        self.assertIn(self.a.pk, recorte['grafico']['ids_ativos'])
+        self.assertEqual(recorte['total_ativos'], 1)
+        self.assertContains(resposta, 'O Olho acima permanece global')
+        normal = self.client.get(reverse('dashboard'))
+        self.assertFalse(normal.context['recorte']['ativo'])
+        self.assertEqual(normal.context['total_ativos'], 2)
+        self.assertEqual(self.client.get(reverse('dashboard'), {'severidade': 'inválida'}).status_code, 400)
+
+    def test_linha_do_tempo_exige_auditoria(self):
+        from inventario.models import RegistroAuditoria
+        RegistroAuditoria.objects.create(acao='CRIAR', entidade='Ativo', entidade_id='marco-teste')
+        RegistroAuditoria.objects.create(acao='ALTERAR', entidade='Incidencia', entidade_id='alteracao-teste')
+        resposta = self.client.get(reverse('dashboard'))
+        self.assertContains(resposta, 'marco-teste')
+        self.assertContains(resposta, 'alteracao-teste')
+        usuario = get_user_model().objects.create_user('leitor-timeline', password='senha-teste-123')
+        usuario.user_permissions.set(Permission.objects.filter(content_type__app_label='inventario',
+            codename__in=['view_ativo', 'view_vulnerabilidade', 'view_incidencia', 'view_dependencia']))
+        self.autenticar(usuario)
+        resposta = self.client.get(reverse('dashboard'))
+        self.assertNotContains(resposta, 'marco-teste')
+        self.assertNotContains(resposta, 'REGISTROS AUDITADOS')
+
+    def test_linha_do_tempo_respeita_recorte(self):
+        from inventario.models import Ativo, RegistroAuditoria
+        Ativo.objects.filter(pk=self.a.pk).update(responsavel='Dona A')
+        RegistroAuditoria.objects.create(acao='CRIAR', entidade='Ativo', entidade_id=self.a.pk)
+        RegistroAuditoria.objects.create(acao='CRIAR', entidade='Ativo', entidade_id=self.b.pk)
+        resposta = self.client.get(reverse('dashboard'), {'responsavel': 'Dona A'})
+        ids = [evento['entidade_id'] for evento in resposta.context['eventos_painel'] if evento['entidade'] == 'Ativo']
+        self.assertIn(self.a.pk, ids)
+        self.assertNotIn(self.b.pk, ids)
+
+    def test_tendencia_usa_somente_amostras_registradas_do_perfil(self):
+        from inventario.models import SnapshotRisco
+        SnapshotRisco.objects.create(perfil='puro', risco_total=23, chave='DEMO-visual')
+        SnapshotRisco.objects.create(perfil='operacional', risco_total=91, chave='outro-perfil')
+        resposta = self.client.get(reverse('dashboard'))
+        self.assertContains(resposta, 'Evolução do risco total')
+        self.assertEqual([s['risco_total'] for s in resposta.context['amostras_risco']], [23])
+        self.assertContains(resposta, 'pontos de demonstração podem ser artificiais')
+
     def test_cadastro_exibe_confirmacao_sem_confundir_edicao(self):
         dados = {'tipo':'1', 'nome':'Novo equipamento', 'fabricante':'Dell', 'sala':self.sala.pk,
                  'criticidade':'2', 'status':'ATIVO', 'atributos':'{}', 'portas_servicos':'[]',
