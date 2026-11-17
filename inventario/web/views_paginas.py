@@ -27,7 +27,29 @@ def dashboard(request: HttpRequest):
             ver_certificados=request.user.has_perm("inventario.view_certificadodigital"))
     except ValueError as erro:
         return HttpResponseBadRequest(str(erro), content_type='text/plain; charset=utf-8')
+    from inventario.models import Vulnerabilidade
+    from inventario.aplicacao.demo_empresa import FONTE
+    contexto['empresa_ficticia'] = Vulnerabilidade.objects.filter(fonte=FONTE).exists()
     return render(request, "inventario/dashboard.html", contexto)
+
+
+@require_http_methods(['POST'])
+def carregar_empresa_ficticia(request):
+    from io import StringIO
+    from django.contrib import messages
+    from django.core.exceptions import PermissionDenied
+    from django.core.management import call_command
+    from django.shortcuts import redirect
+
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    saida = StringIO()
+    call_command('seed_demo', empresa=True, stdout=saida)
+    if 'Seed ignorado' in saida.getvalue():
+        messages.warning(request, 'A empresa fictícia só pode ser carregada em um inventário vazio. Use uma base de demonstração separada.')
+    else:
+        messages.success(request, 'Empresa Aurora fictícia carregada. Todos os valores são demonstrativos.')
+    return redirect('dashboard')
 
 
 @require_http_methods(["GET", "POST"])

@@ -3,6 +3,7 @@ from django.contrib.auth.views import LogoutView
 from inventario.seguranca import LoginProtegido, proteger
 
 from inventario.web import views
+from inventario.web import views_paginas
 from inventario.web import api_v1
 from inventario.web import views_honeypot
 from inventario.web import views_fontes
@@ -39,6 +40,7 @@ PERMISSOES_RISCO = (
 
 
 urlpatterns = [
+    path('demonstracao/empresa/', proteger(views_paginas.carregar_empresa_ficticia, *PERMISSOES_RISCO), name='carregar_empresa_ficticia'),
     path('fair/', proteger(views_fair.lista, *LEITURA_FAIR), name='fair_lista'),
     path('fair/novo/', proteger(views_fair.novo, *ESCRITA_FAIR), name='fair_novo'),
     path('fair/<int:pk>/', proteger(views_fair.detalhe, *LEITURA_FAIR), name='fair_detalhe'),

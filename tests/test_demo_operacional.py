@@ -61,3 +61,47 @@ class CenarioOperacional(TestCase):
         self.assertFalse(Ativo.objects.exists())
         self.assertFalse(SnapshotRisco.objects.exists())
         self.assertIn("ignorado", saida.getvalue())
+
+    def test_empresa_ficticia_tem_inventario_diverso_e_risco_calculavel(self):
+        from inventario.aplicacao.servicos import calcular_risco_banco
+        from inventario.models import Dependencia, Vulnerabilidade
+        from inventario.web.visualizacao import grafo_dependencias
+
+        call_command('seed_demo', empresa=True, stdout=StringIO())
+        self.assertEqual(Ativo.objects.count(), 31)
+        self.assertEqual(Ativo.objects.values('tipo').distinct().count(), 9)
+        self.assertGreaterEqual(Vulnerabilidade.objects.count(), 9)
+        self.assertGreater(Dependencia.objects.count(), 50)
+        risco = calcular_risco_banco()
+        grafo = grafo_dependencias(risco, {})
+        self.assertEqual(len(grafo['nos']), 31)
+        self.assertEqual(len(grafo['arestas']), Dependencia.objects.count())
+        self.assertTrue(all(0 <= n['x'] <= grafo['largura'] and 0 <= n['y'] <= grafo['altura'] for n in grafo['nos']))
+        self.assertGreater(len({n['x'] for n in grafo['nos']}), 5)
+        call_command('seed_demo', empresa=True, stdout=StringIO())
+        self.assertEqual(Ativo.objects.count(), 31)
+
+    def test_empresa_exige_superusuario_mfa_e_post(self):
+        from django.contrib.auth.models import Permission
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+        admin = get_user_model().objects.create_superuser('admin', 'admin@example.org', 'teste')
+        comum = get_user_model().objects.create_user('comum', password='teste')
+        comum.user_permissions.add(*Permission.objects.filter(content_type__app_label='inventario',
+            codename__in=['view_ativo', 'view_vulnerabilidade', 'view_incidencia', 'view_dependencia']))
+        def autenticar(usuario):
+            self.client.force_login(usuario)
+            dispositivo = TOTPDevice.objects.create(user=usuario, name='teste', confirmed=True)
+            sessao = self.client.session
+            sessao['otp_device_id'] = dispositivo.persistent_id
+            sessao['sauron_reauth_em'] = timezone.now().timestamp()
+            sessao.save()
+        autenticar(comum)
+        self.assertEqual(self.client.post('/demonstracao/empresa/').status_code, 403)
+        self.client.force_login(admin)
+        self.assertEqual(self.client.post('/demonstracao/empresa/').status_code, 302)
+        self.assertFalse(Ativo.objects.exists())
+        autenticar(admin)
+        self.assertEqual(self.client.get('/demonstracao/empresa/').status_code, 405)
+        self.assertEqual(self.client.post('/demonstracao/empresa/').status_code, 302)
+        self.assertEqual(Ativo.objects.count(), 31)
+        self.assertContains(self.client.get('/'), 'EMPRESA AURORA · DADOS FICTÍCIOS')

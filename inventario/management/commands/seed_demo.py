@@ -22,6 +22,7 @@ class Command(BaseCommand):
     help = "Cria o cenário demonstrativo web → app → banco → switch."
 
     def add_arguments(self, parser):
+        parser.add_argument("--empresa", action="store_true", help="Amplia o cenário para a empresa fictícia Aurora.")
         parser.add_argument(
             "--operacional",
             action="store_true",
@@ -30,6 +31,8 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        from inventario.infraestrutura.auditoria import travar_escrita
+        travar_escrita()
         configurar_grupos()
         # Um banco parcialmente preenchido pertence ao usuário e não recebe o demo.
         modelos = (Sala, Ativo, Vulnerabilidade, Incidencia, Dependencia)
@@ -222,7 +225,7 @@ class Command(BaseCommand):
 
         usuario = os.getenv("SAURON_ADMIN_USER")
         senha = os.getenv("SAURON_ADMIN_PASSWORD")
-        if usuario and senha:
+        if usuario and senha and not options['empresa']:
             admin, criado = User.objects.get_or_create(
                 username=usuario, defaults={"is_staff": True, "is_superuser": True}
             )
@@ -232,6 +235,11 @@ class Command(BaseCommand):
                 self.stdout.write(
                     self.style.WARNING("Administrador criado a partir das variáveis de ambiente.")
                 )
+
+        if options['empresa']:
+            from inventario.aplicacao.demo_empresa import ampliar_empresa
+            ampliar_empresa()
+            self.stdout.write(self.style.WARNING('Empresa Aurora FICTÍCIA: inventário e valores são apenas demonstrativos.'))
 
         if options["operacional"]:
             from inventario.aplicacao.demo_operacional import preparar_demo_operacional
