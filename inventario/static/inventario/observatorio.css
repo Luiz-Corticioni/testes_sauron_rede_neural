@@ -1,0 +1,59 @@
+/* Observatório: instrumento de leitura, sem dependências externas. */
+:root{--abismo:#0a0b0d;--carvao:#101112;--painel:#171819;--linha:#3b3835;--osso:#f3ece0;--cinza:#c5bdb1;--incandescente:#f6c99a;--brasa:#ef7048;--carmesim:#c43e32}
+body.sauron-observatorio{background:#0c0d0f;color:var(--osso);font-size:15px}
+.sauron-observatorio .ambient{background:radial-gradient(ellipse at 83% 5%,#5c211525,transparent 38%),#0c0d0f}
+.sauron-observatorio .sidebar{background:#101111;border-color:#494039;padding-top:24px}
+.sauron-observatorio .brand{padding-bottom:22px;border-bottom:1px solid #51463b;margin-bottom:15px}
+.sauron-observatorio .brand-mark img{width:43px;height:43px}
+.sauron-observatorio .brand-copy b{font-size:21px;letter-spacing:.22em;color:#f5e6d3}
+.sauron-observatorio .brand-copy small{font-size:12px;color:#c3b5a3}
+.sauron-observatorio .sidebar-action{background:#392017;border:1px solid #a95f42;border-radius:2px;min-height:44px;color:#ffe2c5}
+.sauron-observatorio .nav-label{color:#cfad86;font-size:11px;letter-spacing:.18em;margin-top:22px}
+.sauron-observatorio .sidebar nav a{border-radius:2px;padding:10px 11px;margin:2px 0}
+.sauron-observatorio .sidebar nav a:hover,.sauron-observatorio .sidebar nav a.active{background:#29211d;border-color:#76533c}
+.sauron-observatorio .sidebar nav a.active{border-left:3px solid #e78a58}
+.sauron-observatorio .sidebar nav small{color:#bcb5ad;font-size:12px}
+.sauron-observatorio .topbar{background:#111213;border-color:#49413b;height:66px}
+.sauron-observatorio .topbar-start small{color:#d6ae86;letter-spacing:.14em}
+.sauron-observatorio .content-frame{max-width:1600px}
+.sauron-observatorio h1,.sauron-observatorio h2{font-family:Georgia,"Times New Roman",serif;font-weight:400}
+.sauron-observatorio h2{font-size:24px;letter-spacing:-.02em}
+.sauron-observatorio .button{border-radius:2px;background:#9e3928;border-color:#db8c64;color:#fff4e8;min-height:46px}
+.sauron-observatorio .button:hover{background:#be5034}
+.sauron-observatorio .button.secondary{background:#27221e;border-color:#967d68;color:#ffe2be}
+.sauron-observatorio .button.secondary:hover{background:#403028}
+.sauron-observatorio .panel{background:#18191a;border:1px solid #49433d;border-radius:2px;box-shadow:0 8px 28px #0002}
+.sauron-observatorio .kicker{color:#dfb88f;font-size:11px;letter-spacing:.14em}
+.sauron-observatorio .page-heading{border-bottom:1px solid #51463b;margin-bottom:24px}
+.sauron-observatorio input,.sauron-observatorio select,.sauron-observatorio textarea{background:#111313;border-color:#9b8c7e;border-radius:2px;color:#fff4e6}
+.sauron-observatorio :focus-visible{outline:3px solid #ffd1a0;outline-offset:3px}
+.visao-geral .hero{position:relative;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(310px,.95fr);gap:20px;min-height:470px;padding:44px 0 35px;border-bottom:1px solid #57473b;background:none;overflow:hidden}
+.visao-geral .hero-copy{position:relative;z-index:1;max-width:670px}
+.hero-overline{display:flex;align-items:center;gap:13px;margin-bottom:26px;color:#e6be92;font-size:11px;letter-spacing:.16em;font-weight:700}
+.hero-overline b{color:#9f6e50;margin:0 5px}.hero-seal{display:grid;place-items:center;width:34px;height:34px;border:1px solid #a97755;transform:rotate(45deg);font-size:18px}
+.visao-geral .hero h1{font-size:clamp(42px,4.5vw,68px);line-height:1.07;letter-spacing:-.045em;margin-bottom:20px}
+.visao-geral .hero h1 em{color:#e9b488;font-weight:400;font-style:italic}
+.visao-geral .hero-copy>p{max-width:530px;color:#d4cbc0;font-size:16px;line-height:1.7}
+.visao-geral .hero-actions{margin-top:27px}.visao-geral .hero-actions .text-link{font-size:14px;color:#f0c9a6}
+.hero-record{display:flex;gap:14px;flex-wrap:wrap;margin-top:42px;color:#b9a899;font:11px ui-monospace,Consolas,monospace;letter-spacing:.06em}
+.hero-record span+span::before{content:'✦';padding-right:14px;color:#bd805d}
+.visao-geral .all-seeing{position:relative;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;align-self:stretch}
+.astrolabio{width:min(100%,480px);aspect-ratio:1;display:grid;place-items:center;background:url('astrolabio.svg') center/contain no-repeat;position:relative}
+.astrolabio-eye{width:66%;display:grid;place-items:center}.visao-geral .astrolabio-eye .sauron-eye{max-width:none}
+.astrolabio-label{position:absolute;bottom:15%;display:flex;gap:8px;color:#d7b28b;font:10px ui-monospace,Consolas,monospace;letter-spacing:.1em}
+.visao-geral .vision-caption{position:relative;margin-top:-34px;background:#171716;border:1px solid #806650;padding:12px 23px;min-width:215px;box-shadow:0 12px 30px #0006}
+.visao-geral .vision-caption .kicker{font-size:10px}.visao-geral .vision-caption strong{font-family:Georgia,serif;font-size:35px;color:#ffe3c5}.visao-geral .vision-caption small{font-size:12px;color:#d3c6b8}
+.section-marker{display:flex;align-items:center;gap:16px;margin:32px 0 14px;color:#d9b38d;font:11px ui-monospace,Consolas,monospace;letter-spacing:.12em}
+.section-marker span:nth-child(2){color:#c8c1b7}.section-marker i{height:1px;flex:1;background:#53473b}
+.visao-geral .metrics{gap:1px;margin:0 0 30px;background:#5a4b40;border:1px solid #5a4b40}
+.visao-geral .metrics article{min-height:140px;padding:20px 22px;border:0;border-radius:0;background:#191a1a}
+.visao-geral .metric-head{font-size:13px;color:#e2d9ce}.visao-geral .metric-head i{display:block;color:#bfa084;font:11px ui-monospace,Consolas,monospace}
+.visao-geral .metrics strong{font:40px Georgia,serif;color:#ffe2c6;letter-spacing:-.04em}.visao-geral .metrics small{font-size:12px;color:#c9beb0}
+.sauron-observatorio .rank-list>div{border-color:#4b4139}.sauron-observatorio .rank-list>div>span{color:#d0a87f}
+.sauron-observatorio .risk-chart .bar-own{fill:#9da8ab}.sauron-observatorio .risk-chart .bar-effective{fill:#e77c55}
+.sauron-observatorio .graph-scroll{background:radial-gradient(ellipse at center,#3b281e,#191918 60%,#111313);border-color:#78604d}
+.sauron-observatorio .site-footer{border-color:#51463b;color:#c2b7aa;font-size:12px}
+@media(max-width:980px){.visao-geral .hero{grid-template-columns:minmax(0,1fr) minmax(240px,.8fr);min-height:380px}.visao-geral .hero h1{font-size:clamp(38px,5vw,54px)}.hero-record{margin-top:25px}}
+@media(max-width:820px){.sauron-observatorio .topbar{height:65px}.visao-geral .hero{min-height:0;padding:32px 0}.astrolabio{width:min(100%,360px)}}
+@media(max-width:560px){.visao-geral .hero{grid-template-columns:1fr;gap:0}.hero-overline{margin-bottom:18px}.visao-geral .hero h1{font-size:clamp(38px,10vw,52px)}.visao-geral .all-seeing{display:flex;padding:0 0 18px}.astrolabio{width:min(86vw,330px)}.visao-geral .vision-caption{margin-top:-24px;text-align:center}.visao-geral .metrics article{min-height:125px;padding:16px}.visao-geral .metrics strong{font-size:34px}.section-marker{gap:8px;font-size:10px}.hero-record{margin-top:25px}}
+@media(prefers-reduced-motion:reduce){.sauron-observatorio *, .sauron-observatorio *::before,.sauron-observatorio *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

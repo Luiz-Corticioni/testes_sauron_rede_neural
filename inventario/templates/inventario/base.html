@@ -9,6 +9,7 @@
   <link rel="icon" href="{% static 'inventario/sauron-eye.svg' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'inventario/sauron.css' %}">
   <link rel="stylesheet" href="{% static 'inventario/interface.css' %}">
+  <link rel="stylesheet" href="{% static 'inventario/observatorio.css' %}">
   <script src="{% static 'inventario/http.js' %}" defer></script>
   <script src="{% static 'inventario/autocomplete.js' %}" defer></script>
   <script src="{% static 'inventario/shell.js' %}" defer></script>
@@ -16,7 +17,7 @@
   <script src="{% static 'inventario/olho.js' %}" defer></script>
   {% block head %}{% endblock %}
 </head>
-<body>
+<body class="sauron-observatorio {% block body_class %}{% endblock %}">
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
   <div class="ambient" aria-hidden="true"></div>
   <button class="sidebar-overlay" type="button" aria-label="Fechar navegação"></button>

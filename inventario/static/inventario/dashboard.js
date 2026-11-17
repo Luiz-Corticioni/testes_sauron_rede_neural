@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const records = data.ids_ativos.slice(0,20);
   const max = Math.max(1,...data.risco_efetivo,...data.risco_proprio);
-  const svg = node("svg", {viewBox:`0 0 650 ${60+records.length*64}`, class:"risk-chart", role:"img", "aria-label":"Risco próprio em cinza e risco efetivo em carmesim, por ativo"});
+  const svg = node("svg", {viewBox:`0 0 650 ${60+records.length*64}`, class:"risk-chart", role:"img", "aria-label":"Risco próprio e risco efetivo, por ativo"});
   svg.append(node("rect", {x:0,y:7,width:10,height:10,class:"bar-own"}),node("text", {x:17,y:17,class:"chart-muted"},"Próprio b"));
   svg.append(node("rect", {x:126,y:7,width:10,height:10,class:"bar-effective"}),node("text", {x:143,y:17,class:"chart-muted"},"Efetivo x"));
   records.forEach((id,i) => {
