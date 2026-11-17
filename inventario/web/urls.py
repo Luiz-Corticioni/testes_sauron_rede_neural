@@ -40,6 +40,7 @@ PERMISSOES_RISCO = (
 
 
 urlpatterns = [
+    path('api/olho/eventos/', proteger(views_paginas.eventos_olho, *PERMISSOES_RISCO, 'inventario.view_registroauditoria'), name='eventos_olho'),
     path('demonstracao/empresa/', proteger(views_paginas.carregar_empresa_ficticia, *PERMISSOES_RISCO), name='carregar_empresa_ficticia'),
     path('fair/', proteger(views_fair.lista, *LEITURA_FAIR), name='fair_lista'),
     path('fair/novo/', proteger(views_fair.novo, *ESCRITA_FAIR), name='fair_novo'),

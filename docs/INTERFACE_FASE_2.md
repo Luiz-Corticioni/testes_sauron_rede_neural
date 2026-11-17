@@ -1,0 +1,7 @@
+# Fase 2 — Olho reativo e eventos
+
+O Olho varia abertura, pupila e brilho conforme a média de índices recebida pelo painel ou pela simulação. As quatro faixas visuais não são CVSS nem probabilidade. Transições usam propriedades visuais e o navegador pode aplicar a mudança imediatamente quando não suportar interpolação de propriedade CSS. O deslocamento discreto por ponteiro é desligado para toque e `prefers-reduced-motion`; a preferência também interrompe pulsações.
+
+Para contas que já têm acesso ao risco e à auditoria, o painel consulta a cada 60 segundos, somente em aba visível, até 200 registros de auditoria por vez. Uma nova incidência cadastrada após a abertura, ainda aberta/em tratamento e com CVSS base ≥ 9, produz aviso com link para o ativo e um despertar curto. O aviso não representa exploração nem garante detecção; eventos anteriores à abertura não são reproduzidos. O cursor é assinado, expira e não é salvo no navegador; a API não fornece detalhes de auditoria. Sem permissão de auditoria, o acompanhamento não aparece.
+
+Para testar, abra o painel com uma conta autorizada; em outra sessão cadastre uma incidência crítica e aguarde até um minuto com a primeira aba visível. Teste com movimento reduzido no sistema e sem permissão de auditoria. A consulta não busca CVEs automaticamente. Referências: [MDN — movimento reduzido](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/%40media/prefers-reduced-motion) e [web.dev — desempenho de animações](https://web.dev/articles/animations-and-performance/).

@@ -32,7 +32,36 @@ def dashboard(request: HttpRequest):
     from inventario.aplicacao.demo_realista import FONTE as FONTE_REALISTA
     contexto['empresa_ficticia'] = Vulnerabilidade.objects.filter(fonte__in=[FONTE, FONTE_REALISTA]).exists()
     contexto['demo_realista'] = Vulnerabilidade.objects.filter(fonte=FONTE_REALISTA).exists()
+    if request.user.has_perm('inventario.view_registroauditoria'):
+        from django.core import signing
+        ultimo = RegistroAuditoria.objects.order_by('-pk').values_list('pk', flat=True).first() or 0
+        contexto['cursor_olho'] = signing.dumps(ultimo, salt='sauron.olho.eventos')
     return render(request, "inventario/dashboard.html", contexto)
+
+
+@require_http_methods(['GET'])
+def eventos_olho(request):
+    from django.core import signing
+    from django.http import JsonResponse
+    from django.urls import reverse
+    from inventario.models import Incidencia
+    try:
+        cursor = signing.loads(request.GET.get('cursor', ''), salt='sauron.olho.eventos', max_age=86400)
+        if type(cursor) is not int or cursor < 0:
+            raise ValueError
+    except (signing.BadSignature, ValueError):
+        return HttpResponseBadRequest('Cursor inválido ou expirado.')
+    registros = list(RegistroAuditoria.objects.filter(pk__gt=cursor).order_by('pk')
+                     .values('pk', 'acao', 'entidade', 'entidade_id')[:200])
+    ids = [r['entidade_id'] for r in registros if r['acao'] == 'CRIAR' and r['entidade'] == 'Incidencia']
+    incidencias = Incidencia.objects.filter(pk__in=ids, status__in=['ABERTA', 'TRATAMENTO'],
+        vulnerabilidade__cvss__gte=9).select_related('ativo', 'vulnerabilidade').order_by('pk')
+    itens = [{'ativo': i.ativo.hostname, 'cve': i.vulnerabilidade.cve_id or i.vulnerabilidade_id,
+              'url': reverse('detalhe_ativo', args=[i.ativo_id])} for i in incidencias]
+    resposta = JsonResponse({'eventos': itens, 'cursor': signing.dumps(registros[-1]['pk'] if registros else cursor,
+                                                                      salt='sauron.olho.eventos')})
+    resposta['Cache-Control'] = 'no-store'
+    return resposta
 
 
 @require_http_methods(['POST'])

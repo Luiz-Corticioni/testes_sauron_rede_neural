@@ -33,6 +33,19 @@ body.sauron-observatorio{background:#0b0909}
 .fair-portal h2{margin:0 0 6px}.fair-portal p{margin:0;color:#e1d0bb;max-width:75ch}.fair-portal .kicker{margin-bottom:7px}
 .fair-portal .button{flex-shrink:0}.sauron-observatorio .rank-list strong{color:#ffd09e}
 .asset-sigil{width:22px;height:22px;vertical-align:middle;fill:none;stroke:var(--incandescente);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+@property --risco { syntax:'<number>'; inherits:true; initial-value:0; }
+.sauron-eye:not(.eye-small){transition:--risco 900ms ease}
+.sauron-eye:not(.eye-small) .eye-shape{transform-box:view-box;transform-origin:220px 120px;transform:scaleY(calc(.65 + var(--risco) * .35));transition:transform 900ms ease}
+.sauron-eye:not(.eye-small) .eye-slit{transform:scaleX(calc(1.25 - var(--risco) * .7));transition:transform 900ms ease}
+.visao-geral .astrolabio{transition:transform 250ms ease-out}
+.visao-geral .astrolabio::before{content:'';position:absolute;inset:17%;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#e7553029,transparent 70%);opacity:.2;transition:opacity 900ms ease}
+body[data-risco-faixa='medio'] .astrolabio::before{opacity:.4}
+body[data-risco-faixa='alto'] .astrolabio::before{opacity:.7}
+body[data-risco-faixa='critico'] .astrolabio::before{opacity:1;animation:brasa-lenta 7s ease-in-out infinite}
+@keyframes brasa-lenta{50%{transform:scale(1.08);opacity:.65}}
+.eye-event:not(:empty){border-left:3px solid var(--brasa);background:#34201b;padding:14px 18px;color:var(--osso)}
+.astrolabio.despertar{animation:despertar-olho 1.8s ease-out}
+@keyframes despertar-olho{35%{transform:scale(1.035);filter:drop-shadow(0 0 12px #ff8c5a)}}
 @media(max-width:1200px){.sentinela-grid{grid-template-columns:1fr 1fr}.sentinela-card:first-child{grid-column:1 / -1;min-height:0}}
 @media(max-width:820px){.visao-geral .hero{padding:32px 24px;min-height:350px}.sentinela-grid{gap:12px}.sentinela-card{min-height:290px}}
 @media(max-width:560px){.visao-geral .hero{padding:28px 18px 22px;background-position:66% 35%;grid-template-columns:1fr}.visao-geral .hero-copy>p{font-size:15px}.visao-geral .astrolabio{width:min(75vw,270px)}.visao-geral .vision-caption{margin-top:-10px}.sentinela-grid{grid-template-columns:1fr}.sentinela-card:first-child{grid-column:auto}.sentinela-card{min-height:0}.fair-portal{align-items:flex-start;flex-direction:column;padding:22px}.fair-portal .button{width:100%}}
