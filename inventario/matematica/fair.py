@@ -20,7 +20,7 @@ def faixa(valor, nome, teto):
 
 def validar(dados):
     campos = {"modo", "frequencia", "acao", "suscetibilidade", "capacidade", "resistencia", "perdas"}
-    if not isinstance(dados, dict) or set(dados) != campos or not isinstance(dados["modo"], str) or dados["modo"] not in MODOS:
+    if not isinstance(dados, dict) or set(dados) not in (campos, campos | {"slef"}) or not isinstance(dados["modo"], str) or dados["modo"] not in MODOS:
         raise ValueError("Informe o modo e todos os campos esperados do modelo.")
     modo = dados["modo"]
     resultado = {"modo": modo, "frequencia": faixa(dados["frequencia"], "Frequência em 30 dias", 20)}
@@ -51,6 +51,14 @@ def validar(dados):
         resultado["perdas"].append({"tipo": tipo, "categoria": categoria, "valor": faixa(item["valor"], "Magnitude", 1e12), "probabilidade": chance})
     if not any(item["tipo"] == "PRIMARIA" for item in resultado["perdas"]):
         raise ValueError("Informe pelo menos uma parcela de perda primária.")
+    if "slef" in dados:
+        ha_secundaria = any(item["tipo"] == "SECUNDARIA" for item in resultado["perdas"])
+        if ha_secundaria:
+            resultado["slef"] = faixa(dados["slef"], "Frequência condicional de efeito secundário", 1)
+        elif dados["slef"] is None:
+            resultado["slef"] = None
+        else:
+            raise ValueError("A chance de efeito secundário exige ao menos uma parcela secundária.")
     return resultado
 
 
@@ -100,11 +108,17 @@ def simular(dados, n=10000, seed=42):
     total_eventos = len(janelas_perda)
     primaria, secundaria = np.zeros(n), np.zeros(n)
     parcelas = []
+    reacao = None
+    if dados.get("slef") is not None:
+        chance_reacao = amostrar(dados["slef"], n, rng)
+        reacao = rng.random(total_eventos) < chance_reacao[janelas_perda]
     for item in dados["perdas"]:
         custos = amostrar(item["valor"], total_eventos, rng)
         if item["tipo"] == "SECUNDARIA" or item["probabilidade"] != [1., 1., 1.]:
             prob = amostrar(item["probabilidade"], total_eventos, rng)
             custos *= rng.random(total_eventos) < prob
+        if item["tipo"] == "SECUNDARIA" and reacao is not None:
+            custos *= reacao
         acumulado = np.bincount(janelas_perda, weights=custos, minlength=n)
         if item["tipo"] == "PRIMARIA":
             primaria += acumulado
@@ -113,11 +127,13 @@ def simular(dados, n=10000, seed=42):
         parcelas.append({"tipo": item["tipo"], "categoria": item["categoria"], "media": float(acumulado.mean())})
     total = primaria + secundaria
     limites = np.unique(np.r_[0., np.percentile(total, [50, 75, 90, 95, 99, 100])])
-    return {"versao_modelo": "sauron.fair/30d-v1", "horizonte_dias": 30, "modo": modo, "n": n, "seed": seed,
+    return {"versao_modelo": "sauron.fair/30d-v2" if "slef" in dados else "sauron.fair/30d-v1", "horizonte_dias": 30, "modo": modo, "n": n, "seed": seed,
             "perda": resumo(total), "probabilidade_evento": float(np.count_nonzero(np.bincount(janelas_perda, minlength=n)) / n),
             "eventos_medios": float(total_eventos / n), "ameacas_medias": None if ameacas is None else float(ameacas / n),
             "contatos_medios": float(total_contatos / n) if modo in {"DECOMPOSTO", "CONTATO_SUSC"} else None,
             "media_por_evento": float(total.sum() / total_eventos) if total_eventos else None,
+            "efeitos_secundarios_medios": float(reacao.sum() / n) if reacao is not None else None,
+            "proporcao_efeito_secundario": float(reacao.mean()) if reacao is not None and total_eventos else None,
             "media_primaria": float(primaria.mean()), "media_secundaria": float(secundaria.mean()),
             "parcelas": parcelas,
             "excedencia": [{"valor": float(x), "percentual": float((total > x).mean() * 100)} for x in limites]}

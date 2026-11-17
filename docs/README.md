@@ -17,6 +17,7 @@ em que foram escritos. Eles não são um certificado de que um servidor está se
 | Criar conta inicial, configurar SMTP/TOTP e recuperar acesso | [E-mail e MFA](EMAIL_E_MFA.md) |
 | Entender CVSS 3.1 e comparação com 4.0 | [Comparação CVSS](COMPARACAO_CVSS.md) |
 | Criar e interpretar um cenário financeiro contextual | [Cenários financeiros em 30 dias](CENARIOS_FINANCEIROS.md) |
+| Registrar e interpretar análise por fatores FAIR | [Guia FAIR em 30 dias](GUIA_FAIR_30_DIAS.md) |
 | Cadastrar sensores de isca e importar eventos de demonstração | [Sensores de isca — fase 1](HONEYPOT_FASE1.md) |
 | Executar com Docker, HTTPS e reunir evidências de 24 horas | [Docker para o trabalho](DOCKER_TRABALHO_2.md) |
 | Repetir teste sintético de 100 logins no Docker | [Ensaio de carga no Compose](TESTE_CARGA_DOCKER.md) |
@@ -39,6 +40,8 @@ e ações depende das permissões de cada conta.
 - [Comparação de análises FAIR](RELATORIO_FAIR_COMPARACAO_2026-11-16.md).
 - [Profundidade e vias de entrada FAIR](RELATORIO_FAIR_PROFUNDIDADE_2026-11-16.md).
 - [Registro e exportação de simulações FAIR](RELATORIO_FAIR_REGISTRO_2026-11-16.md).
+- [Exemplo e cópia de análises FAIR](RELATORIO_FAIR_USABILIDADE_2026-11-16.md).
+- [Reação secundária comum e versão do modelo](RELATORIO_FAIR_SLEF_2026-11-16.md).
 - [Triagem de scanner e retenção de iscas](RELATORIO_TRIAGEM_RETENCAO_2026-11-15.md).
 - [Capacidade da imagem Alpine](RELATORIO_CARGA_ALPINE_2026-11-15.md).
 - [Preparação para o servidor compartilhado](RELATORIO_PREPARACAO_SERVIDOR_2026-11-15.md).

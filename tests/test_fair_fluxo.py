@@ -16,7 +16,7 @@ class FluxoFAIR(BancoTeste):
         return CenarioFAIR(**({'nome': 'Serviço fictício', 'ativo': self.a, 'evento': 'Interrupção do serviço',
             'ameaca': 'Falha fictícia', 'efeito': 'A', 'escopo': 'Unidade fictícia', 'origem_frequencia': 'Hipótese documentada',
             'origem_suscetibilidade': '', 'origem_perdas': 'Estimativa demonstrativa', 'qualidade': 'SIMULADO',
-            'data_referencia': timezone.localdate(), 'premissas': exemplo()} | alteracoes))
+            'data_referencia': timezone.localdate(), 'premissas': exemplo() | {'slef': [1., 1., 1.]}} | alteracoes))
 
     def dados(self):
         return {'nome': 'Serviço fictício', 'ativo': self.a.pk, 'evento': 'Interrupção', 'ameaca': 'Falha fictícia',
@@ -33,11 +33,21 @@ class FluxoFAIR(BancoTeste):
         self.assertEqual(registro.usuario_id, self.usuario.pk)
         self.assertNotIn('100', str(registro.detalhes))
         self.assertTrue(registro.detalhes['custos_distintos_declarados'])
-        self.assertEqual(calcular(cenario, self.usuario, n=100, seed=7)['versao_modelo'], 'sauron.fair/30d-v1')
+        self.assertEqual(calcular(cenario, self.usuario, n=100, seed=7)['versao_modelo'], 'sauron.fair/30d-v2')
         with self.assertRaises(ValueError):
             criar(self.modelo(), self.usuario, False)
         with self.assertRaises(ValidationError):
             criar(self.modelo(data_referencia=timezone.localdate() + timedelta(days=1)), self.usuario, True)
+
+    def test_cenario_legado_continua_calculavel_sem_reclassificacao_silenciosa(self):
+        legado = criar(self.modelo(versao_modelo='sauron.fair/30d-v1', premissas=exemplo()), self.usuario, True)
+        self.assertNotIn('slef', legado.premissas)
+        self.assertEqual(calcular(legado, self.usuario, n=100)['versao_modelo'], 'sauron.fair/30d-v1')
+        copia = self.client.get(f'/fair/{legado.pk}/copiar/')
+        self.assertContains(copia, 'Esta cópia usará a versão 2')
+        self.assertEqual(copia.context['form'].initial['slef_min'], 1.)
+        with self.assertRaises(ValidationError):
+            criar(self.modelo(versao_modelo='sauron.fair/30d-v1'), self.usuario, True)
 
     def test_interface_cria_simula_e_exibe_fatores(self):
         resposta = self.client.post('/fair/novo/', self.dados())
@@ -76,7 +86,7 @@ class FluxoFAIR(BancoTeste):
             'capacidade_max': '0.8', 'resistencia_min': '0.2', 'resistencia_moda': '0.2', 'resistencia_max': '0.2',
             'perdas-1-tipo': 'SECUNDARIA', 'perdas-1-categoria': 'MULTAS', 'perdas-1-minimo': '50',
             'perdas-1-moda': '50', 'perdas-1-maximo': '50', 'perdas-1-chance_min': '1',
-            'perdas-1-chance_moda': '1', 'perdas-1-chance_max': '1'}
+            'perdas-1-chance_moda': '1', 'perdas-1-chance_max': '1', 'slef_min': '1', 'slef_moda': '1', 'slef_max': '1'}
         resposta = self.client.post('/fair/novo/', dados)
         self.assertEqual(resposta.status_code, 302, str(resposta.context['form'].errors) if resposta.status_code == 200 else '')
         cenario = CenarioFAIR.objects.get(nome='Decomposto')
@@ -188,7 +198,7 @@ class FluxoFAIR(BancoTeste):
 
     def test_comparacao_exige_mesmo_contexto_e_nao_inventa_eficacia(self):
         base = criar(self.modelo(), self.usuario, True)
-        parametros = exemplo() | {'frequencia': [0., 0., 0.]}
+        parametros = exemplo() | {'frequencia': [0., 0., 0.], 'slef': [1., 1., 1.]}
         alternativa = criar(self.modelo(nome='Alternativa hipotética', premissas=parametros), self.usuario, True)
         resultado = comparar(base, alternativa, self.usuario, n=1000, seed=4)
         self.assertEqual(resultado, comparar(base, alternativa, self.usuario, n=1000, seed=4))
@@ -206,3 +216,25 @@ class FluxoFAIR(BancoTeste):
         sem = get_user_model().objects.create_user('sem-comparacao-fair')
         with self.assertRaises(PermissionDenied):
             comparar(base, alternativa, sem, n=100)
+
+    def test_exemplo_e_copia_exigem_confirmacao_e_nao_gravam_por_get(self):
+        resposta = self.client.get('/fair/novo/?exemplo=1')
+        self.assertContains(resposta, 'Exemplo fictício')
+        self.assertEqual(resposta.context['form'].initial['qualidade'], 'SIMULADO')
+        self.assertNotIn('ativo', resposta.context['form'].initial)
+        self.assertFalse(CenarioFAIR.objects.exists())
+        original = criar(self.modelo(), self.usuario, True)
+        resposta = self.client.get(f'/fair/{original.pk}/copiar/')
+        self.assertContains(resposta, 'Pré-preenchido')
+        self.assertEqual(len(resposta.context['perdas'].initial), 2)
+        self.assertEqual(CenarioFAIR.objects.count(), 1)
+        dados = self.dados() | {'nome': 'Cópia revisada', 'evento': original.evento, 'ameaca': original.ameaca,
+            'escopo': original.escopo, 'perdas-INITIAL_FORMS': '2', 'perdas-1-tipo': 'SECUNDARIA',
+            'perdas-1-categoria': 'MULTAS', 'perdas-1-minimo': '50', 'perdas-1-moda': '50', 'perdas-1-maximo': '50',
+            'perdas-1-chance_min': '1', 'perdas-1-chance_moda': '1', 'perdas-1-chance_max': '1',
+            'slef_min': '1', 'slef_moda': '1', 'slef_max': '1'}
+        resposta = self.client.post(f'/fair/{original.pk}/copiar/', dados)
+        self.assertEqual(resposta.status_code, 302, str(resposta.context['form'].errors) if resposta.status_code == 200 else '')
+        copia = CenarioFAIR.objects.get(nome='Cópia revisada')
+        self.assertEqual(len(copia.premissas['perdas']), 2)
+        self.assertEqual(self.client.post(f'/fair/{original.pk}/comparar/', {'alternativa': copia.pk, 'n': 100, 'seed': 1}).status_code, 200)

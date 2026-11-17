@@ -22,7 +22,7 @@ class CenarioFAIR(models.Model):
     qualidade = models.CharField(max_length=10, choices=QUALIDADE)
     data_referencia = models.DateField()
     premissas = models.JSONField()
-    versao_modelo = models.CharField(max_length=40, default='sauron.fair/30d-v1', editable=False)
+    versao_modelo = models.CharField(max_length=40, default='sauron.fair/30d-v2', editable=False)
     criado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     criado_em = models.DateTimeField(auto_now_add=True)
 
@@ -44,6 +44,9 @@ class CenarioFAIR(models.Model):
             self.premissas = validar(self.premissas)
         except ValueError as erro:
             raise ValidationError({'premissas': str(erro)}) from erro
+        esperada = 'sauron.fair/30d-v2' if 'slef' in self.premissas else 'sauron.fair/30d-v1'
+        if self.versao_modelo != esperada:
+            raise ValidationError({'premissas': 'Versão do modelo incompatível com as premissas registradas.'})
         if self.premissas['modo'] != 'LEF' and not self.origem_suscetibilidade.strip():
             raise ValidationError({'origem_suscetibilidade': 'Informe a origem da suscetibilidade ou da capacidade e resistência.'})
         if self.ativo_id and self.ativo.status in ('INATIVO', 'BAIXADO'):

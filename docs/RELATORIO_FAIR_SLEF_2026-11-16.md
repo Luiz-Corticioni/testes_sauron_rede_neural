@@ -1,0 +1,7 @@
+# Reação secundária comum e versão do modelo
+
+A versão 2 separa a chance de efeito secundário por evento de perda (SLEF) das magnitudes e chances das parcelas secundárias. O sorteio da reação é comum às parcelas secundárias de um mesmo evento; se não houver reação, essas parcelas não geram perda. Após a reação, as chances e magnitudes individuais são sorteadas independentemente. A chance SLEF é uma faixa declarada e é sorteada por janela; as perdas ficam dentro dos 30 dias modelados.
+
+A versão 1 continua aceitando suas premissas e aplicando cada chance secundária diretamente ao evento, sem reação comum. Os valores não são convertidos automaticamente. Uma cópia antiga é criada na versão 2; se houver parcelas secundárias, a reação comum é inicialmente preenchida com chance 1, preservando a distribuição marginal anterior, mas não a sequência dos sorteios. A comparação exige a mesma versão; para comparar uma análise antiga sob o novo modelo, revise duas cópias versão 2.
+
+Testes cobrem SLEF zero e um, reação compartilhada entre parcelas, proporção aproximada quando SLEF é 0,5, ausência de evento, rejeição de entrada incompleta e execução de versão anterior. A classificação e a fonte são declarações humanas; este modelo não prova que stakeholders realmente reagirão nem estima perdas fora da janela. A taxonomia vem do [FAIR Model v3.0](https://www.fairinstitute.org/hubfs/Standards%20Artifacts/Factor%20Analysis%20of%20Information%20Risk%20%28FAIR%29%20Standard%20v3.0%20%28January%202025%29.pdf); Poisson, PERT e independência são escolhas do Sauron.

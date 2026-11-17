@@ -54,6 +54,25 @@ class MatematicaFAIR(SimpleTestCase):
         dados['perdas'][0]['probabilidade'] = [0., 0., 0.]
         self.assertEqual(simular(dados, n=100)['media_primaria'], 0)
 
+    def test_slef_controla_reacao_comum_e_preserva_versao_anterior(self):
+        legado = exemplo()
+        self.assertEqual(simular(legado, n=100)['versao_modelo'], 'sauron.fair/30d-v1')
+        dados = exemplo() | {'slef': [0., 0., 0.]}
+        self.assertEqual(simular(dados, n=100)['media_secundaria'], 0)
+        dados['slef'] = [1., 1., 1.]
+        resultado = simular(dados, n=1000)
+        self.assertEqual(resultado['versao_modelo'], 'sauron.fair/30d-v2')
+        self.assertEqual(resultado['efeitos_secundarios_medios'], resultado['eventos_medios'])
+        self.assertEqual(resultado['proporcao_efeito_secundario'], 1)
+        dados['slef'] = [.5, .5, .5]
+        dados['perdas'].append({'tipo': 'SECUNDARIA', 'categoria': 'REPUTACAO',
+                                'valor': [50., 50., 50.], 'probabilidade': [1., 1., 1.]})
+        resultado = simular(dados, n=10000, seed=1)
+        self.assertEqual(resultado['parcelas'][1]['media'], resultado['parcelas'][2]['media'])
+        self.assertAlmostEqual(resultado['proporcao_efeito_secundario'], .5, delta=.02)
+        with self.assertRaises(ValueError):
+            validar(dados | {'slef': None})
+
     def test_entradas_invalidas_nao_sao_silenciosamente_convertidas(self):
         base = exemplo()
         ruins = [base | {'frequencia': [0, 3, 2]}, base | {'frequencia': [0, 0, float('nan')]},

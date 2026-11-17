@@ -32,7 +32,7 @@ def criar(cenario, usuario, sem_sobreposicao):
 def calcular(cenario, usuario, n=10000, seed=42):
     exigir(usuario, *LEITURA)
     cenario.full_clean()
-    if cenario.versao_modelo != 'sauron.fair/30d-v1':
+    if cenario.versao_modelo not in ('sauron.fair/30d-v1', 'sauron.fair/30d-v2'):
         raise ValueError('Versão do modelo não suportada; preserve o cenário e procure atualização compatível.')
     with vaga_simulacao():
         return simular(cenario.premissas, n=n, seed=seed)

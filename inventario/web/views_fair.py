@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.http import JsonResponse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
+from django.utils import timezone
 
 from inventario.aplicacao.fair import comparar, criar, executar
 from inventario.infraestrutura.limite_simulacoes import LimiteSimulacoes
@@ -29,7 +30,7 @@ class CenarioForm(forms.Form):
     escopo = forms.CharField(max_length=300)
     origem_frequencia = forms.CharField(label='Fonte da frequência', max_length=300)
     origem_suscetibilidade = forms.CharField(label='Fonte da suscetibilidade ou capacidade e resistência', max_length=300, required=False)
-    origem_perdas = forms.CharField(label='Fonte das magnitudes de perda', max_length=300)
+    origem_perdas = forms.CharField(label='Fonte das perdas e dos efeitos secundários', max_length=300)
     qualidade = forms.ChoiceField(choices=CenarioFAIR.QUALIDADE)
     data_referencia = forms.DateField(label='Data de referência das premissas', widget=forms.DateInput(attrs={'type': 'date'}))
     modo = forms.ChoiceField(choices=MODOS, label='Forma de estimar a frequência')
@@ -40,13 +41,14 @@ class CenarioForm(forms.Form):
         self.fields['ativo'].queryset = Ativo.objects.exclude(status__in=['INATIVO', 'BAIXADO'])
         nomes = {'frequencia': 'Frequência média de contatos, ameaças ou perdas por 30 dias',
                  'acao': 'Probabilidade de ação por contato (0 a 1)', 'suscetibilidade': 'Suscetibilidade por ameaça (0 a 1)',
-                 'capacidade': 'Capacidade da ameaça (0 a 1)', 'resistencia': 'Resistência dos controles (0 a 1)'}
+                 'capacidade': 'Capacidade da ameaça (0 a 1)', 'resistencia': 'Resistência dos controles (0 a 1)',
+                 'slef': 'Chance de efeito secundário por evento de perda (0 a 1)'}
         for chave, label in nomes.items():
             for sufixo, nome in [('min', 'mínimo'), ('moda', 'mais provável'), ('max', 'máximo')]:
                 self.fields[f'{chave}_{sufixo}'] = forms.DecimalField(label=f'{label} — {nome}', required=False,
                     min_value=0, max_value=20 if chave == 'frequencia' else 1)
 
-    def parametros(self):
+    def parametros(self, parcelas):
         dados = self.cleaned_data
         modo = dados['modo']
         necessarios = {'frequencia'} | {
@@ -54,7 +56,9 @@ class CenarioForm(forms.Form):
             'CONTATO_SUSC': {'acao', 'suscetibilidade'}, 'DECOMPOSTO': {'acao', 'capacidade', 'resistencia'},
         }[modo]
         saida = {'modo': modo}
-        for chave in ('frequencia', 'acao', 'suscetibilidade', 'capacidade', 'resistencia'):
+        if any(item['tipo'] == 'SECUNDARIA' for item in parcelas):
+            necessarios.add('slef')
+        for chave in ('frequencia', 'acao', 'suscetibilidade', 'capacidade', 'resistencia', 'slef'):
             valores = [dados.get(f'{chave}_{sufixo}') for sufixo in ('min', 'moda', 'max')]
             if chave in necessarios:
                 if any(valor is None for valor in valores):
@@ -79,7 +83,7 @@ class PerdaForm(forms.Form):
 
     def clean(self):
         dados = super().clean()
-        if not self.has_changed():
+        if not any(valor is not None and valor != '' for valor in dados.values()):
             return dados
         if not dados.get('tipo') or not dados.get('categoria') or any(dados.get(c) is None for c in ('minimo', 'moda', 'maximo')):
             raise ValidationError('Informe tipo, categoria e três valores da parcela.')
@@ -128,15 +132,53 @@ def lista(request):
     return render(request, 'inventario/fair_lista.html', paginar(CenarioFAIR.objects.select_related('ativo', 'criado_por'), request))
 
 
+def dados_iniciais(cenario):
+    campos = ('nome', 'ativo', 'evento', 'ameaca', 'efeito', 'escopo', 'origem_frequencia',
+              'origem_suscetibilidade', 'origem_perdas', 'qualidade', 'data_referencia')
+    dados = {campo: getattr(cenario, campo) for campo in campos}
+    dados['nome'] = cenario.nome[:110] + ' - cópia'
+    dados['modo'] = cenario.premissas['modo']
+    for chave in ('frequencia', 'acao', 'suscetibilidade', 'capacidade', 'resistencia', 'slef'):
+        valores = cenario.premissas.get(chave)
+        if chave == 'slef' and 'slef' not in cenario.premissas and any(p['tipo'] == 'SECUNDARIA' for p in cenario.premissas['perdas']):
+            valores = [1., 1., 1.]
+        if valores is not None:
+            for sufixo, valor in zip(('min', 'moda', 'max'), valores):
+                dados[f'{chave}_{sufixo}'] = valor
+    linhas = []
+    for item in cenario.premissas['perdas']:
+        linha = {'tipo': item['tipo'], 'categoria': item['categoria']}
+        linha.update(zip(('minimo', 'moda', 'maximo'), item['valor']))
+        if item['tipo'] == 'SECUNDARIA' or item['probabilidade'] != [1., 1., 1.]:
+            linha.update(zip(('chance_min', 'chance_moda', 'chance_max'), item['probabilidade']))
+        linhas.append(linha)
+    return dados, linhas
+
+
 @never_cache
 @require_http_methods(['GET', 'POST'])
-def novo(request):
-    form = CenarioForm(request.POST or None)
-    perdas = PerdasFormSet(request.POST or None, prefix='perdas')
+def novo(request, origem_pk=None):
+    inicial, parcelas_iniciais = {}, []
+    origem = None
+    if origem_pk is not None:
+        origem = get_object_or_404(CenarioFAIR.objects.select_related('ativo'), pk=origem_pk)
+        inicial, parcelas_iniciais = dados_iniciais(origem)
+    elif request.GET.get('exemplo') == '1':
+        inicial = {'nome': 'Demonstração fictícia', 'evento': 'Interrupção fictícia de faturamento',
+                   'ameaca': 'Falha operacional fictícia', 'efeito': 'A', 'escopo': 'Empresa fictícia',
+                   'origem_frequencia': 'Hipótese para demonstração', 'origem_suscetibilidade': 'Hipótese para demonstração',
+                   'origem_perdas': 'Valores fictícios para demonstração', 'qualidade': 'SIMULADO',
+                   'data_referencia': timezone.localdate(), 'modo': 'TEF', 'frequencia_min': 0.1,
+                   'frequencia_moda': 0.5, 'frequencia_max': 1, 'suscetibilidade_min': 0.1,
+                   'suscetibilidade_moda': 0.3, 'suscetibilidade_max': 0.5}
+        parcelas_iniciais = [{'tipo': 'PRIMARIA', 'categoria': 'PRODUTIVIDADE', 'minimo': 1000, 'moda': 5000, 'maximo': 10000}]
+    form = CenarioForm(request.POST or None, initial=inicial)
+    perdas = PerdasFormSet(request.POST or None, prefix='perdas', initial=parcelas_iniciais)
     if request.method == 'POST' and form.is_valid() and perdas.is_valid():
         try:
-            dados = form.parametros()
-            dados['perdas'] = [linha['item'] for linha in perdas.cleaned_data if linha.get('item')]
+            parcelas = [linha['item'] for linha in perdas.cleaned_data if linha.get('item')]
+            dados = form.parametros(parcelas)
+            dados['perdas'] = parcelas
             dados = validar(dados)
             campos = ('nome', 'ativo', 'evento', 'ameaca', 'efeito', 'escopo', 'origem_frequencia',
                       'origem_suscetibilidade', 'origem_perdas', 'qualidade', 'data_referencia')
@@ -147,7 +189,8 @@ def novo(request):
         else:
             messages.success(request, 'Cenário registrado; hipóteses não são dados verificados automaticamente.')
             return redirect('fair_detalhe', pk=cenario.pk)
-    return render(request, 'inventario/fair_form.html', {'form': form, 'perdas': perdas})
+    return render(request, 'inventario/fair_form.html', {'form': form, 'perdas': perdas, 'origem': origem,
+                                                         'exemplo': request.GET.get('exemplo') == '1'})
 
 
 @never_cache
