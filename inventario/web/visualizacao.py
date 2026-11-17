@@ -23,7 +23,7 @@ def indicadores(risco):
     }
 
 
-def grafo_dependencias(risco, nomes):
+def grafo_dependencias(risco, nomes, detalhes=None):
     """A[i,j] significa i depende de j; a seta mostra o fluxo j → i."""
     ids = risco["ids_ativos"][:LIMITE_GRAFO]
     matriz = janela(risco["matriz_dependencias"], LIMITE_GRAFO, LIMITE_GRAFO)
@@ -74,6 +74,7 @@ def grafo_dependencias(risco, nomes):
                     nome=nomes.get(id_, id_),
                     x=round(largura / 2 + anel * 230 * math.cos(angulo), 2),
                     y=round(largura / 2 + anel * 230 * math.sin(angulo), 2),
+                    **(detalhes or {}).get(id_, {}),
                     **dados[id_]
                 )
             )

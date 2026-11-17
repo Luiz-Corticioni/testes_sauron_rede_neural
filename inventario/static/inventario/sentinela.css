@@ -60,6 +60,13 @@ body[data-risco-faixa='critico'] .astrolabio::before{opacity:1;animation:brasa-l
 .asset-critico>span{display:inline-block;animation:marcar-ativo 5s ease-in-out infinite}
 @keyframes marcar-ativo{50%{opacity:.55}}
 .baseline-declarada{color:#f0ce96;text-shadow:0 0 9px #c7904a66}
+.graph-controls{margin-bottom:14px}.graph-controls input,.graph-controls select{min-width:150px}
+#dependency-graph .dependency-svg{min-width:760px}
+.dependency-svg .graph-edge.fluxo-critico{stroke:#e36c50;opacity:.72;animation:fluxo-visual 4s ease-in-out infinite}
+.dependency-svg .graph-muted{opacity:.18}.dependency-svg .graph-filtered{display:none}
+.graph-details{border:1px solid #9a7456;background:#211813;padding:18px;margin:16px 0}
+.graph-details h3{font-family:var(--font-titulo);font-size:22px}.graph-details p{color:var(--osso)}
+@keyframes fluxo-visual{50%{opacity:.35}}
 @media(max-width:1200px){.sentinela-grid{grid-template-columns:1fr 1fr}.sentinela-card:first-child{grid-column:1 / -1;min-height:0}}
 @media(max-width:820px){.visao-geral .hero{padding:32px 24px;min-height:350px}.sentinela-grid{gap:12px}.sentinela-card{min-height:290px}}
 @media(max-width:560px){.visao-geral .hero{padding:28px 18px 22px;background-position:66% 35%;grid-template-columns:1fr}.visao-geral .hero-copy>p{font-size:15px}.visao-geral .astrolabio{width:min(75vw,270px)}.visao-geral .vision-caption{margin-top:-10px}.sentinela-grid{grid-template-columns:1fr}.sentinela-card:first-child{grid-column:auto}.sentinela-card{min-height:0}.fair-portal{align-items:flex-start;flex-direction:column;padding:22px}.fair-portal .button{width:100%}}

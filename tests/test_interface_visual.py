@@ -35,6 +35,15 @@ class InterfaceVisual(BancoTeste):
         self.assertNotContains(filtrada, 'VUL-DOS-0002')
         self.assertContains(filtrada, 'value="critica" selected')
 
+    def test_mapa_inclui_contexto_das_incidencias_e_criticidade(self):
+        resposta = self.client.get(reverse('mapa'))
+        self.assertEqual(resposta.status_code, 200)
+        no = next(n for n in resposta.context['grafo']['nos'] if n['id'] == self.a.pk)
+        self.assertEqual(no['criticidade'], self.a.criticidade)
+        self.assertEqual(no['maior_cvss'], 10)
+        self.assertEqual(no['cves'][0]['id'], 'CVE-2021-44228')
+        self.assertContains(resposta, 'não demonstram exploração')
+
     def test_tabelas_de_uso_diario_identificam_contexto_e_colunas(self):
         for url, legenda in (("ativos", "Ativos que correspondem aos filtros"),
                              ("vulnerabilidades", "Vulnerabilidades que correspondem aos filtros"),

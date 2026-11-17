@@ -34,8 +34,24 @@ def mapa(request):
     contexto = contexto_risco(request)
     contexto["grafo"] = {}
     if contexto["risco"]:
-        nomes = dict(Ativo.objects.values_list("pk", "hostname"))
-        contexto["grafo"] = grafo_dependencias(contexto["risco"], nomes)
+        from django.db.models import Count, F, Max, Window
+        from django.db.models.functions import RowNumber
+        ids = contexto['risco']['ids_ativos'][:60]
+        ativos = Ativo.objects.filter(pk__in=ids).values('pk', 'hostname', 'tipo', 'criticidade')
+        tipos = dict(Ativo._meta.get_field('tipo').choices)
+        detalhes = {a['pk']: {'tipo': a['tipo'], 'tipo_nome': tipos.get(a['tipo'], a['tipo']),
+                    'criticidade': a['criticidade'], 'cves': [], 'total_cves': 0, 'maior_cvss': None} for a in ativos}
+        nomes = {a['pk']: a['hostname'] for a in ativos}
+        vinculos = Incidencia.objects.filter(ativo_id__in=ids, status__in=['ABERTA', 'TRATAMENTO', 'ACEITA'])
+        for grupo in vinculos.values('ativo_id').annotate(total=Count('pk'), maior=Max('vulnerabilidade__cvss')):
+            detalhes[grupo['ativo_id']].update(total_cves=grupo['total'], maior_cvss=grupo['maior'])
+        primeiros = vinculos.annotate(posicao=Window(expression=RowNumber(), partition_by=[F('ativo_id')],
+            order_by=[F('vulnerabilidade__cvss').desc(), F('pk').asc()])).filter(posicao__lte=3)
+        for item in primeiros.values('ativo_id', 'vulnerabilidade_id', 'vulnerabilidade__cve_id', 'vulnerabilidade__cvss'):
+            detalhes[item['ativo_id']]['cves'].append({'id': item['vulnerabilidade__cve_id'] or item['vulnerabilidade_id'],
+                                                      'cvss': item['vulnerabilidade__cvss']})
+        contexto["grafo"] = grafo_dependencias(contexto["risco"], nomes, detalhes)
+        contexto['tipos_grafo'] = Ativo._meta.get_field('tipo').choices
     contexto.update(termo_impacto=request.GET.get("origem", ""), impacto=None, erro_impacto=None)
     if contexto["termo_impacto"]:
         try:
