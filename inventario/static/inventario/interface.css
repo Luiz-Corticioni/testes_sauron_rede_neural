@@ -38,5 +38,6 @@ input,select,textarea,.menu-toggle{border-color:#8995a4}
 .metrics article{border-top:2px solid #ae594a;background:linear-gradient(155deg,#24242b,#14171d)}
 .panel{border-radius:10px}.panel h2{letter-spacing:-.015em}.panel-link,.text-link{font-weight:600}
 .graph-scroll{border:1px solid #4c4140;border-radius:12px;background:radial-gradient(ellipse at center,#39211e 0%,#17191f 58%,#101216 100%);max-height:78vh}
+.dependency-svg.medium{min-width:1200px}.dependency-svg.dense{min-width:1660px}.dependency-svg.dense-xl{min-width:2120px}
 .dependency-svg .graph-edge{stroke:#b3a5a1;opacity:.62}.dependency-svg .graph-edge.inflamed{stroke:#ffaf77;opacity:1}
 .graph-node rect{fill:#1b2029}.graph-node.inflamed rect,.graph-node:focus rect{stroke:#ffd1a4;stroke-width:3}

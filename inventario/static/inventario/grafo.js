@@ -11,7 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (text !== undefined) e.textContent = text;
     return e;
   };
-  const svg = node("svg", {viewBox:`0 0 ${data.largura} ${data.altura}`,class:"dependency-svg",role:"group","aria-label":"Grafo de risco: setas do fornecedor para o dependente"});
+  const densidade = data.nos.length > 49 ? "dense-xl" : data.nos.length > 25 ? "dense" : data.nos.length > 9 ? "medium" : "";
+  const svg = node("svg", {viewBox:`0 0 ${data.largura} ${data.altura}`,class:`dependency-svg ${densidade}`,role:"group","aria-label":"Grafo de risco: setas do fornecedor para o dependente"});
   const defs = node("defs",{});
   const marker = node("marker", {id:"risk-arrow",viewBox:"0 0 10 10",refX:9,refY:5,markerWidth:5,markerHeight:5,orient:"auto-start-reverse"});
   marker.append(node("path",{d:"M0 0L10 5L0 10Z",fill:"context-stroke"}));
