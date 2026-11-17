@@ -137,6 +137,10 @@ def detalhe_ativo(request, pk):
 def listar_vulnerabilidades(request):
     qs = Vulnerabilidade.objects.select_related("epss_observacao").annotate(total_ativos=Count("ativos")).order_by('-cvss', 'id')
     qs = buscar(qs, request.GET, ("id", "cve_id", "descricao", "categoria"))
+    faixas = {'critica': Q(cvss__gte=9), 'alta': Q(cvss__gte=7, cvss__lt=9),
+              'media': Q(cvss__gte=4, cvss__lt=7), 'baixa': Q(cvss__gt=0, cvss__lt=4), 'nenhuma': Q(cvss=0)}
+    if request.GET.get('severidade') in faixas:
+        qs = qs.filter(faixas[request.GET['severidade']])
     if request.GET.get("categoria") in dict(Vulnerabilidade.CATEGORIAS):
         qs = qs.filter(categoria=request.GET["categoria"])
     if request.GET.get("kev") == "1":
@@ -153,6 +157,8 @@ def listar_vulnerabilidades(request):
     if request.GET.get("ordem") == "epss":
         qs = qs.order_by(F("epss").desc(nulls_last=True), "id")
     contexto = paginar(qs, request)
+    contexto['faixas_cvss'] = [('critica', 'Crítica'), ('alta', 'Alta'), ('media', 'Média'),
+                               ('baixa', 'Baixa'), ('nenhuma', 'Nenhuma')]
     contexto["estados_epss"] = [("ausente", "Sem dados completos"), ("atualizado", "Atualizado"), ("vencido", "Desatualizado"), ("legado", "Origem não registrada")]
     from inventario.aplicacao.epss import situacao_epss
     for v in contexto["pagina"]:

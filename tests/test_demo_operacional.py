@@ -105,3 +105,42 @@ class CenarioOperacional(TestCase):
         self.assertEqual(self.client.post('/demonstracao/empresa/').status_code, 302)
         self.assertEqual(Ativo.objects.count(), 31)
         self.assertContains(self.client.get('/'), 'EMPRESA AURORA · DADOS FICTÍCIOS')
+
+    def test_empresa_realista_mantem_fontes_e_associacoes_especificas(self):
+        from inventario.aplicacao.demo_realista import AVISOS, FONTE
+        from inventario.aplicacao.servicos import calcular_risco_banco
+        from inventario.models import Vulnerabilidade
+        call_command('seed_demo', empresa_realista=True, stdout=StringIO())
+        self.assertEqual(Ativo.objects.count(), 31)
+        self.assertEqual(Vulnerabilidade.objects.filter(fonte=FONTE).count(), 4)
+        for cve, _, cvss, versao, _, _, fonte, _ in AVISOS:
+            vulnerabilidade = Vulnerabilidade.objects.get(cve_id=cve)
+            self.assertEqual((vulnerabilidade.cvss, vulnerabilidade.cvss_versao), (cvss, versao))
+            self.assertEqual(vulnerabilidade.referencias, [fonte])
+            ocorrencias = Incidencia.objects.filter(vulnerabilidade=vulnerabilidade)
+            self.assertEqual(ocorrencias.count(), 4)
+            self.assertTrue(all('SIMULAÇÃO' in i.observacoes for i in ocorrencias))
+        self.assertEqual(set(Incidencia.objects.filter(vulnerabilidade__cve_id='CVE-2019-5285').values_list('ativo__modelo', flat=True)), {'S12700'})
+        self.assertEqual(set(Incidencia.objects.filter(vulnerabilidade__cve_id='CVE-2024-3400').values_list('ativo__versao', flat=True)), {'10.2.8'})
+        self.assertEqual(len(calcular_risco_banco()['ids_ativos']), 31)
+        call_command('seed_demo', empresa_realista=True, stdout=StringIO())
+        self.assertEqual(Ativo.objects.count(), 31)
+
+    def test_opcao_realista_web_respeita_escolha_e_recusa_inventario_preenchido(self):
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+        from inventario.aplicacao.demo_realista import FONTE
+        from inventario.models import Vulnerabilidade
+        usuario = get_user_model().objects.create_superuser('admin-demo', 'admin@example.org', 'senha-teste')
+        self.client.force_login(usuario)
+        dispositivo = TOTPDevice.objects.create(user=usuario, name='teste', confirmed=True)
+        sessao = self.client.session
+        sessao['otp_device_id'] = dispositivo.persistent_id
+        sessao['sauron_reauth_em'] = timezone.now().timestamp()
+        sessao.save()
+        self.assertEqual(self.client.post('/demonstracao/empresa/', {'cenario': 'outro'}).status_code, 400)
+        self.assertEqual(self.client.post('/demonstracao/empresa/', {'cenario': 'realista'}).status_code, 302)
+        self.assertEqual(Ativo.objects.count(), 31)
+        self.assertEqual(Vulnerabilidade.objects.filter(fonte=FONTE).count(), 4)
+        self.assertContains(self.client.get('/'), 'Produtos e CVEs são reais')
+        self.assertEqual(self.client.post('/demonstracao/empresa/', {'cenario': 'realista'}).status_code, 302)
+        self.assertEqual(Ativo.objects.count(), 31)

@@ -8,6 +8,19 @@ from .base import BancoTeste
 
 
 class InterfaceVisual(BancoTeste):
+    def test_painel_conta_ativos_e_severidade_sem_confundir_incidentes(self):
+        resposta = self.client.get(reverse('dashboard'))
+        self.assertContains(resposta, 'Ativos com pendências')
+        self.assertEqual(resposta.context['ativos_com_pendencias'], 2)
+        self.assertEqual(sum(s['total'] for s in resposta.context['severidades']), 2)
+        self.assertEqual(sum(s['total'] for s in resposta.context['ativos_por_tipo']), 2)
+        self.assertContains(resposta, 'Abrir análises FAIR')
+        self.assertContains(resposta, '?severidade=critica')
+        filtrada = self.client.get(reverse('vulnerabilidades'), {'severidade': 'critica'})
+        self.assertContains(filtrada, 'VUL-RCE-0001')
+        self.assertNotContains(filtrada, 'VUL-DOS-0002')
+        self.assertContains(filtrada, 'value="critica" selected')
+
     def test_tabelas_de_uso_diario_identificam_contexto_e_colunas(self):
         for url, legenda in (("ativos", "Ativos que correspondem aos filtros"),
                              ("vulnerabilidades", "Vulnerabilidades que correspondem aos filtros"),

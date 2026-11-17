@@ -29,7 +29,9 @@ def dashboard(request: HttpRequest):
         return HttpResponseBadRequest(str(erro), content_type='text/plain; charset=utf-8')
     from inventario.models import Vulnerabilidade
     from inventario.aplicacao.demo_empresa import FONTE
-    contexto['empresa_ficticia'] = Vulnerabilidade.objects.filter(fonte=FONTE).exists()
+    from inventario.aplicacao.demo_realista import FONTE as FONTE_REALISTA
+    contexto['empresa_ficticia'] = Vulnerabilidade.objects.filter(fonte__in=[FONTE, FONTE_REALISTA]).exists()
+    contexto['demo_realista'] = Vulnerabilidade.objects.filter(fonte=FONTE_REALISTA).exists()
     return render(request, "inventario/dashboard.html", contexto)
 
 
@@ -44,7 +46,10 @@ def carregar_empresa_ficticia(request):
     if not request.user.is_superuser:
         raise PermissionDenied
     saida = StringIO()
-    call_command('seed_demo', empresa=True, stdout=saida)
+    cenario = request.POST.get('cenario', 'ficticio')
+    if cenario not in ('ficticio', 'realista'):
+        return HttpResponseBadRequest('Cenário desconhecido.')
+    call_command('seed_demo', empresa=cenario == 'ficticio', empresa_realista=cenario == 'realista', stdout=saida)
     if 'Seed ignorado' in saida.getvalue():
         messages.warning(request, 'A empresa fictícia só pode ser carregada em um inventário vazio. Use uma base de demonstração separada.')
     else:

@@ -3,7 +3,7 @@ from datetime import timedelta
 from uuid import uuid4
 from django.core.cache import cache
 from django.db import connection
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from inventario.aplicacao.cache_consultas import lembrar
 from inventario.aplicacao.risco import calcular_risco_banco, namespace_risco, parametros_risco
@@ -26,9 +26,22 @@ def contexto_painel(perfil='puro', ver_alertas=False, ver_certificados=False):
                 risco = calcular_risco_banco(perfil=perfil)
             except ValueError as exc:
                 erro = str(exc)
+        severidades = Vulnerabilidade.objects.aggregate(
+            critica=Count('pk', filter=Q(cvss__gte=9)), alta=Count('pk', filter=Q(cvss__gte=7, cvss__lt=9)),
+            media=Count('pk', filter=Q(cvss__gte=4, cvss__lt=7)), baixa=Count('pk', filter=Q(cvss__gt=0, cvss__lt=4)),
+            nenhuma=Count('pk', filter=Q(cvss=0)))
+        from inventario.models.ativos import TIPOS
+        tipos = dict(TIPOS)
+        por_tipo = [{'codigo': linha['tipo'], 'nome': tipos.get(linha['tipo'], linha['tipo']), 'total': linha['total']}
+                    for linha in Ativo.objects.values('tipo').annotate(total=Count('pk')).order_by('-total', 'tipo')]
         return {
             'total_ativos': Ativo.objects.count(), 'total_vulnerabilidades': Vulnerabilidade.objects.count(),
             'incidencias_abertas': Incidencia.objects.pendentes_sla().count(), 'salas': Sala.objects.count(),
+            'ativos_com_pendencias': Incidencia.objects.pendentes_sla().values('ativo_id').distinct().count(),
+            'severidades': [{'chave': chave, 'nome': nome, 'total': severidades[chave]} for chave, nome in
+                            [('critica', 'Crítica · 9–10'), ('alta', 'Alta · 7–8,9'),
+                             ('media', 'Média · 4–6,9'), ('baixa', 'Baixa · 0,1–3,9'), ('nenhuma', 'Nenhuma · 0')]],
+            'ativos_por_tipo': por_tipo,
             'alertas_pendentes': Alerta.objects.filter(reconhecido_em__isnull=True).count() if ver_alertas else None,
             'alertas_recentes': list(Alerta.objects.filter(reconhecido_em__isnull=True).order_by('-criado_em').values('tipo', 'severidade', 'mensagem', 'criado_em')[:5]) if ver_alertas else [],
             'top_vulnerabilidades': list(Vulnerabilidade.objects.annotate(total_ativos=Count('ativos')).order_by('-total_ativos', '-cvss').values('id', 'cve_id', 'total_ativos')[:8]),
@@ -44,5 +57,5 @@ def contexto_painel(perfil='puro', ver_alertas=False, ver_certificados=False):
         return construir()
     chave_geracao = f'painel:geracao:{namespace_risco()}'
     geracao = lembrar(chave_geracao, lambda: uuid4().hex, segundos=None)
-    chave = f'painel:v1:{namespace_risco()}:{geracao}:{hoje}:{perfil}:{int(ver_alertas)}:{int(ver_certificados)}'
+    chave = f'painel:v2:{namespace_risco()}:{geracao}:{hoje}:{perfil}:{int(ver_alertas)}:{int(ver_certificados)}'
     return lembrar(chave, construir, segundos=VALIDADE)

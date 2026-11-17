@@ -23,6 +23,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--empresa", action="store_true", help="Amplia o cenário para a empresa fictícia Aurora.")
+        parser.add_argument("--empresa-realista", action="store_true", help="Empresa fictícia com produtos e avisos públicos reais.")
         parser.add_argument(
             "--operacional",
             action="store_true",
@@ -38,6 +39,11 @@ class Command(BaseCommand):
         modelos = (Sala, Ativo, Vulnerabilidade, Incidencia, Dependencia)
         if any(modelo.objects.exists() for modelo in modelos):
             self.stdout.write("Seed ignorado: o banco já contém dados do inventário.")
+            return
+        if options['empresa_realista']:
+            from inventario.aplicacao.demo_realista import criar_empresa
+            criar_empresa()
+            self.stdout.write('Empresa fictícia criada com produtos e avisos reais; ocorrências e rede são simuladas.')
             return
         salas = {
             "SALA-TI-001": (
