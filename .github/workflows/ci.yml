@@ -34,6 +34,7 @@ jobs:
       - run: python -m pytest -q testes_pytest --cov=inventario.dominio --cov=inventario.matematica.risco --cov=inventario.infraestrutura.repositorio_json --cov-report=term-missing
       - run: node scripts/testar_dashboard_financeiro.cjs
       - run: node scripts/testar_javascript.cjs
+      - run: node scripts/testar_grafo.cjs
       - run: node scripts/testar_busca_menu.cjs
       - run: node scripts/testar_olho.cjs
       - run: ruff check .

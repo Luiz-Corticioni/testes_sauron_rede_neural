@@ -1,4 +1,4 @@
-/* Camadas calculadas no servidor; foco e hover percorrem o mesmo fluxo j → i. */
+/* Distribuição em anéis é visual; foco e hover seguem os vínculos j → i. */
 document.addEventListener("DOMContentLoaded", () => {
   const host = document.getElementById("dependency-graph");
   if (!host) return;
@@ -21,7 +21,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const nodeElements = new Map();
   data.arestas.forEach(edge => {
     const a = positions.get(edge.origem), b = positions.get(edge.destino);
-    const path = node("path", {d:`M${a.x} ${a.y+33} C${a.x} ${a.y+85},${b.x} ${b.y-85},${b.x} ${b.y-33}`,class:"graph-edge","stroke-width":edge.espessura,"marker-end":"url(#risk-arrow)"});
+    const dx = b.x-a.x, dy = b.y-a.y;
+    const borda = Math.min(93/(Math.abs(dx)||1e-9), 33/(Math.abs(dy)||1e-9));
+    const x1=a.x+dx*borda, y1=a.y+dy*borda, x2=b.x-dx*borda, y2=b.y-dy*borda;
+    const path = node("path", {d:`M${x1} ${y1} L${x2} ${y2}`,class:"graph-edge","stroke-width":edge.espessura,"marker-end":"url(#risk-arrow)"});
     path.append(node("title",{},`${edge.origem} → ${edge.destino}, peso ${edge.peso}`));
     svg.append(path); edgeElements.push([edge,path]);
   });
@@ -45,6 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   data.nos.forEach(n => {
     const link = node("a", {href:`/ativos/${encodeURIComponent(n.id)}/`,class:`graph-node ${n.faixa}`,tabindex:0,"aria-label":`${n.nome}, ${n.id}, risco efetivo ${n.efetivo.toFixed(2)}; abrir ficha`});
+    link.append(node("title",{},`${n.nome} · ${n.id}`));
     link.append(node("rect",{x:n.x-93,y:n.y-33,width:186,height:66,rx:7}));
     link.append(node("text",{x:n.x,y:n.y-6,"text-anchor":"middle"},n.id));
     link.append(node("text",{x:n.x,y:n.y+13,"text-anchor":"middle",class:"node-detail"},`x ${n.efetivo.toFixed(2)} · índice ${n.indice.toFixed(1)}`));

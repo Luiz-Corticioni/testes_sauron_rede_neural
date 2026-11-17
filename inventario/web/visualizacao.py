@@ -1,6 +1,7 @@
 """Projeções de apresentação; nunca alteram o modelo ou resolvem o risco."""
 
 from collections import deque
+import math
 import numpy as np
 from inventario.matematica.representacao import janela
 
@@ -48,23 +49,31 @@ def grafo_dependencias(risco, nomes):
             if entradas[destino] == 0:
                 fila.append(destino)
     ciclico = len(camadas) != len(ids)
-    # Ciclos são válidos quando rho < 1. A grade evita travar a ordenação.
-    if ciclico:
-        camadas = {id_: i // 4 for i, id_ in enumerate(ids)}
-    grupos = {}
-    for id_, camada in camadas.items():
-        grupos.setdefault(camada, []).append(id_)
+    # A posição é apenas visual: ligações mais numerosas ficam próximas ao centro.
+    grau = {id_: 0 for id_ in ids}
+    for aresta in arestas:
+        grau[aresta['origem']] += 1
+        grau[aresta['destino']] += 1
+    ordenados = sorted(ids, key=lambda id_: (-grau[id_], id_))
+    aneis = [ordenados[:1]]
+    restantes = ordenados[1:]
+    while restantes:
+        capacidade = 8 * len(aneis)
+        aneis.append(restantes[:capacidade])
+        restantes = restantes[capacidade:]
     dados = indicadores(risco)
     nos = []
-    largura = max(760, max((len(g) for g in grupos.values()), default=1) * 220)
-    for camada, grupo in sorted(grupos.items()):
+    raio_max = max(0, len(aneis) - 1) * 230
+    largura = max(760, 2 * (raio_max + 140))
+    for anel, grupo in enumerate(aneis):
         for posicao, id_ in enumerate(grupo):
+            angulo = -math.pi / 2 + 2 * math.pi * posicao / len(grupo)
             nos.append(
                 dict(
                     id=id_,
                     nome=nomes.get(id_, id_),
-                    x=(posicao + 0.5) * largura / len(grupo),
-                    y=65 + camada * 145,
+                    x=round(largura / 2 + anel * 230 * math.cos(angulo), 2),
+                    y=round(largura / 2 + anel * 230 * math.sin(angulo), 2),
                     **dados[id_]
                 )
             )
@@ -72,7 +81,7 @@ def grafo_dependencias(risco, nomes):
         nos=nos,
         arestas=arestas,
         largura=largura,
-        altura=max(190, 150 * len(grupos)),
+        altura=largura,
         ciclico=ciclico,
         total=len(risco["ids_ativos"]),
         limitado=len(risco["ids_ativos"]) > len(ids),

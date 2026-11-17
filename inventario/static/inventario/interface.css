@@ -31,3 +31,12 @@ label,.brand-copy small,.nav-label,.sidebar nav small,.sidebar-foot b,.sidebar-f
 .button{border-color:#d87d84}.button.secondary{border-color:#a2aab5}
 input,select,textarea,.menu-toggle{border-color:#8995a4}
 @media (prefers-contrast:more){:root{--osso:#fff;--cinza:#e2e6eb;--linha:#b6c0cc}.panel,.sidebar,input,select,textarea{border-color:#b6c0cc}:focus-visible{outline:3px solid #fff}}
+/* O painel mantém a identidade em brasa, com hierarquia e contraste mais claros. */
+.demo-banner{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:14px 18px;margin:16px 0;border:1px solid #d3965d;border-radius:10px;background:#302118;color:#ffe3bd}
+.demo-banner strong{letter-spacing:.04em}.demo-setup summary{cursor:pointer;font-weight:700;color:#f4c5a0}.demo-setup p{max-width:70ch}
+.hero{border-bottom:1px solid #563735;background:radial-gradient(ellipse at 84% 40%,#541b173d,transparent 48%)}
+.metrics article{border-top:2px solid #ae594a;background:linear-gradient(155deg,#24242b,#14171d)}
+.panel{border-radius:10px}.panel h2{letter-spacing:-.015em}.panel-link,.text-link{font-weight:600}
+.graph-scroll{border:1px solid #4c4140;border-radius:12px;background:radial-gradient(ellipse at center,#39211e 0%,#17191f 58%,#101216 100%);max-height:78vh}
+.dependency-svg .graph-edge{stroke:#b3a5a1;opacity:.62}.dependency-svg .graph-edge.inflamed{stroke:#ffaf77;opacity:1}
+.graph-node rect{fill:#1b2029}.graph-node.inflamed rect,.graph-node:focus rect{stroke:#ffd1a4;stroke-width:3}

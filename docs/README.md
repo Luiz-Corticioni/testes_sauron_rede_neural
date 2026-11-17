@@ -18,6 +18,7 @@ em que foram escritos. Eles não são um certificado de que um servidor está se
 | Entender CVSS 3.1 e comparação com 4.0 | [Comparação CVSS](COMPARACAO_CVSS.md) |
 | Criar e interpretar um cenário financeiro contextual | [Cenários financeiros em 30 dias](CENARIOS_FINANCEIROS.md) |
 | Registrar e interpretar análise por fatores FAIR | [Guia FAIR em 30 dias](GUIA_FAIR_30_DIAS.md) |
+| Preparar a empresa fictícia e explorar a teia de dependências | [Relatório e instruções de demonstração](RELATORIO_DEMO_TEIA_2026-11-17.md) |
 | Cadastrar sensores de isca e importar eventos de demonstração | [Sensores de isca — fase 1](HONEYPOT_FASE1.md) |
 | Executar com Docker, HTTPS e reunir evidências de 24 horas | [Docker para o trabalho](DOCKER_TRABALHO_2.md) |
 | Repetir teste sintético de 100 logins no Docker | [Ensaio de carga no Compose](TESTE_CARGA_DOCKER.md) |
