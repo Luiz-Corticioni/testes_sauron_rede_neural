@@ -39,7 +39,8 @@ def calcular(cenario, usuario, n=10000, seed=42):
 
 
 def snapshot(cenario):
-    campos = ('nome', 'ativo_id', 'evento', 'ameaca', 'efeito', 'escopo', 'origem_frequencia',
+    campos = ('nome', 'ativo_id', 'evento', 'ameaca', 'valor_para_ameaca', 'esforco_da_ameaca', 'risco_para_ameaca',
+              'habilidades_ameaca', 'recursos_ameaca', 'efeito', 'escopo', 'origem_frequencia',
               'origem_suscetibilidade', 'origem_perdas', 'qualidade', 'versao_modelo')
     dados = {campo: getattr(cenario, campo) for campo in campos}
     dados['data_referencia'] = cenario.data_referencia.isoformat()

@@ -1,6 +1,6 @@
 # Análise por fatores FAIR em 30 dias
 
-[Documentação](README.md) · [Motor e hipóteses](RELATORIO_FAIR_MOTOR_2026-11-16.md) · [Comparação](RELATORIO_FAIR_COMPARACAO_2026-11-16.md) · [Registros](RELATORIO_FAIR_REGISTRO_2026-11-16.md)
+[Documentação](README.md) · [Motor e hipóteses](RELATORIO_FAIR_MOTOR_2026-11-16.md) · [Comparação](RELATORIO_FAIR_COMPARACAO_2026-11-16.md) · [Registros](RELATORIO_FAIR_REGISTRO_2026-11-16.md) · [Cobertura e limitações](MATRIZ_FAIR_30_DIAS.md)
 
 ## Qual pergunta o cenário responde?
 

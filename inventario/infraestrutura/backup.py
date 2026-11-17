@@ -95,6 +95,10 @@ def backup_sqlite(retencao=None):
             elif modelo._meta.label_lower == "inventario.vulnerabilidade" and ("inventario", "0022_historico_epss") not in aplicadas:
                 campos = [f.name for f in modelo._meta.fields if f.name != "epss_observacao"]
                 itens = serializers.serialize("python", registros.only(*campos).iterator(), fields=campos)
+            elif modelo._meta.label_lower == "inventario.cenariofair" and ("inventario", "0038_cenariofair_esforco_da_ameaca_and_more") not in aplicadas:
+                novos = {"valor_para_ameaca", "esforco_da_ameaca", "risco_para_ameaca", "habilidades_ameaca", "recursos_ameaca"}
+                campos = [f.name for f in modelo._meta.fields if f.name not in novos]
+                itens = serializers.serialize("python", registros.only(*campos).iterator(), fields=campos)
             else:
                 itens=serializers.serialize("python",registros.iterator())
             if modelo._meta.label_lower=="inventario.dispositivoemail":

@@ -12,6 +12,27 @@ from .test_fair_matematica import exemplo
 
 
 class FluxoFAIR(BancoTeste):
+    def test_backup_pre_migracao_omite_campos_novos_do_cenario(self):
+        import json
+        from unittest.mock import patch
+        from cryptography.fernet import Fernet
+        from django.db import connection
+        from django.db.migrations.recorder import MigrationRecorder
+        from django.test import override_settings
+        from inventario.infraestrutura.backup import backup_sqlite
+
+        criar(self.modelo(valor_para_ameaca='Contexto'), self.usuario, True)
+        aplicadas = MigrationRecorder(connection).applied_migrations()
+        antigas = {k: v for k, v in aplicadas.items() if k != ('inventario', '0038_cenariofair_esforco_da_ameaca_and_more')}
+        chave = Fernet.generate_key()
+        with override_settings(SAURON_BACKUP_KEY=chave.decode(), SAURON_BACKUP_DESTINO_ADICIONAL=''):
+            with patch.object(MigrationRecorder, 'applied_migrations', return_value=antigas):
+                arquivo = backup_sqlite()
+            itens = json.loads(Fernet(chave).decrypt(arquivo.read_bytes()))
+        campos = next(i['fields'] for i in itens if i['model'] == 'inventario.cenariofair')
+        self.assertNotIn('valor_para_ameaca', campos)
+        self.assertEqual(campos['nome'], 'Serviço fictício')
+
     def modelo(self, **alteracoes):
         return CenarioFAIR(**({'nome': 'Serviço fictício', 'ativo': self.a, 'evento': 'Interrupção do serviço',
             'ameaca': 'Falha fictícia', 'efeito': 'A', 'escopo': 'Unidade fictícia', 'origem_frequencia': 'Hipótese documentada',
@@ -50,10 +71,13 @@ class FluxoFAIR(BancoTeste):
             criar(self.modelo(versao_modelo='sauron.fair/30d-v1'), self.usuario, True)
 
     def test_interface_cria_simula_e_exibe_fatores(self):
-        resposta = self.client.post('/fair/novo/', self.dados())
+        resposta = self.client.post('/fair/novo/', self.dados() | {'valor_para_ameaca': 'Dados estratégicos', 'habilidades_ameaca': 'Especialista'})
         self.assertEqual(resposta.status_code, 302, str(resposta.context['form'].errors) if resposta.status_code == 200 else '')
         cenario = CenarioFAIR.objects.get()
+        self.assertEqual(cenario.valor_para_ameaca, 'Dados estratégicos')
         resposta = self.client.get(f'/fair/{cenario.pk}/')
+        self.assertContains(resposta, 'Dados estratégicos')
+        self.assertEqual(self.client.get(f'/fair/{cenario.pk}/copiar/').context['form'].initial['habilidades_ameaca'], 'Especialista')
         self.assertContains(resposta, 'Frequência de perda informada')
         resposta = self.client.post(f'/fair/{cenario.pk}/', {'n': 100, 'seed': 42})
         self.assertContains(resposta, 'Resultado simulado')

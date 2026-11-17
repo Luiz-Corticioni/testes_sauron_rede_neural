@@ -26,6 +26,11 @@ class CenarioForm(forms.Form):
     ativo = forms.ModelChoiceField(queryset=Ativo.objects.none())
     evento = forms.CharField(label='Evento de perda descrito', max_length=500)
     ameaca = forms.CharField(label='Agente ou causa da ameaça', max_length=200)
+    valor_para_ameaca = forms.CharField(label='Valor percebido pela ameaça (contexto opcional)', max_length=300, required=False)
+    esforco_da_ameaca = forms.CharField(label='Esforço percebido pela ameaça (contexto opcional)', max_length=300, required=False)
+    risco_para_ameaca = forms.CharField(label='Risco percebido pela ameaça (contexto opcional)', max_length=300, required=False)
+    habilidades_ameaca = forms.CharField(label='Habilidades da ameaça (contexto opcional)', max_length=300, required=False)
+    recursos_ameaca = forms.CharField(label='Recursos da ameaça (contexto opcional)', max_length=300, required=False)
     efeito = forms.ChoiceField(choices=CenarioFAIR.EFEITOS)
     escopo = forms.CharField(max_length=300)
     origem_frequencia = forms.CharField(label='Fonte da frequência', max_length=300)
@@ -133,7 +138,8 @@ def lista(request):
 
 
 def dados_iniciais(cenario):
-    campos = ('nome', 'ativo', 'evento', 'ameaca', 'efeito', 'escopo', 'origem_frequencia',
+    campos = ('nome', 'ativo', 'evento', 'ameaca', 'valor_para_ameaca', 'esforco_da_ameaca', 'risco_para_ameaca',
+              'habilidades_ameaca', 'recursos_ameaca', 'efeito', 'escopo', 'origem_frequencia',
               'origem_suscetibilidade', 'origem_perdas', 'qualidade', 'data_referencia')
     dados = {campo: getattr(cenario, campo) for campo in campos}
     dados['nome'] = cenario.nome[:110] + ' - cópia'
@@ -180,7 +186,8 @@ def novo(request, origem_pk=None):
             dados = form.parametros(parcelas)
             dados['perdas'] = parcelas
             dados = validar(dados)
-            campos = ('nome', 'ativo', 'evento', 'ameaca', 'efeito', 'escopo', 'origem_frequencia',
+            campos = ('nome', 'ativo', 'evento', 'ameaca', 'valor_para_ameaca', 'esforco_da_ameaca', 'risco_para_ameaca',
+                      'habilidades_ameaca', 'recursos_ameaca', 'efeito', 'escopo', 'origem_frequencia',
                       'origem_suscetibilidade', 'origem_perdas', 'qualidade', 'data_referencia')
             cenario = CenarioFAIR(**{campo: form.cleaned_data[campo] for campo in campos}, premissas=dados)
             criar(cenario, request.user, form.cleaned_data['sem_sobreposicao'])
