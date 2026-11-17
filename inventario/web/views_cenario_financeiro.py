@@ -28,6 +28,30 @@ class SimulacaoForm(forms.Form):
     limite = forms.DecimalField(label="Limiar de perda em R$ (opcional)", min_value=0, max_value=10**15, required=False)
 
 
+class SimulacaoComSecundariaForm(SimulacaoForm):
+    chance_secundaria = forms.DecimalField(label="Chance de perda secundária quando ocorrer o evento (0 a 1)", min_value=0, max_value=1, required=False)
+    secundaria_min = forms.DecimalField(label="Perda secundária mínima (R$)", min_value=0, max_value=10**12, required=False)
+    secundaria_moda = forms.DecimalField(label="Perda secundária mais provável (R$)", min_value=0, max_value=10**12, required=False)
+    secundaria_max = forms.DecimalField(label="Perda secundária máxima (R$)", min_value=0, max_value=10**12, required=False)
+    secundaria_origem = forms.CharField(label="Origem ou justificativa da hipótese secundária", max_length=300, required=False)
+    secundaria_sem_sobreposicao = forms.BooleanField(label="Confirmo que a perda secundária não repete custos já informados.", required=False)
+
+    def clean(self):
+        dados = super().clean()
+        campos = ("chance_secundaria", "secundaria_min", "secundaria_moda", "secundaria_max")
+        valores = [dados.get(campo) for campo in campos]
+        houve_entrada = any(valor is not None for valor in valores) or bool(dados.get("secundaria_origem")) or bool(dados.get("secundaria_sem_sobreposicao"))
+        if houve_entrada:
+            if any(valor is None for valor in valores) or not dados.get("secundaria_origem") or not dados.get("secundaria_sem_sobreposicao"):
+                raise forms.ValidationError("Para perda secundária, informe chance, três valores, origem e confirme que não há sobreposição.")
+            if not valores[1] < valores[2] < valores[3]:
+                raise forms.ValidationError("Perda secundária exige mínimo < mais provável < máximo.")
+            dados["secundaria"] = dict(zip(("probabilidade", "minimo", "moda", "maximo"), map(float, valores)))
+        else:
+            dados["secundaria"] = None
+        return dados
+
+
 class DependenciasForm(forms.Form):
     escopo = forms.CharField(label="Escopo exato das relações de negócio", max_length=200, strip=True)
 
@@ -93,14 +117,18 @@ def novo(request):
 @require_http_methods(["GET", "POST"])
 def detalhe(request, pk):
     cenario = get_object_or_404(CenarioFinanceiro.objects.select_related("ativo", "criado_por"), pk=pk)
-    form = SimulacaoForm(request.POST or None)
+    form = SimulacaoComSecundariaForm(request.POST or None)
     resultado = None
     status = 200
     if request.method == "POST" and form.is_valid():
         dados = form.cleaned_data
         try:
             resultado = calcular_cenario(cenario, request.user, n=dados["n"], seed=dados["seed"],
-                                          limite=float(dados["limite"]) if dados["limite"] is not None else None)
+                                          limite=float(dados["limite"]) if dados["limite"] is not None else None,
+                                          secundaria=dados["secundaria"])
+            if dados["secundaria"] is not None:
+                resultado["origem_secundaria"] = dados["secundaria_origem"]
+                resultado["premissas_secundarias"] = dados["secundaria"]
         except LimiteSimulacoes:
             form.add_error(None, "Há muitas simulações em andamento. Tente novamente em alguns segundos.")
             status = 429

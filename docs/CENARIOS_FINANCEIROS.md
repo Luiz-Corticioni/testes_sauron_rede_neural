@@ -14,7 +14,13 @@ Custo incremental por hora e custo adicional não devem repetir a mesma despesa.
 
 ## Limitações desta etapa
 
-Este modelo calcula perdas para um ativo e um cenário. A consulta de relações é estrutural e não altera o cálculo individual. A opção separada de causa compartilhada aceita custos explicitamente informados para serviços dependentes; não inclui múltiplos eventos, distribuições para custos, proveniência por parâmetro, custo de implantação da medida nem estimação por histórico. A diferença simulada não é economia comprovada e pode ser negativa. O formulário não garante que a origem descrita seja verdadeira. Não há treinamento de ML nem calibração local. Novas funcionalidades devem ser incorporadas em fases com testes e sem substituir o contrato anterior.
+Este modelo calcula perdas para um ativo e um cenário. A consulta de relações é estrutural e não altera o cálculo individual. A opção separada de causa compartilhada aceita custos explicitamente informados para serviços dependentes; não inclui múltiplos eventos, distribuições para custos principais, proveniência por parâmetro, custo de implantação da medida nem estimação por histórico. A diferença simulada não é economia comprovada e pode ser negativa. O formulário não garante que a origem descrita seja verdadeira. Não há treinamento de ML nem calibração local. Novas funcionalidades devem ser incorporadas em fases com testes e sem substituir o contrato anterior.
+
+## Painel e perda secundária opcional
+
+No cenário individual, a seção opcional **Acrescentar hipótese de perda secundária** permite informar a chance de uma perda secundária se o evento principal ocorrer, uma faixa PERT de valores e a origem da hipótese. Por exemplo, uma despesa decorrente da resposta de terceiros pode ser incluída se houver fundamento. Informe também a confirmação de que essa despesa não está incluída nos custos principais. A veracidade da declaração e a ausência de duplicação não são verificadas automaticamente.
+
+O sorteio secundário ocorre somente nos cenários em que há evento principal; a perda inteira é atribuída à mesma janela de 30 dias, sem modelar quando se materializa. A chance é uma premissa, não EPSS. O painel separa médias principal e secundária e apresenta pontos de excedência: proporções de simulações com perda **maior que** cada valor. A comparação de controle conserva os mesmos sorteios e muda apenas a hipótese da probabilidade principal. As entradas secundárias não são salvas e devem ser registradas fora da simulação se precisarem ser reproduzidas. Trata-se de uma simplificação inspirada na separação entre perdas primárias e secundárias descrita pelo [FAIR Institute](https://www.fairinstitute.org/hubfs/Standards%20Artifacts/Factor%20Analysis%20of%20Information%20Risk%20%28FAIR%29%20Standard%20v3.0%20%28January%202025%29.pdf), e não de uma implementação integral do FAIR.
 
 ## Verificação da primeira etapa
 

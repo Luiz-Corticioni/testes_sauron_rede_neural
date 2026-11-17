@@ -22,11 +22,11 @@ def criar_cenario(cenario, usuario):
     return cenario
 
 
-def calcular_cenario(cenario, usuario, n=20000, seed=42, limite=None):
+def calcular_cenario(cenario, usuario, n=20000, seed=42, limite=None, secundaria=None):
     exigir(usuario, "inventario.view_ativo", "inventario.view_cenariofinanceiro")
     cenario.full_clean()
     with vaga_simulacao():
-        return simular_interrupcao(cenario, n=n, seed=seed, limite=limite)
+        return simular_interrupcao(cenario, n=n, seed=seed, limite=limite, secundaria=secundaria)
 
 
 def calcular_compartilhado(cenario, usuario, escopo, impactos, sem_sobreposicao, n=20000, seed=42, limite=None):

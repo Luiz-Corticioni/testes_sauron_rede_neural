@@ -16,6 +16,43 @@ from .base import BancoTeste
 
 
 class CenáriosFinanceiros(BancoTeste):
+    def test_perda_secundaria_condicional_e_curva_de_excedencia(self):
+        c = self.salvar(probabilidade=Decimal('1'), probabilidade_apos=Decimal('0'),
+                        controle='Hipótese de controle', custo_hora=Decimal('0'), custo_adicional=Decimal('100'))
+        secundaria = {'probabilidade': 1., 'minimo': 10., 'moda': 20., 'maximo': 30.}
+        r = calcular_cenario(c, self.usuario, n=1000, seed=7, limite=100, secundaria=secundaria)
+        self.assertEqual(r, calcular_cenario(c, self.usuario, n=1000, seed=7, limite=100, secundaria=secundaria))
+        self.assertEqual(r['componentes']['media_primaria'], 100)
+        self.assertEqual(r['componentes']['eventos_secundarios'], 1000)
+        self.assertAlmostEqual(r['atual']['media'], r['componentes']['media_primaria'] + r['componentes']['media_secundaria'])
+        self.assertEqual(r['apos']['media'], 0)
+        self.assertEqual(r['excedencia'], 1)
+        pontos = r['excedencia_pontos']
+        self.assertEqual(pontos[0]['valor'], 0)
+        self.assertEqual(pontos[-1]['percentual'], 0)
+        self.assertTrue(all(a['percentual'] >= b['percentual'] for a, b in zip(pontos, pontos[1:])))
+        zero = calcular_cenario(c, self.usuario, n=100, secundaria=secundaria | {'probabilidade': 0.})
+        self.assertEqual(zero['componentes']['eventos_secundarios'], 0)
+        self.assertEqual(zero['atual']['media'], 100)
+        with self.assertRaises(ValueError):
+            calcular_cenario(c, self.usuario, n=100, secundaria=secundaria | {'minimo': 40.})
+        c.probabilidade = Decimal('0')
+        self.assertEqual(calcular_cenario(c, self.usuario, n=100, secundaria=secundaria)['componentes']['eventos_secundarios'], 0)
+
+    def test_formulario_exige_origem_e_custos_distintos_na_perda_secundaria(self):
+        c = self.salvar(probabilidade=Decimal('1'), custo_hora=Decimal('0'), custo_adicional=Decimal('100'))
+        url = f'/cenarios-financeiros/{c.pk}/'
+        entrada = {'n': 100, 'seed': 42, 'chance_secundaria': '1', 'secundaria_min': '10',
+                   'secundaria_moda': '20', 'secundaria_max': '30', 'secundaria_origem': 'Exemplo fictício',
+                   'secundaria_sem_sobreposicao': 'on'}
+        resposta = self.client.post(url, entrada)
+        self.assertContains(resposta, 'Composição da média simulada')
+        self.assertContains(resposta, 'Quanto pode ultrapassar cada valor?')
+        self.assertGreater(resposta.context['resultado']['componentes']['media_secundaria'], 0)
+        entrada.pop('secundaria_sem_sobreposicao')
+        self.assertContains(self.client.post(url, entrada), 'confirme que não há sobreposição')
+        self.assertEqual(CenarioFinanceiro.objects.count(), 1)
+
     def dados(self, **alteracoes):
         dados = {"nome": "Faturamento fictício", "ativo": self.a, "descricao": "Paralisação demonstrativa",
                  "probabilidade": Decimal("0.5"), "probabilidade_apos": None, "controle": "",
@@ -192,6 +229,7 @@ class CenáriosFinanceiros(BancoTeste):
         parciais = [{**impactos[0], "probabilidade_condicional": 0}, {**impactos[1], "probabilidade_condicional": 1}]
         parcial = calcular_compartilhado(c, self.usuario, "Empresa", parciais, True, n=100, seed=1)
         self.assertEqual(parcial["atual"]["media"], 40)
+        self.assertEqual(parcial["excedencia_pontos"], [{"valor": 0., "percentual": 100.}, {"valor": 40., "percentual": 0.}])
         self.assertEqual(parcial["afetacoes_por_servico"], [0, 100])
         self.assertEqual(parcial, calcular_compartilhado(c, self.usuario, "Empresa", parciais, True, n=100, seed=1))
         meio = [{**impactos[0], "probabilidade_condicional": .5}]

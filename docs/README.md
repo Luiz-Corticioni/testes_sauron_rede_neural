@@ -34,6 +34,7 @@ e ações depende das permissões de cada conta.
 - [Demonstração integrada com login e TOTP](RELATORIO_DEMONSTRACAO_INTEGRADA_2026-11-15.md).
 - [Atualização e recuperação com backup](RELATORIO_RECUPERACAO_UPGRADE_2026-11-15.md).
 - [Afetação condicional no cenário financeiro](RELATORIO_AFETACAO_CONDICIONAL_2026-11-15.md).
+- [Painel financeiro e perdas secundárias](RELATORIO_PAINEL_PERDAS_SECUNDARIAS_2026-11-16.md).
 - [Triagem de scanner e retenção de iscas](RELATORIO_TRIAGEM_RETENCAO_2026-11-15.md).
 - [Capacidade da imagem Alpine](RELATORIO_CARGA_ALPINE_2026-11-15.md).
 - [Preparação para o servidor compartilhado](RELATORIO_PREPARACAO_SERVIDOR_2026-11-15.md).
