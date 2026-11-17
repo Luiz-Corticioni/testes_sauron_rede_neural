@@ -12,6 +12,7 @@ from inventario.models import Ativo, CenarioFAIR
 from inventario.web.paginacao import paginar
 
 MODOS = [('LEF', 'Frequência de perda informada (LEF)'), ('TEF', 'Ameaças e suscetibilidade (TEF)'),
+         ('TEF_CAPACIDADE', 'Ameaças, capacidade e resistência'), ('CONTATO_SUSC', 'Contatos, ação e suscetibilidade'),
          ('DECOMPOSTO', 'Contatos, ação, capacidade e resistência')]
 CATEGORIAS = [('PRODUTIVIDADE', 'Produtividade'), ('RESPOSTA', 'Resposta'), ('SUBSTITUICAO', 'Substituição'),
               ('VANTAGEM', 'Vantagem competitiva'), ('MULTAS', 'Multas ou decisões'), ('REPUTACAO', 'Reputação')]
@@ -46,8 +47,10 @@ class CenarioForm(forms.Form):
     def parametros(self):
         dados = self.cleaned_data
         modo = dados['modo']
-        necessarios = {'frequencia'} | ({'suscetibilidade'} if modo == 'TEF' else set()) | (
-            {'acao', 'capacidade', 'resistencia'} if modo == 'DECOMPOSTO' else set())
+        necessarios = {'frequencia'} | {
+            'LEF': set(), 'TEF': {'suscetibilidade'}, 'TEF_CAPACIDADE': {'capacidade', 'resistencia'},
+            'CONTATO_SUSC': {'acao', 'suscetibilidade'}, 'DECOMPOSTO': {'acao', 'capacidade', 'resistencia'},
+        }[modo]
         saida = {'modo': modo}
         for chave in ('frequencia', 'acao', 'suscetibilidade', 'capacidade', 'resistencia'):
             valores = [dados.get(f'{chave}_{sufixo}') for sufixo in ('min', 'moda', 'max')]
@@ -68,9 +71,9 @@ class PerdaForm(forms.Form):
     minimo = forms.DecimalField(label='Valor mínimo (R$)', min_value=0, max_value=10**12, required=False)
     moda = forms.DecimalField(label='Valor mais provável (R$)', min_value=0, max_value=10**12, required=False)
     maximo = forms.DecimalField(label='Valor máximo (R$)', min_value=0, max_value=10**12, required=False)
-    chance_min = forms.DecimalField(label='Chance secundária mínima (0 a 1)', min_value=0, max_value=1, required=False)
-    chance_moda = forms.DecimalField(label='Chance secundária mais provável (0 a 1)', min_value=0, max_value=1, required=False)
-    chance_max = forms.DecimalField(label='Chance secundária máxima (0 a 1)', min_value=0, max_value=1, required=False)
+    chance_min = forms.DecimalField(label='Chance condicional mínima (0 a 1)', min_value=0, max_value=1, required=False)
+    chance_moda = forms.DecimalField(label='Chance condicional mais provável (0 a 1)', min_value=0, max_value=1, required=False)
+    chance_max = forms.DecimalField(label='Chance condicional máxima (0 a 1)', min_value=0, max_value=1, required=False)
 
     def clean(self):
         dados = super().clean()
@@ -79,12 +82,10 @@ class PerdaForm(forms.Form):
         if not dados.get('tipo') or not dados.get('categoria') or any(dados.get(c) is None for c in ('minimo', 'moda', 'maximo')):
             raise ValidationError('Informe tipo, categoria e três valores da parcela.')
         chances = [dados.get(c) for c in ('chance_min', 'chance_moda', 'chance_max')]
-        if dados['tipo'] == 'PRIMARIA':
-            if any(v is not None for v in chances):
-                raise ValidationError('Para parcela primária deixe as chances secundárias em branco.')
+        if dados['tipo'] == 'PRIMARIA' and all(v is None for v in chances):
             chances = [1, 1, 1]
         elif any(v is None for v in chances):
-            raise ValidationError('Para parcela secundária informe as três chances condicionais.')
+            raise ValidationError('Informe as três chances condicionais, ou deixe-as em branco somente para perda primária certa.')
         dados['item'] = {'tipo': dados['tipo'], 'categoria': dados['categoria'],
                          'valor': [float(dados[c]) for c in ('minimo', 'moda', 'maximo')],
                          'probabilidade': [float(v) for v in chances]}

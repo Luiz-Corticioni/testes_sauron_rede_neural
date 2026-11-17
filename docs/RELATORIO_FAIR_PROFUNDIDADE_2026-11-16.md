@@ -1,0 +1,7 @@
+# Profundidade dos fatores FAIR
+
+O formulário passou a aceitar cinco combinações: LEF; TEF com suscetibilidade; TEF com capacidade e resistência; contatos e ação com suscetibilidade; ou contatos e ação com capacidade e resistência. Isso permite escolher a profundidade conforme os dados disponíveis, sem fabricar fatores não informados. As faixas de valores para cada via são validadas e campos não utilizados são recusados.
+
+Cada parcela primária ou secundária pode ter chance condicional informada. Para uma primária, deixar as chances vazias significa ocorrência certa quando houver evento de perda; secundárias exigem as três chances. Dessa forma uma parcela primária pode não ocorrer em todos os eventos sem que isso seja imposto para as demais. As parcelas continuam independentes no modelo e a mesma combinação de tipo e categoria não pode ser repetida.
+
+Testes cobriram as vias adicionais, capacidade versus resistência, ação e suscetibilidade, e uma parcela primária com chance zero. As entradas e sementes dos modos anteriores mantêm a mesma sequência de sorteios. O [FAIR Model v3.0](https://www.fairinstitute.org/hubfs/Standards%20Artifacts/Factor%20Analysis%20of%20Information%20Risk%20%28FAIR%29%20Standard%20v3.0%20%28January%202025%29.pdf) permite diferentes profundidades e não determina uma distribuição específica: as hipóteses Poisson, beta-PERT e independência são escolhas explícitas do Sauron, não exigências da norma.

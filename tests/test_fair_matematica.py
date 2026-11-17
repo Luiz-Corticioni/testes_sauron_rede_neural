@@ -36,6 +36,10 @@ class MatematicaFAIR(SimpleTestCase):
         self.assertEqual(simular(dados, n=100)['eventos_medios'], 0)
         dados['acao'] = [0., 0., 0.]
         self.assertEqual(simular(dados, n=100)['ameacas_medias'], 0)
+        tef_cap = exemplo('TEF_CAPACIDADE') | {'capacidade': [.9, .9, .9], 'resistencia': [.1, .1, .1]}
+        self.assertEqual(simular(tef_cap, n=100)['eventos_medios'], simular(tef_cap, n=100)['ameacas_medias'])
+        contato_susc = exemplo('CONTATO_SUSC') | {'acao': [0., 0., 0.], 'suscetibilidade': [1., 1., 1.]}
+        self.assertEqual(simular(contato_susc, n=100)['eventos_medios'], 0)
 
     def test_perdas_secundarias_e_ausencia_de_eventos(self):
         dados = exemplo()
@@ -46,6 +50,9 @@ class MatematicaFAIR(SimpleTestCase):
         self.assertEqual(r['perda']['media'], 0)
         self.assertEqual(r['probabilidade_evento'], 0)
         self.assertIsNone(r['media_por_evento'])
+        dados = exemplo()
+        dados['perdas'][0]['probabilidade'] = [0., 0., 0.]
+        self.assertEqual(simular(dados, n=100)['media_primaria'], 0)
 
     def test_entradas_invalidas_nao_sao_silenciosamente_convertidas(self):
         base = exemplo()

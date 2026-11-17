@@ -3,7 +3,7 @@ import numpy as np
 
 from inventario.matematica.montecarlo import numero, resumo
 
-MODOS = {"LEF", "TEF", "DECOMPOSTO"}
+MODOS = {"LEF", "TEF", "TEF_CAPACIDADE", "CONTATO_SUSC", "DECOMPOSTO"}
 CATEGORIAS = {"PRODUTIVIDADE", "RESPOSTA", "SUBSTITUICAO", "VANTAGEM", "MULTAS", "REPUTACAO"}
 TIPOS = {"PRIMARIA", "SECUNDARIA"}
 MAX_EVENTOS = 1_000_000
@@ -24,7 +24,10 @@ def validar(dados):
         raise ValueError("Informe o modo e todos os campos esperados do modelo.")
     modo = dados["modo"]
     resultado = {"modo": modo, "frequencia": faixa(dados["frequencia"], "Frequência em 30 dias", 20)}
-    exigidos = {"acao", "capacidade", "resistencia"} if modo == "DECOMPOSTO" else ({"suscetibilidade"} if modo == "TEF" else set())
+    exigidos = {
+        "LEF": set(), "TEF": {"suscetibilidade"}, "TEF_CAPACIDADE": {"capacidade", "resistencia"},
+        "CONTATO_SUSC": {"acao", "suscetibilidade"}, "DECOMPOSTO": {"acao", "capacidade", "resistencia"},
+    }[modo]
     for chave in ("acao", "suscetibilidade", "capacidade", "resistencia"):
         if chave in exigidos:
             resultado[chave] = faixa(dados[chave], chave, 1)
@@ -45,8 +48,6 @@ def validar(dados):
             raise ValueError("Tipo/categoria inválido ou repetido.")
         vistos.add((tipo, categoria))
         chance = faixa(item["probabilidade"], "Chance condicional da parcela", 1)
-        if tipo == "PRIMARIA" and chance != [1., 1., 1.]:
-            raise ValueError("A perda primária deve ocorrer em todo evento de perda; use faixa de valor com mínimo zero quando aplicável.")
         resultado["perdas"].append({"tipo": tipo, "categoria": categoria, "valor": faixa(item["valor"], "Magnitude", 1e12), "probabilidade": chance})
     if not any(item["tipo"] == "PRIMARIA" for item in resultado["perdas"]):
         raise ValueError("Informe pelo menos uma parcela de perda primária.")
@@ -76,18 +77,23 @@ def simular(dados, n=10000, seed=42):
     janelas = np.repeat(np.arange(n), contatos)
     total_contatos = len(janelas)
     modo = dados["modo"]
-    if modo == "DECOMPOSTO":
+    if modo in {"DECOMPOSTO", "CONTATO_SUSC"}:
         acao = amostrar(dados["acao"], n, rng)
         acoes = rng.random(total_contatos) < acao[janelas]
         janelas_ameaca = janelas[acoes]
+    elif modo in {"TEF", "TEF_CAPACIDADE"}:
+        janelas_ameaca = janelas
+    else:
+        janelas_ameaca = None
+    if modo in {"DECOMPOSTO", "TEF_CAPACIDADE"}:
         capacidade = amostrar(dados["capacidade"], len(janelas_ameaca), rng)
         resistencia = amostrar(dados["resistencia"], len(janelas_ameaca), rng)
         janelas_perda = janelas_ameaca[capacidade > resistencia]
         ameacas = len(janelas_ameaca)
-    elif modo == "TEF":
+    elif modo in {"TEF", "CONTATO_SUSC"}:
         susc = amostrar(dados["suscetibilidade"], n, rng)
-        janelas_perda = janelas[rng.random(total_contatos) < susc[janelas]]
-        ameacas = total_contatos
+        janelas_perda = janelas_ameaca[rng.random(len(janelas_ameaca)) < susc[janelas_ameaca]]
+        ameacas = len(janelas_ameaca)
     else:
         janelas_perda = janelas
         ameacas = None
@@ -96,7 +102,7 @@ def simular(dados, n=10000, seed=42):
     parcelas = []
     for item in dados["perdas"]:
         custos = amostrar(item["valor"], total_eventos, rng)
-        if item["tipo"] == "SECUNDARIA":
+        if item["tipo"] == "SECUNDARIA" or item["probabilidade"] != [1., 1., 1.]:
             prob = amostrar(item["probabilidade"], total_eventos, rng)
             custos *= rng.random(total_eventos) < prob
         acumulado = np.bincount(janelas_perda, weights=custos, minlength=n)
@@ -110,7 +116,7 @@ def simular(dados, n=10000, seed=42):
     return {"versao_modelo": "sauron.fair/30d-v1", "horizonte_dias": 30, "modo": modo, "n": n, "seed": seed,
             "perda": resumo(total), "probabilidade_evento": float(np.count_nonzero(np.bincount(janelas_perda, minlength=n)) / n),
             "eventos_medios": float(total_eventos / n), "ameacas_medias": None if ameacas is None else float(ameacas / n),
-            "contatos_medios": float(total_contatos / n) if modo == "DECOMPOSTO" else None,
+            "contatos_medios": float(total_contatos / n) if modo in {"DECOMPOSTO", "CONTATO_SUSC"} else None,
             "media_por_evento": float(total.sum() / total_eventos) if total_eventos else None,
             "media_primaria": float(primaria.mean()), "media_secundaria": float(secundaria.mean()),
             "parcelas": parcelas,

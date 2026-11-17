@@ -59,7 +59,7 @@ class FluxoFAIR(BancoTeste):
         self.assertContains(resposta, 'Preencha os três valores')
         self.assertFalse(CenarioFAIR.objects.exists())
         dados = self.dados() | {'perdas-0-tipo': 'SECUNDARIA'}
-        self.assertContains(self.client.post('/fair/novo/', dados), 'informe as três chances')
+        self.assertContains(self.client.post('/fair/novo/', dados), 'Informe as três chances')
         dados = self.dados() | {'acao_min': '0'}
         self.assertContains(self.client.post('/fair/novo/', dados), 'Não preencha acao')
 
@@ -82,6 +82,24 @@ class FluxoFAIR(BancoTeste):
         cenario = CenarioFAIR.objects.get(nome='Decomposto')
         r = self.client.post(f'/fair/{cenario.pk}/', {'n': 100, 'seed': 7})
         self.assertEqual(r.context['resultado']['media_por_evento'], 150)
+
+    def test_vias_mistas_e_chance_primaria_opcional(self):
+        comum = {'origem_suscetibilidade': 'Justificativa fictícia', 'acao_min': '1', 'acao_moda': '1', 'acao_max': '1',
+                 'suscetibilidade_min': '1', 'suscetibilidade_moda': '1', 'suscetibilidade_max': '1'}
+        dados = self.dados() | comum | {'modo': 'CONTATO_SUSC', 'perdas-0-chance_min': '0',
+                                        'perdas-0-chance_moda': '0', 'perdas-0-chance_max': '0'}
+        resposta = self.client.post('/fair/novo/', dados)
+        self.assertEqual(resposta.status_code, 302, str(resposta.context['form'].errors) if resposta.status_code == 200 else '')
+        cenario = CenarioFAIR.objects.get()
+        resultado = self.client.post(f'/fair/{cenario.pk}/', {'n': 100, 'seed': 7}).context['resultado']
+        self.assertGreater(resultado['eventos_medios'], 0)
+        self.assertEqual(resultado['perda']['media'], 0)
+        dados = self.dados() | {'nome': 'TEF com controles', 'modo': 'TEF_CAPACIDADE', 'origem_suscetibilidade': 'Hipótese',
+            'capacidade_min': '0.8', 'capacidade_moda': '0.8', 'capacidade_max': '0.8',
+            'resistencia_min': '0.2', 'resistencia_moda': '0.2', 'resistencia_max': '0.2'}
+        resposta = self.client.post('/fair/novo/', dados)
+        self.assertEqual(resposta.status_code, 302, str(resposta.context['form'].errors) if resposta.status_code == 200 else '')
+        self.assertEqual(CenarioFAIR.objects.get(nome='TEF com controles').premissas['modo'], 'TEF_CAPACIDADE')
 
     def test_permissoes_mfa_e_csrf(self):
         cenario = criar(self.modelo(), self.usuario, True)
