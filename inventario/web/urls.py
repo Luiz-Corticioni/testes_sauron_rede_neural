@@ -7,6 +7,8 @@ from inventario.web import api_v1
 from inventario.web import views_honeypot
 from inventario.web import views_fontes
 from inventario.web import views_cenario_financeiro
+from inventario.web import views_fair
+from inventario.aplicacao.fair import LEITURA as LEITURA_FAIR, ESCRITA as ESCRITA_FAIR
 from inventario.web import views_documentos
 from inventario.web import views_scanner
 from inventario.web import views_relacoes
@@ -37,6 +39,9 @@ PERMISSOES_RISCO = (
 
 
 urlpatterns = [
+    path('fair/', proteger(views_fair.lista, *LEITURA_FAIR), name='fair_lista'),
+    path('fair/novo/', proteger(views_fair.novo, *ESCRITA_FAIR), name='fair_novo'),
+    path('fair/<int:pk>/', proteger(views_fair.detalhe, *LEITURA_FAIR), name='fair_detalhe'),
     path("cenarios-financeiros/", proteger(views_cenario_financeiro.lista, "inventario.view_ativo", "inventario.view_cenariofinanceiro"), name="cenarios_financeiros"),
     path("cenarios-financeiros/novo/", proteger(views_cenario_financeiro.novo, "inventario.view_ativo", "inventario.add_cenariofinanceiro", "inventario.view_cenariofinanceiro"), name="cenario_financeiro_novo"),
     path("cenarios-financeiros/<int:pk>/", proteger(views_cenario_financeiro.detalhe, "inventario.view_ativo", "inventario.view_cenariofinanceiro"), name="cenario_financeiro_detalhe"),

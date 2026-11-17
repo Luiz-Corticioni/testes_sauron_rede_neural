@@ -25,3 +25,4 @@ from inventario.models.cobertura import PerimetroRelacoes, MembroPerimetro, Revi
 from inventario.models.honeypot import SensorHoneypot, EventoHoneypot, RevisaoEventoHoneypot, PoliticaRetencaoHoneypot
 from inventario.models.cenario_financeiro import CenarioFinanceiro
 from inventario.models.scanner import RelatorioScanner, RevisaoAchadoScanner
+from inventario.models.fair import CenarioFAIR

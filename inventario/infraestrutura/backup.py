@@ -81,6 +81,7 @@ def backup_sqlite(retencao=None):
                     "inventario.politicaretencaohoneypot": "0032_alter_eventohoneypot_origem_ip_and_more",
                     "inventario.relatorioscanner": "0033_relatorioscanner",
                     "inventario.revisaoachadoscanner": "0034_revisaoachadoscanner",
+                    "inventario.cenariofair": "0035_cenariofair",
                 }
                 migracao = criacao_recente.get(modelo._meta.label_lower)
                 if migracao and ("inventario", migracao) not in aplicadas:

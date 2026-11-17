@@ -26,6 +26,7 @@ class PublicacaoBackup(BancoTeste):
             'inventario_politicaretencaohoneypot': '0032_alter_eventohoneypot_origem_ip_and_more',
             'inventario_relatorioscanner': '0033_relatorioscanner',
             'inventario_revisaoachadoscanner': '0034_revisaoachadoscanner',
+            'inventario_cenariofair': '0035_cenariofair',
         }
         with override_settings(SAURON_BACKUP_KEY=Fernet.generate_key().decode(), SAURON_BACKUP_DESTINO_ADICIONAL=''):
             for tabela, migracao in casos.items():

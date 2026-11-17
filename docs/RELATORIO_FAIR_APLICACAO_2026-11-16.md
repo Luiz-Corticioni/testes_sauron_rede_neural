@@ -1,0 +1,9 @@
+# Cenários por fatores FAIR — aplicação e persistência
+
+Foi acrescentado um fluxo próprio, acessível em Perda financeira → Cenários de negócio → Analisar fatores FAIR. Ele preserva os simuladores existentes e registra ativo, ameaça, evento, efeito, escopo, qualidade, data, fontes de frequência, suscetibilidade e magnitudes e parcelas de perdas. O responsável declara que as parcelas são distintas e cabem na janela; essa declaração é auditada sem copiar valores financeiros para a auditoria. O sistema não comprova a qualidade das fontes nem a ausência de duplicação.
+
+A interface permite as três vias do motor e apresenta médias, percentis, frequência de eventos, decomposição por parcela e excedência. Premissas e versão do motor ficam no banco; a semente e a quantidade são exibidas no resultado. As premissas são sensíveis: o acesso reutiliza as permissões existentes de cenário financeiro e exige MFA. Não há permissão nova concedida a usuários comuns. Uma análise deve ser recriada quando as premissas mudarem; não há edição silenciosa do registro existente.
+
+Testes cobriram as três vias na interface, os extremos do motor, erros de entrada, permissões de leitura e criação, MFA, CSRF, auditoria, rotas e backup/restauração das premissas. A migração 0035 cria a tabela; o backup anterior à migração só ignora a tabela se a migração ainda não estiver aplicada. A simulação é limitada a 20.000 janelas e a frequência máxima de 20 por 30 dias, com limite adicional de eventos e de simulações concorrentes.
+
+Os cálculos usam Poisson, beta-PERT e independência como escolhas deste produto, não como premissas obrigatórias do FAIR. Não há calibração empírica, inferência local pelo EPSS, fontes autenticadas, múltiplos responsáveis ou certificação de conformidade. O módulo não modela o momento das perdas dentro da janela nem efeitos posteriores aos 30 dias. Um resultado calculado não substitui a validação por especialistas da empresa.
