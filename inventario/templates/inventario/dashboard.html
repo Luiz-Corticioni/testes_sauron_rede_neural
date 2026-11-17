@@ -89,7 +89,7 @@
 {{ risco_json|json_script:"risk-data" }}
 {% endblock %}
 {% block scripts %}
-<script src="{% static 'inventario/dashboard.js' %}" defer></script>
+<script src="{% static 'inventario/dashboard.js' %}?v=2" defer></script>
 <script src="{% static 'inventario/simulacao.js' %}" defer></script>
 {% if cursor_olho %}<script src="{% static 'inventario/olho_eventos.js' %}" defer></script>{% endif %}
 {% endblock %}

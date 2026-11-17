@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let quadro = 0, posicao = [0, 0];
     const desenhar = () => { esfera.style.transform = `translate3d(${posicao[0]}px, ${posicao[1]}px, 0)`; quadro = 0; };
     hero.addEventListener("pointermove", evento => {
-      if (movimento?.matches || evento.pointerType === "touch") return;
+      if (movimento?.matches || window.SauronEfeitos?.reduzidos() || evento.pointerType === "touch") return;
       const area = hero.getBoundingClientRect();
       posicao = [((evento.clientX-area.left)/area.width-.5)*8, ((evento.clientY-area.top)/area.height-.5)*8];
       if (!quadro) quadro = window.requestAnimationFrame(desenhar);
@@ -32,6 +32,9 @@ document.addEventListener("DOMContentLoaded", () => {
     hero.addEventListener("pointerleave", () => { posicao = [0, 0]; if (!quadro) quadro = window.requestAnimationFrame(desenhar); });
     movimento?.addEventListener?.('change', evento => {
       if (evento.matches) { posicao = [0, 0]; if (!quadro) quadro = window.requestAnimationFrame(desenhar); }
+    });
+    document.addEventListener('sauron:efeitos', () => {
+      if (window.SauronEfeitos?.reduzidos()) { posicao = [0, 0]; if (!quadro) quadro = window.requestAnimationFrame(desenhar); }
     });
   }
   window.SauronEye = {
