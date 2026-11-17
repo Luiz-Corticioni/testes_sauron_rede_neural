@@ -1,0 +1,9 @@
+# Motor quantitativo FAIR — etapa matemática
+
+O motor novo permite partir de frequência de eventos de perda (LEF), frequência de eventos de ameaça (TEF) com suscetibilidade, ou decompor contatos, chance de ação, capacidade e resistência. Usa 30 dias como unidade, frequência Poisson com taxa PERT informada, múltiplos eventos, parcelas de perda primária e secundária, distribuição PERT e semente reproduzível. São escolhas explícitas de implementação; a taxonomia FAIR não torna essas distribuições automaticamente corretas para qualquer organização.
+
+Na via decomposta, a probabilidade de ação é sorteada por janela; capacidade e resistência são sorteadas independentemente por evento de ameaça, e capacidade deve superar resistência para gerar perda. A faixa de suscetibilidade na via TEF é sorteada por janela. Na via LEF não se inventam os fatores de ameaça. A perda secundária é condicionada a cada evento de perda; as parcelas são sorteadas independentemente. Todas as perdas são atribuídas à janela modelada. Não há inferência automática a partir de EPSS, CVSS, inventário ou controles.
+
+Foram testados esperança analítica de frequência e perda, múltiplos eventos, extremos de probabilidade, empate entre capacidade e resistência, reprodutibilidade, decomposição, excedência e rejeição de dados inválidos. Não se alegam calibração, validade empírica ou certificação de conformidade. Próxima etapa: persistência, autorização, interface e testes integrados; este motor isolado ainda não constitui um fluxo utilizável por usuários.
+
+Referências: [FAIR Model v3.0](https://www.fairinstitute.org/hubfs/Standards%20Artifacts/Factor%20Analysis%20of%20Information%20Risk%20%28FAIR%29%20Standard%20v3.0%20%28January%202025%29.pdf) e [Open FAIR — requisitos de terminologia](https://openfair-cert.opengroup.org/docs/OpenFAIR_Conformance_Requirements.pdf).
