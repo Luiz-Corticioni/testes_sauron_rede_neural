@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
 
-from inventario.aplicacao.fair import calcular, criar
+from inventario.aplicacao.fair import calcular, comparar, criar
 from inventario.infraestrutura.limite_simulacoes import LimiteSimulacoes
 from inventario.matematica.fair import validar
 from inventario.models import Ativo, CenarioFAIR
@@ -99,6 +99,17 @@ class SimularForm(forms.Form):
     seed = forms.IntegerField(label='Semente para reprodução', min_value=0, max_value=2**32 - 1, initial=42)
 
 
+class CompararForm(SimularForm):
+    alternativa = forms.ModelChoiceField(queryset=CenarioFAIR.objects.none(), label='Análise alternativa')
+
+    def __init__(self, *args, atual, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['alternativa'].queryset = CenarioFAIR.objects.filter(
+            ativo_id=atual.ativo_id, evento=atual.evento, ameaca=atual.ameaca, efeito=atual.efeito,
+            escopo=atual.escopo, versao_modelo=atual.versao_modelo).exclude(pk=atual.pk)
+        self.fields['alternativa'].label_from_instance = lambda c: f'{c.nome} (#{c.pk}, {c.data_referencia})'
+
+
 @require_GET
 def lista(request):
     return render(request, 'inventario/fair_lista.html', paginar(CenarioFAIR.objects.select_related('ativo', 'criado_por'), request))
@@ -143,3 +154,22 @@ def detalhe(request, pk):
             form.add_error(None, '; '.join(erro.messages) if isinstance(erro, ValidationError) else str(erro))
     return render(request, 'inventario/fair_detalhe.html', {'cenario': cenario, 'form': form,
         'resultado': resultado, 'modos': dict(MODOS), 'categorias': dict(CATEGORIAS)}, status=status)
+
+
+@require_http_methods(['GET', 'POST'])
+def comparacao(request, pk):
+    atual = get_object_or_404(CenarioFAIR.objects.select_related('ativo'), pk=pk)
+    form = CompararForm(request.POST or None, atual=atual)
+    resultado = None
+    status = 200
+    if request.method == 'POST' and form.is_valid():
+        try:
+            resultado = comparar(atual, form.cleaned_data['alternativa'], request.user,
+                                 n=form.cleaned_data['n'], seed=form.cleaned_data['seed'])
+        except LimiteSimulacoes:
+            form.add_error(None, 'Há muitas simulações em andamento. Tente novamente em alguns segundos.')
+            status = 429
+        except (ValueError, ValidationError) as erro:
+            form.add_error(None, '; '.join(erro.messages) if isinstance(erro, ValidationError) else str(erro))
+    return render(request, 'inventario/fair_comparacao.html', {'cenario': atual, 'form': form,
+        'resultado': resultado}, status=status)

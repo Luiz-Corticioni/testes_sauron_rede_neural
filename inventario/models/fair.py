@@ -48,5 +48,3 @@ class CenarioFAIR(models.Model):
             raise ValidationError({'origem_suscetibilidade': 'Informe a origem da suscetibilidade ou da capacidade e resistência.'})
         if self.ativo_id and self.ativo.status in ('INATIVO', 'BAIXADO'):
             raise ValidationError({'ativo': 'Selecione um ativo ativo ou em manutenção.'})
-
-

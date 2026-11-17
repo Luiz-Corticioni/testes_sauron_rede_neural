@@ -42,6 +42,7 @@ urlpatterns = [
     path('fair/', proteger(views_fair.lista, *LEITURA_FAIR), name='fair_lista'),
     path('fair/novo/', proteger(views_fair.novo, *ESCRITA_FAIR), name='fair_novo'),
     path('fair/<int:pk>/', proteger(views_fair.detalhe, *LEITURA_FAIR), name='fair_detalhe'),
+    path('fair/<int:pk>/comparar/', proteger(views_fair.comparacao, *LEITURA_FAIR), name='fair_comparar'),
     path("cenarios-financeiros/", proteger(views_cenario_financeiro.lista, "inventario.view_ativo", "inventario.view_cenariofinanceiro"), name="cenarios_financeiros"),
     path("cenarios-financeiros/novo/", proteger(views_cenario_financeiro.novo, "inventario.view_ativo", "inventario.add_cenariofinanceiro", "inventario.view_cenariofinanceiro"), name="cenario_financeiro_novo"),
     path("cenarios-financeiros/<int:pk>/", proteger(views_cenario_financeiro.detalhe, "inventario.view_ativo", "inventario.view_cenariofinanceiro"), name="cenario_financeiro_detalhe"),

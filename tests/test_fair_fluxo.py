@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.test import Client
 from django.utils import timezone
 
-from inventario.aplicacao.fair import calcular, criar
+from inventario.aplicacao.fair import calcular, comparar, criar
 from inventario.models import CenarioFAIR, RegistroAuditoria
 from .base import BancoTeste
 from .test_fair_matematica import exemplo
@@ -119,3 +119,24 @@ class FluxoFAIR(BancoTeste):
             nome, premissas = banco.execute('SELECT nome, premissas FROM inventario_cenariofair WHERE id = ?', [cenario.pk]).fetchone()
         self.assertEqual(nome, cenario.nome)
         self.assertEqual(json.loads(premissas), cenario.premissas)
+
+    def test_comparacao_exige_mesmo_contexto_e_nao_inventa_eficacia(self):
+        base = criar(self.modelo(), self.usuario, True)
+        parametros = exemplo() | {'frequencia': [0., 0., 0.]}
+        alternativa = criar(self.modelo(nome='Alternativa hipotética', premissas=parametros), self.usuario, True)
+        resultado = comparar(base, alternativa, self.usuario, n=1000, seed=4)
+        self.assertEqual(resultado, comparar(base, alternativa, self.usuario, n=1000, seed=4))
+        self.assertEqual(resultado['alternativa']['perda']['media'], 0)
+        self.assertGreater(resultado['diferenca_media'], 0)
+        self.assertNotEqual(resultado['semente_atual'], resultado['semente_alternativa'])
+        resposta = self.client.post(f'/fair/{base.pk}/comparar/', {'alternativa': alternativa.pk, 'n': 100, 'seed': 4})
+        self.assertContains(resposta, 'Não é economia comprovada')
+        outra = criar(self.modelo(nome='Outro escopo', escopo='Unidade diferente'), self.usuario, True)
+        with self.assertRaises(ValueError):
+            comparar(base, outra, self.usuario, n=100)
+        self.assertNotContains(self.client.get(f'/fair/{base.pk}/comparar/'), 'Outro escopo')
+        with self.assertRaises(ValueError):
+            comparar(base, base, self.usuario, n=100)
+        sem = get_user_model().objects.create_user('sem-comparacao-fair')
+        with self.assertRaises(PermissionDenied):
+            comparar(base, alternativa, sem, n=100)
