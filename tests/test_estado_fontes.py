@@ -10,12 +10,19 @@ from django.contrib.auth.models import Permission
 from django.conf import settings
 from django.utils import timezone
 
-from inventario.aplicacao.estado_fontes import resumo_fontes
+from inventario.aplicacao.estado_fontes import resumo_fontes, estado_cobertura
 from inventario.models import ObservacaoEPSS, SensorHoneypot
 from .base import BancoTeste
 
 
 class EstadoFontes(BancoTeste):
+    def test_fogueiras_diferenciam_cobertura_local_e_lacunas(self):
+        self.assertEqual(estado_cobertura(0, 0), 'lacuna')
+        self.assertEqual(estado_cobertura(3, 3), 'atualizada')
+        self.assertEqual(estado_cobertura(3, 2, 1), 'desatualizada')
+        self.assertEqual(estado_cobertura(3, 2, lacunas=1), 'lacuna')
+        self.assertEqual(estado_cobertura(3, 3, parcial=True), 'lacuna')
+
     def setUp(self):
         super().setUp()
         diretorio = TemporaryDirectory(prefix="sauron-fontes-")
@@ -42,6 +49,8 @@ class EstadoFontes(BancoTeste):
         self.assertEqual(r["kev"]["estado"], "Sem cache")
         self.assertEqual(r["nvd"]["ausentes"], 1)
         self.assertEqual(r["epss"]["sem_dados_coerentes"], 1)
+        self.assertEqual((r['kev']['fogueira'], r['nvd']['fogueira'], r['epss']['fogueira']), ('lacuna', 'lacuna', 'lacuna'))
+        self.assertContains(pagina, 'Cobertura local incompleta ou desconhecida')
         self.assertContains(pagina, "status da conexão é desconhecido")
         self.assertContains(pagina, "ausência de registro não significa segurança")
 
@@ -50,8 +59,10 @@ class EstadoFontes(BancoTeste):
         item = {"cveID": "CVE-2021-44228", "dateAdded": "2021-12-10", "dueDate": "2022-01-01"}
         self.kev(agora, [item])
         self.assertEqual(resumo_fontes()["kev"]["estado"], "Atualizado no cache")
+        self.assertEqual(resumo_fontes()['kev']['fogueira'], 'atualizada')
         self.kev(agora - timedelta(days=2), [item])
         self.assertEqual(resumo_fontes()["kev"]["estado"], "Desatualizado")
+        self.assertEqual(resumo_fontes()['kev']['fogueira'], 'desatualizada')
         self.kev(agora, [])
         self.assertEqual(resumo_fontes()["kev"]["estado"], "Catálogo vazio")
         self.kev(agora - timedelta(days=2), [])

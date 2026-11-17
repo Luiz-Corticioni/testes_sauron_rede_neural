@@ -8,6 +8,20 @@ from .base import BancoTeste
 
 
 class InterfaceVisual(BancoTeste):
+    def test_cadastro_exibe_confirmacao_sem_confundir_edicao(self):
+        dados = {'tipo':'1', 'nome':'Novo equipamento', 'fabricante':'Dell', 'sala':self.sala.pk,
+                 'criticidade':'2', 'status':'ATIVO', 'atributos':'{}', 'portas_servicos':'[]',
+                 'confidencialidade':'1', 'integridade':'1', 'disponibilidade':'1'}
+        resposta = self.client.post(reverse('criar_ativo'), dados, follow=True)
+        self.assertContains(resposta, 'vinculado ao Observatório')
+        self.assertContains(resposta, 'ativo-criado')
+        from inventario.models import Ativo
+        ativo = Ativo.objects.get(nome='Novo equipamento')
+        dados['hostname'] = ativo.hostname
+        resposta = self.client.post(reverse('editar_ativo', args=[ativo.pk]), dados, follow=True)
+        self.assertContains(resposta, 'salvo com auditoria')
+        self.assertNotContains(resposta, 'vinculado ao Observatório')
+
     def test_painel_conta_ativos_e_severidade_sem_confundir_incidentes(self):
         resposta = self.client.get(reverse('dashboard'))
         self.assertContains(resposta, 'Ativos com pendências')

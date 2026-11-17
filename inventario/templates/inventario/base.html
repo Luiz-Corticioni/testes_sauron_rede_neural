@@ -17,6 +17,7 @@
   <script src="{% static 'inventario/shell.js' %}" defer></script>
   <script src="{% static 'inventario/busca-menu.js' %}" defer></script>
   <script src="{% static 'inventario/olho.js' %}" defer></script>
+  <script src="{% static 'inventario/reacoes.js' %}" defer></script>
   {% block head %}{% endblock %}
 </head>
 <body class="sauron-observatorio {% block body_class %}{% endblock %}">
@@ -82,7 +83,7 @@
       </div>
     </header>
     <div class="content-frame">
-      {% for message in messages %}<div class="message" role="status" aria-live="polite"><span aria-hidden="true">✓</span>{{ message }}</div>{% endfor %}
+      {% for message in messages %}<div class="message {{ message.tags }}" role="status" aria-live="polite" aria-atomic="true"><span aria-hidden="true">✓</span>{{ message }}</div>{% endfor %}
       {% include "inventario/componentes/ajuda_tarefa.html" %}
       {% block content %}{% endblock %}
       {% include "inventario/componentes/orientacao.html" %}

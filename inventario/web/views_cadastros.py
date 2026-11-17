@@ -64,7 +64,10 @@ def formulario(request, cadastro, pk=None):
             texto = "; ".join(erro.messages) if isinstance(erro, ValidationError) else str(erro)
             form.add_error(None, texto)
         else:
-            messages.success(request, f"{rotulo} {objeto.pk} salvo com auditoria.")
+            if cadastro == 'ativo' and pk is None:
+                messages.success(request, f"Ativo {objeto.pk} vinculado ao Observatório.", extra_tags='ativo-criado')
+            else:
+                messages.success(request, f"{rotulo} {objeto.pk} salvo com auditoria.")
             if cadastro == "ativo":
                 return redirect("detalhe_ativo", pk=objeto.pk)
             return redirect(destino)

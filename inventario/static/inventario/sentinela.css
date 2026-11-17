@@ -46,6 +46,20 @@ body[data-risco-faixa='critico'] .astrolabio::before{opacity:1;animation:brasa-l
 .eye-event:not(:empty){border-left:3px solid var(--brasa);background:#34201b;padding:14px 18px;color:var(--osso)}
 .astrolabio.despertar{animation:despertar-olho 1.8s ease-out}
 @keyframes despertar-olho{35%{transform:scale(1.035);filter:drop-shadow(0 0 12px #ff8c5a)}}
+.message.toast-visivel{position:fixed;z-index:50;right:20px;bottom:20px;max-width:min(420px,calc(100vw - 40px));box-shadow:0 8px 35px #000b}
+.message.toast-visivel button{margin-left:12px;border:1px solid var(--incandescente);background:transparent;color:var(--osso);padding:8px;min-height:40px}
+.ativo-vinculado{animation:vincular 1.2s ease-out}
+@keyframes vincular{30%{text-shadow:0 0 18px #ff8a55;transform:translateY(-3px)}}
+.fogueira{display:flex;align-items:center;gap:10px;color:var(--cinza)}
+.fogueira-simbolo{font-size:26px;line-height:1;color:#a99c8e}
+.fogueira.atualizada .fogueira-simbolo{color:#f1c891;text-shadow:0 0 12px #e77839}
+.fogueira.desatualizada .fogueira-simbolo{color:#e2a371}
+.fogueira.lacuna .fogueira-simbolo{color:#a99c8e}
+.visao-geral .sentinela-card meter{transform-origin:left;animation:revelar-barra .7s ease-out both}
+@keyframes revelar-barra{from{transform:scaleX(.05)}to{transform:scaleX(1)}}
+.asset-critico>span{display:inline-block;animation:marcar-ativo 5s ease-in-out infinite}
+@keyframes marcar-ativo{50%{opacity:.55}}
+.baseline-declarada{color:#f0ce96;text-shadow:0 0 9px #c7904a66}
 @media(max-width:1200px){.sentinela-grid{grid-template-columns:1fr 1fr}.sentinela-card:first-child{grid-column:1 / -1;min-height:0}}
 @media(max-width:820px){.visao-geral .hero{padding:32px 24px;min-height:350px}.sentinela-grid{gap:12px}.sentinela-card{min-height:290px}}
 @media(max-width:560px){.visao-geral .hero{padding:28px 18px 22px;background-position:66% 35%;grid-template-columns:1fr}.visao-geral .hero-copy>p{font-size:15px}.visao-geral .astrolabio{width:min(75vw,270px)}.visao-geral .vision-caption{margin-top:-10px}.sentinela-grid{grid-template-columns:1fr}.sentinela-card:first-child{grid-column:auto}.sentinela-card{min-height:0}.fair-portal{align-items:flex-start;flex-direction:column;padding:22px}.fair-portal .button{width:100%}}

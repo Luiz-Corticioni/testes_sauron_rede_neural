@@ -16,6 +16,13 @@ DESCRICOES = {"resposta": "resposta recebida", "falha": "falha de rede ou respos
               "desativada": "consulta desativada na configuração", "parcial": "resposta incompleta"}
 
 
+def estado_cobertura(total, recentes, antigos=0, lacunas=0, parcial=False):
+    """Classifica somente cobertura local, sem inferir conectividade ou saúde."""
+    if not total or parcial or lacunas or recentes + antigos < total:
+        return 'lacuna'
+    return 'desatualizada' if antigos else 'atualizada'
+
+
 def estado_consulta(fonte):
     dados = ler_estado(fonte)
     if not dados:
@@ -104,6 +111,14 @@ def resumo_fontes(ver_isca=False):
     resultado = {"kev": estado_kev(), "nvd": estado_nvd(qs, total), "epss": estado_epss(qs, total)}
     resultado["nvd"]["consulta"] = estado_consulta("nvd")
     resultado["epss"]["consulta"] = estado_consulta("epss")
+    kev = resultado['kev']
+    kev['fogueira'] = ('atualizada' if kev['estado'] == 'Atualizado no cache' else
+                       'desatualizada' if kev['estado'] in ('Desatualizado', 'Catálogo vazio (desatualizado)') else 'lacuna')
+    nvd, epss = resultado['nvd'], resultado['epss']
+    nvd['fogueira'] = estado_cobertura(nvd['total'], nvd['recentes'], nvd['antigos'],
+        nvd['ausentes'] + nvd['invalidos'] + nvd['nao_lidos'], nvd['parcial'])
+    epss['fogueira'] = estado_cobertura(epss['total'], epss['recentes'], epss['antigos'],
+        epss['futuros'] + epss['sem_dados_coerentes'])
     if ver_isca:
         from inventario.models import EventoHoneypot, SensorHoneypot
         resultado["isca"] = {"sensores": SensorHoneypot.objects.count(),

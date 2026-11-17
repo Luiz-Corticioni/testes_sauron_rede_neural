@@ -1,0 +1,7 @@
+# Fase 3 — feedback e fontes
+
+Um cadastro de ativo confirmado usa mensagem acessível e dispensável e anima o título da ficha; edições mantêm a confirmação de edição. O próximo acesso ao painel usa os dados reais após a invalidação do cache. Contadores e alterações simuladas do índice animam os valores recebidos; `prefers-reduced-motion` conserva os números imediatamente. Barras são decoradas sem alterar seus valores HTML.
+
+Em **Estado das fontes**, fogueiras com rótulos textuais sintetizam apenas cobertura local: atualizada quando todos os dados considerados são recentes, desatualizada quando há dados antigos sem lacunas, e incompleta/desconhecida quando há ausência, inconsistência, amostra parcial ou nenhum dado. O cache KEV vazio não é tratado como atualizado. A chama não comprova conexão atual, coleta bem-sucedida ou segurança. A linha de base declarada em ativos só é rotulada quando existe a declaração autorizada; não se infere que o ativo seja seguro. O sinal de criticidade 4 representa criticidade cadastrada, não uma CVE crítica.
+
+Para testar, cadastre um ativo em base de demonstração, confira a confirmação e edite-o; visite o painel e **Estado das fontes**. Com movimento reduzido, verifique que os números finais continuam visíveis. A classificação de cobertura, o formulário e o JavaScript possuem testes automatizados. Referência de acessibilidade: [W3C — mensagens de status](https://www.w3.org/WAI/WCAG21/Techniques/aria/ARIA22).

@@ -38,7 +38,11 @@ document.addEventListener("DOMContentLoaded", () => {
     atualizar(indices, simulation = true) {
       const index = indices.length ? indices.reduce((a,b) => a+b,0) / indices.length : 0;
       eyes.filter(eye => !eye.classList.contains("eye-small")).forEach(eye => setEye(eye,index));
-      document.querySelectorAll("[data-global-index]").forEach(e => e.textContent = format(index));
+      document.querySelectorAll("[data-global-index]").forEach(e => {
+        const anterior = Number(e.textContent.replace(',', '.'));
+        if (window.SauronContar) window.SauronContar(e, index, 1, Number.isFinite(anterior) ? anterior : index);
+        else e.textContent = format(index);
+      });
       document.querySelectorAll("[data-eye-caption]").forEach(e => {
         e.textContent = simulation ? "Média dos índices · simulação sem gravação" : "Média dos índices · cenário atual";
       });

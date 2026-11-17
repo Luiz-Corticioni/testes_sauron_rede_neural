@@ -12,10 +12,10 @@
 {% include 'inventario/componentes/perfil.html' %}
 <p class="muted">O índice depende da cobertura do inventário. Um ativo sem incidência registrada pode estar sem avaliação; isso não comprova que esteja seguro.</p>
 <div class="section-marker"><span>01 / PANORAMA</span><span>O INVENTÁRIO EM NÚMEROS</span><i aria-hidden="true"></i></div><section class="metrics" aria-label="Indicadores do inventário">
-  <article><div class="metric-head"><span>Ativos cadastrados</span><i>01</i></div><strong>{{ total_ativos }}</strong><small>{{ salas }} salas e subsetores</small></article>
-  <article><div class="metric-head"><span>Vulnerabilidades</span><i>02</i></div><strong>{{ total_vulnerabilidades }}</strong><small><b class="ember-dot"></b> vulnerabilidades cadastradas</small></article>
-  <article><div class="metric-head"><span>Incidências pendentes</span><i>03</i></div><strong>{{ incidencias_abertas }}</strong><small><b class="warning-dot"></b> abertas ou em tratamento</small></article>
-  <article><div class="metric-head"><span>Alertas pendentes</span><i>04</i></div><strong>{{ alertas_pendentes|default_if_none:"—" }}</strong><small>aguardando reconhecimento</small></article>
+  <article><div class="metric-head"><span>Ativos cadastrados</span><i>01</i></div><strong data-contagem="{{ total_ativos }}">{{ total_ativos }}</strong><small>{{ salas }} salas e subsetores</small></article>
+  <article><div class="metric-head"><span>Vulnerabilidades</span><i>02</i></div><strong data-contagem="{{ total_vulnerabilidades }}">{{ total_vulnerabilidades }}</strong><small><b class="ember-dot"></b> vulnerabilidades cadastradas</small></article>
+  <article><div class="metric-head"><span>Incidências pendentes</span><i>03</i></div><strong data-contagem="{{ incidencias_abertas }}">{{ incidencias_abertas }}</strong><small><b class="warning-dot"></b> abertas ou em tratamento</small></article>
+  <article><div class="metric-head"><span>Alertas pendentes</span><i>04</i></div><strong {% if alertas_pendentes != None %}data-contagem="{{ alertas_pendentes }}"{% endif %}>{{ alertas_pendentes|default_if_none:"—" }}</strong><small>aguardando reconhecimento</small></article>
 </section>
 
 <div class="section-marker"><span>02 / LEITURA DO DOMÍNIO</span><span>O QUE EXIGE ATENÇÃO</span><i aria-hidden="true"></i></div>
