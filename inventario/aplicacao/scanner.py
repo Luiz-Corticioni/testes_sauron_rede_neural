@@ -47,10 +47,23 @@ def extrair(conteudo):
         raise ValidationError("Relatório JSON inválido.") from erro
 
 
+def extrair_relatorio(conteudo, formato='trivy', observado_em=''):
+    if formato == 'trivy':
+        return extrair(conteudo)
+    if formato == 'osv':
+        from inventario.aplicacao.scanner_osv import extrair_osv
+        return extrair_osv(conteudo, observado_em)
+    raise ValidationError('Formato de scanner não suportado.')
+
+
 @transaction.atomic
-def gravar(ativo_id, escopo, origem, conteudo, usuario):
+def gravar(ativo_id, escopo, origem, conteudo, usuario, formato='trivy', observado_em=''):
     usuario = autorizar(usuario)
-    data, achados, ignorados, assinatura = extrair(conteudo)
+    data, achados, ignorados, assinatura = extrair_relatorio(conteudo, formato, observado_em)
+    if formato == 'osv':
+        origem = f'OSV-Scanner: {origem}'
+        if len(origem) > 200:
+            raise ValidationError('A origem é muito longa; use até 187 caracteres para OSV-Scanner.')
     travar_escrita()
     ativo = Ativo.objects.get(pk=ativo_id)
     if ativo.status in ("INATIVO", "BAIXADO"):

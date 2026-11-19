@@ -4,8 +4,9 @@ from django.core import signing
 from django.core.exceptions import ValidationError
 from django.db.models import Max, Subquery
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_GET, require_http_methods
-from inventario.aplicacao.scanner import LIMITE, extrair, gravar, revisar
+from inventario.aplicacao.scanner import LIMITE, extrair_relatorio, gravar, revisar
 from inventario.models import Ativo, RelatorioScanner, RevisaoAchadoScanner
 from inventario.web.paginacao import paginar
 
@@ -14,7 +15,10 @@ class ScannerForm(forms.Form):
     ativo = forms.ModelChoiceField(queryset=Ativo.objects.all())
     escopo = forms.CharField(max_length=200, label="Escopo examinado")
     origem = forms.CharField(max_length=200, label="Origem do relatório")
-    arquivo = forms.FileField(label="Trivy JSON (até 2 MB)")
+    formato = forms.ChoiceField(choices=[('trivy', 'Trivy JSON'), ('osv', 'OSV-Scanner JSON')], required=False, initial='trivy')
+    observado_em = forms.CharField(required=False, max_length=40, label='Data observada (OSV)',
+        help_text='Para OSV, declare a data da varredura com fuso, por exemplo 2026-11-18T10:30:00-03:00. Para Trivy, usa-se a data do arquivo.')
+    arquivo = forms.FileField(label="Relatório JSON (até 2 MB)")
     confirmacao = forms.CharField(required=False, widget=forms.HiddenInput)
 
     def clean_arquivo(self):
@@ -32,9 +36,10 @@ def importar(request):
         dados = form.cleaned_data
         try:
             conteudo = dados["arquivo"].read(LIMITE + 1)
-            data, achados, ignorados, assinatura = extrair(conteudo)
+            formato = dados['formato'] or 'trivy'
+            data, achados, ignorados, assinatura = extrair_relatorio(conteudo, formato, dados['observado_em'])
             vinculo = {"usuario": request.user.pk, "ativo": dados["ativo"].pk, "escopo": dados["escopo"],
-                       "origem": dados["origem"], "sha256": assinatura}
+                       "origem": dados["origem"], "sha256": assinatura, "formato": formato, "observado_em": dados['observado_em']}
             if dados["confirmacao"]:
                 try:
                     validado = signing.loads(dados["confirmacao"], salt="scanner-previa", max_age=600)
@@ -42,11 +47,14 @@ def importar(request):
                     raise ValidationError("Prévia inválida ou expirada; gere outra.") from erro
                 if validado != vinculo:
                     raise ValidationError("O relatório ou seu contexto mudou; gere outra prévia.")
-                relatorio, novo = gravar(dados["ativo"].pk, dados["escopo"], dados["origem"], conteudo, request.user)
+                relatorio, novo = gravar(dados["ativo"].pk, dados["escopo"], dados["origem"], conteudo, request.user,
+                                         formato=formato, observado_em=dados['observado_em'])
                 messages.success(request, "Relatório registrado para revisão." if novo else "Relatório já importado.")
                 return redirect("scanner_detalhe", pk=relatorio.pk)
-            previa = {"data": data, "achados": achados, "ignorados": ignorados}
+            previa = {"data": data, "achados": achados, "ignorados": ignorados, "formato": formato,
+                      "data_futura": data > timezone.now()}
             form = ScannerForm(initial={"ativo": dados["ativo"], "escopo": dados["escopo"], "origem": dados["origem"],
+                                        "formato": formato, "observado_em": dados['observado_em'],
                                         "confirmacao": signing.dumps(vinculo, salt="scanner-previa")})
         except ValidationError as erro:
             form.add_error(None, erro)
