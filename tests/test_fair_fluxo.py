@@ -12,6 +12,29 @@ from .test_fair_matematica import exemplo
 
 
 class FluxoFAIR(BancoTeste):
+    def test_comparacao_de_intervencao_exige_fonte_e_custo_nao_duplicado(self):
+        base = criar(self.modelo(), self.usuario, True)
+        alternativa = criar(self.modelo(nome='Alternativa'), self.usuario, True)
+        dados = {'alternativa': alternativa.pk, 'n': 100, 'seed': 42, 'intervencao': 'Segmentar rede',
+                 'custo_30_dias': '1200.00', 'fonte_custo': 'Orçamento fictício'}
+        resposta = self.client.post(f'/fair/{base.pk}/comparar/', dados)
+        self.assertContains(resposta, 'confirme que ele não está duplicado')
+        self.assertIsNone(resposta.context['resultado'])
+        resposta = self.client.post(f'/fair/{base.pk}/comparar/', dados | {'custo_distinto': 'on'})
+        self.assertContains(resposta, 'Segmentar rede')
+        self.assertContains(resposta, 'Não é lucro, benefício comprovado')
+        self.assertEqual(resposta.context['resultado']['custo_30_dias'], 1200)
+        self.assertLess(resposta.context['resultado']['diferenca_apos_custo'], 0)
+        from decimal import Decimal
+        self.assertEqual(resposta.context['resultado']['diferenca_apos_custo'],
+            Decimal(str(resposta.context['resultado']['diferenca_media'])) - Decimal('1200.00'))
+        sem_custo = {'alternativa': alternativa.pk, 'n': 100, 'seed': 42, 'intervencao': 'Segmentar rede'}
+        resposta = self.client.post(f'/fair/{base.pk}/comparar/', sem_custo)
+        self.assertContains(resposta, 'Custo não informado')
+        zero = sem_custo | {'custo_30_dias': '0', 'fonte_custo': 'Estimativa', 'custo_distinto': 'on'}
+        resposta = self.client.post(f'/fair/{base.pk}/comparar/', zero)
+        self.assertContains(resposta, 'Diferença simulada entre médias menos o custo declarado')
+
     def test_backup_pre_migracao_omite_campos_novos_do_cenario(self):
         import json
         from unittest.mock import patch

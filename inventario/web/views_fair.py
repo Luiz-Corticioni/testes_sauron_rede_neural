@@ -122,6 +122,13 @@ class SimularRegistroForm(SimularForm):
 
 class CompararForm(SimularForm):
     alternativa = forms.ModelChoiceField(queryset=CenarioFAIR.objects.none(), label='Análise alternativa')
+    intervencao = forms.CharField(label='Intervenção proposta', max_length=200, required=False,
+        help_text='Opcional: descreva a ação considerada, sem credenciais ou dados pessoais.')
+    custo_30_dias = forms.DecimalField(label='Custo adicional estimado nos mesmos 30 dias (R$)',
+        max_digits=14, decimal_places=2, min_value=0, required=False)
+    fonte_custo = forms.CharField(label='Fonte e justificativa do custo', max_length=300, required=False)
+    custo_distinto = forms.BooleanField(required=False,
+        label='Confirmo que esse custo adicional não está incluído nas perdas de nenhum dos cenários.')
 
     def __init__(self, *args, atual, **kwargs):
         super().__init__(*args, **kwargs)
@@ -129,6 +136,15 @@ class CompararForm(SimularForm):
             ativo_id=atual.ativo_id, evento=atual.evento, ameaca=atual.ameaca, efeito=atual.efeito,
             escopo=atual.escopo, versao_modelo=atual.versao_modelo).exclude(pk=atual.pk)
         self.fields['alternativa'].label_from_instance = lambda c: f'{c.nome} (#{c.pk}, {c.data_referencia})'
+
+    def clean(self):
+        dados = super().clean()
+        if dados.get('custo_30_dias') is not None and not (
+            dados.get('intervencao') and dados.get('fonte_custo') and dados.get('custo_distinto')):
+            raise ValidationError('Para considerar o custo, informe a intervenção, a fonte e confirme que ele não está duplicado.')
+        if dados.get('custo_30_dias') is None and (dados.get('fonte_custo') or dados.get('custo_distinto')):
+            raise ValidationError('Informe o custo dos mesmos 30 dias ou deixe em branco a fonte e a confirmação.')
+        return dados
 
 
 @never_cache
@@ -255,6 +271,12 @@ def comparacao(request, pk):
         try:
             resultado = comparar(atual, form.cleaned_data['alternativa'], request.user,
                                  n=form.cleaned_data['n'], seed=form.cleaned_data['seed'])
+            resultado['intervencao'] = form.cleaned_data['intervencao']
+            if form.cleaned_data['custo_30_dias'] is not None:
+                from decimal import Decimal
+                resultado['fonte_custo'] = form.cleaned_data['fonte_custo']
+                resultado['custo_30_dias'] = form.cleaned_data['custo_30_dias']
+                resultado['diferenca_apos_custo'] = Decimal(str(resultado['diferenca_media'])) - resultado['custo_30_dias']
         except LimiteSimulacoes:
             form.add_error(None, 'Há muitas simulações em andamento. Tente novamente em alguns segundos.')
             status = 429

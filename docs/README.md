@@ -16,6 +16,7 @@ em que foram escritos. Eles não são um certificado de que um servidor está se
 | Entender funções e limitações em linguagem simples | [Guia simples](GUIA_SIMPLES_REANALISE_2026-11-10.md) |
 | Entender a origem das informações de um ativo | [Procedência e evidências](RELATORIO_PROCEDENCIA_ATIVOS.md) |
 | Relacionar serviços de negócio aos ativos | [Serviços de negócio](RELATORIO_SERVICOS_NEGOCIO.md) |
+| Comparar uma intervenção e seu custo declarado | [Comparação de intervenções](RELATORIO_COMPARACAO_INTERVENCOES.md) |
 | Criar conta inicial, configurar SMTP/TOTP e recuperar acesso | [E-mail e MFA](EMAIL_E_MFA.md) |
 | Entender CVSS 3.1 e comparação com 4.0 | [Comparação CVSS](COMPARACAO_CVSS.md) |
 | Criar e interpretar um cenário financeiro contextual | [Cenários financeiros em 30 dias](CENARIOS_FINANCEIROS.md) |
