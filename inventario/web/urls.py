@@ -4,6 +4,7 @@ from inventario.seguranca import LoginProtegido, proteger
 
 from inventario.web import views
 from inventario.web import views_paginas
+from inventario.web import views_servicos_negocio
 from inventario.web import api_v1
 from inventario.web import views_honeypot
 from inventario.web import views_fontes
@@ -40,6 +41,10 @@ PERMISSOES_RISCO = (
 
 
 urlpatterns = [
+    path('servicos-negocio/', proteger(views_servicos_negocio.lista, *LEITURA_COBERTURA, 'inventario.view_serviconegocio'), name='servicos_negocio'),
+    path('servicos-negocio/novo/', proteger(views_servicos_negocio.formulario, *LEITURA_COBERTURA, 'inventario.view_serviconegocio', 'inventario.add_serviconegocio'), name='servico_negocio_novo'),
+    path('servicos-negocio/<int:pk>/', proteger(views_servicos_negocio.detalhe, *LEITURA_COBERTURA, 'inventario.view_serviconegocio'), name='servico_negocio'),
+    path('servicos-negocio/<int:pk>/editar/', proteger(views_servicos_negocio.formulario, *LEITURA_COBERTURA, 'inventario.view_serviconegocio', 'inventario.change_serviconegocio'), name='servico_negocio_editar'),
     path('api/olho/eventos/', proteger(views_paginas.eventos_olho, *PERMISSOES_RISCO, 'inventario.view_registroauditoria'), name='eventos_olho'),
     path('demonstracao/empresa/', proteger(views_paginas.carregar_empresa_ficticia, *PERMISSOES_RISCO), name='carregar_empresa_ficticia'),
     path('fair/', proteger(views_fair.lista, *LEITURA_FAIR), name='fair_lista'),

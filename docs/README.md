@@ -14,6 +14,8 @@ em que foram escritos. Eles não são um certificado de que um servidor está se
 | Instalar e atualizar em Fedora/RHEL | [Instalação Linux](INSTALACAO_LINUX.md) |
 | Aprender o fluxo de telas e cada grupo de recursos | [Manual de uso](GUIA_DE_USO.md) |
 | Entender funções e limitações em linguagem simples | [Guia simples](GUIA_SIMPLES_REANALISE_2026-11-10.md) |
+| Entender a origem das informações de um ativo | [Procedência e evidências](RELATORIO_PROCEDENCIA_ATIVOS.md) |
+| Relacionar serviços de negócio aos ativos | [Serviços de negócio](RELATORIO_SERVICOS_NEGOCIO.md) |
 | Criar conta inicial, configurar SMTP/TOTP e recuperar acesso | [E-mail e MFA](EMAIL_E_MFA.md) |
 | Entender CVSS 3.1 e comparação com 4.0 | [Comparação CVSS](COMPARACAO_CVSS.md) |
 | Criar e interpretar um cenário financeiro contextual | [Cenários financeiros em 30 dias](CENARIOS_FINANCEIROS.md) |

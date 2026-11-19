@@ -1,0 +1,6 @@
+{% extends 'inventario/base.html' %}
+{% block title %}Serviços de negócio — Sauron{% endblock %}
+{% block content %}
+<section class="page-heading"><div><span class="kicker">CONTEXTO EMPRESARIAL</span><h1>Serviços de negócio</h1><p>Serviços declarados e seus perímetros de ativos. O cadastro não comprova operação, conectividade ou segurança.</p></div>{% if perms.inventario.add_serviconegocio %}<a class="button" href="{% url 'servico_negocio_novo' %}">Declarar serviço</a>{% endif %}</section>
+<article class="panel"><p>Os ativos são mantidos no perímetro existente. A lista mostra até 100 serviços; valide as evidências e a cobertura antes de tomar decisões.</p><ul>{% for servico in servicos %}<li><a href="{% url 'servico_negocio' servico.pk %}">{{ servico.nome }}</a> · responsável {{ servico.responsavel }} · criticidade declarada {{ servico.criticidade }}/4 · {{ servico.total_ativos }} ativo(s)</li>{% empty %}<li>Nenhum serviço declarado. Crie primeiro um perímetro de relações e seus ativos.</li>{% endfor %}</ul>{% if perms.inventario.view_revisaocobertura and perms.inventario.view_relacaoativos %}<a href="{% url 'qualidade_relacoes' %}">Consultar perímetros e cobertura</a>{% endif %}</article>
+{% endblock %}

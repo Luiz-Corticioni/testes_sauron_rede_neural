@@ -158,6 +158,7 @@ def conectar_sinais():
         RelacaoAtivos,
         PerimetroRelacoes,
         SensorHoneypot,
+        ServicoNegocio,
     )
 
     for modelo in (
@@ -176,6 +177,7 @@ def conectar_sinais():
         RelacaoAtivos,
         PerimetroRelacoes,
         SensorHoneypot,
+        ServicoNegocio,
     ):
         post_save.connect(
             auditar_salvamento,

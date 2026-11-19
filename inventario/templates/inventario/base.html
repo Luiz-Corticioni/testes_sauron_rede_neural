@@ -44,6 +44,7 @@
       {% if perms.inventario.view_dependencia %}<a href="{% url 'dependencias' %}"><span><b>Dependências</b><small>Relações e impacto estimado</small></span></a>{% endif %}
       {% if perms.inventario.view_sala %}<a href="{% url 'salas' %}"><span><b>Salas e subsetores</b><small>Estrutura da empresa</small></span></a>{% endif %}
       <p class="nav-label">Inteligência</p>
+      {% if perms.inventario.view_ativo and perms.inventario.view_perimetrorelacoes and perms.inventario.view_relacaoativos and perms.inventario.view_revisaocobertura and perms.inventario.view_serviconegocio %}<a href="{% url 'servicos_negocio' %}"><span><b>Serviços de negócio</b><small>Ativos e impacto declarado</small></span></a>{% endif %}
       {% if perms.inventario.view_ativo and perms.inventario.view_relacaoativos %}<a href="{% url 'relacoes' %}"><span><b>Relações por camada</b><small>Rede, identidade e negócio</small></span></a>{% endif %}
       {% if perms.inventario.view_dependencia and perms.inventario.view_incidencia and perms.inventario.view_vulnerabilidade and perms.inventario.view_ativo %}
       <a href="{% url 'mapa' %}"><span><b>Mapa de dependências</b><small>Dependências declaradas</small></span></a>
