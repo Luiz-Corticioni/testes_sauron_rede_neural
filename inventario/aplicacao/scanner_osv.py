@@ -8,6 +8,13 @@ from django.utils import timezone
 from inventario.aplicacao.scanner import LIMITE
 
 
+def rotulo_pacote(ecossistema, nome):
+    # Escape do separador torna pares distintos de ecossistema/nome inequívocos.
+    def escapar(texto):
+        return texto.replace('%', '%25').replace(':', '%3A')
+    return f'{escapar(ecossistema)}:{escapar(nome)}'
+
+
 def extrair_osv(conteudo, observado_em):
     if not isinstance(conteudo, bytes) or len(conteudo) > LIMITE:
         raise ValidationError('Arquivo inválido ou maior que 2 MB.')
@@ -43,11 +50,15 @@ def extrair_osv(conteudo, observado_em):
                     if not isinstance(identidade, str) or not identidade or len(identidade) > 200:
                         raise ValidationError('Identificador de vulnerabilidade inválido.')
                     ids = [a for a in [identidade, *aliases] if isinstance(a, str) and re.fullmatch(r'CVE-\d{4}-\d{4,}', a)]
-                    if not ids or not all(isinstance(v, str) and 0 < len(v) <= 200 for v in (nome, versao, ecossistema)) or len(ecossistema) + len(nome) + 1 > 200:
+                    if not ids or not all(isinstance(v, str) and 0 < len(v) <= 200 for v in (nome, versao, ecossistema)):
+                        ignorados += 1
+                        continue
+                    pacote_rotulo = rotulo_pacote(ecossistema, nome)
+                    if len(pacote_rotulo) > 200:
                         ignorados += 1
                         continue
                     for cve in ids:
-                        achados.add((cve, f'{ecossistema}:{nome}', versao))
+                        achados.add((cve, pacote_rotulo, versao))
                         if len(achados) > 5000:
                             raise ValidationError('Limite de 5.000 achados únicos excedido.')
         dados = [{'cve': c, 'pacote': n, 'versao': v} for c, n, v in sorted(achados)]

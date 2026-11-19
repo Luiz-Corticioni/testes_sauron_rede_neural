@@ -78,3 +78,15 @@ class ScannerOSV(BancoTeste):
         self.autenticar(leitor)
         self.assertEqual(self.client.post('/scanner/', self.dados | {'arquivo': self.arquivo()}).status_code, 403)
         self.assertFalse(RelatorioScanner.objects.exists())
+
+    def test_pares_de_ecossistema_e_pacote_nao_colidem(self):
+        pacotes = self.documento['results'][0]['packages']
+        original = pacotes[0]
+        vulnerabilidade = {'id': 'CVE-2024-12345', 'aliases': []}
+        original['package'] = {'name': 'b:c', 'version': '1.2', 'ecosystem': 'a'}
+        original['vulnerabilities'] = [vulnerabilidade]
+        pacotes.append({'package': {'name': 'c', 'version': '1.2', 'ecosystem': 'a:b'},
+                        'vulnerabilities': [vulnerabilidade]})
+        _, achados, ignorados, _ = extrair_osv(json.dumps(self.documento).encode(), self.data)
+        self.assertEqual(ignorados, 0)
+        self.assertEqual({item['pacote'] for item in achados}, {'a:b%3Ac', 'a%3Ab:c'})
