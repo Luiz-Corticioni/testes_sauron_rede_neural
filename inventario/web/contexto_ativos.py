@@ -23,6 +23,8 @@ def barras_ativos(ativos, usuario):
 
 def ficha_ativo(ativo, usuario):
     contexto = {"ativo": ativo}
+    from inventario.aplicacao.procedencia import evidencias_ativo
+    contexto['procedencia'] = evidencias_ativo(ativo, usuario)
     if usuario.has_perm("inventario.view_incidencia") and usuario.has_perm(
         "inventario.view_vulnerabilidade"
     ):
