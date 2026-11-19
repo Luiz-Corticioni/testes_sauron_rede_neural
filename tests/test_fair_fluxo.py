@@ -12,6 +12,41 @@ from .test_fair_matematica import exemplo
 
 
 class FluxoFAIR(BancoTeste):
+    def test_sensibilidade_fair_extremos_sem_alterar_cenario(self):
+        from copy import deepcopy
+        from inventario.aplicacao.sensibilidade_fair import analisar
+        parametros = exemplo() | {'frequencia': [0., 1., 2.], 'slef': [1., 1., 1.]}
+        cenario = criar(self.modelo(premissas=parametros), self.usuario, True)
+        anterior = deepcopy(cenario.premissas)
+        resultado = analisar(cenario, self.usuario, 'frequencia', n=1000, seed=42)
+        self.assertEqual(resultado['media_min'], 0)
+        self.assertGreater(resultado['media_max'], resultado['media_min'])
+        self.assertEqual(resultado, analisar(cenario, self.usuario, 'frequencia', n=1000, seed=42))
+        cenario.refresh_from_db()
+        self.assertEqual(cenario.premissas, anterior)
+        self.assertContains(self.client.get(f'/fair/{cenario.pk}/sensibilidade/'), 'não mede causalidade')
+        resposta = self.client.post(f'/fair/{cenario.pk}/sensibilidade/', {'premissa': 'frequencia', 'n': '100', 'seed': '42'})
+        self.assertContains(resposta, 'Premissa fixada no mínimo')
+        sem = get_user_model().objects.create_user('sem-sensibilidade-fair')
+        with self.assertRaises(PermissionDenied):
+            analisar(cenario, sem, 'frequencia', n=100)
+        with self.assertRaises(ValueError):
+            analisar(cenario, self.usuario, 'valor_perda', indice=999, n=100)
+        with self.assertRaises(ValueError):
+            analisar(cenario, self.usuario, 'frequencia', n=3001)
+        self.autenticar(sem)
+        self.assertEqual(self.client.get(f'/fair/{cenario.pk}/sensibilidade/').status_code, 403)
+
+    def test_sensibilidade_do_valor_de_perda(self):
+        from copy import deepcopy
+        from inventario.aplicacao.sensibilidade_fair import analisar
+        parametros = deepcopy(exemplo()) | {'slef': [1., 1., 1.]}
+        parametros['perdas'][0]['valor'] = [50., 100., 300.]
+        cenario = criar(self.modelo(premissas=parametros), self.usuario, True)
+        resultado = analisar(cenario, self.usuario, 'valor_perda', indice=0, n=1000, seed=4)
+        self.assertLess(resultado['media_min'], resultado['media_base'])
+        self.assertGreater(resultado['media_max'], resultado['media_base'])
+
     def test_comparacao_de_intervencao_exige_fonte_e_custo_nao_duplicado(self):
         base = criar(self.modelo(), self.usuario, True)
         alternativa = criar(self.modelo(nome='Alternativa'), self.usuario, True)

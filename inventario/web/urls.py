@@ -51,6 +51,7 @@ urlpatterns = [
     path('fair/novo/', proteger(views_fair.novo, *ESCRITA_FAIR), name='fair_novo'),
     path('fair/<int:pk>/', proteger(views_fair.detalhe, *LEITURA_FAIR), name='fair_detalhe'),
     path('fair/<int:pk>/comparar/', proteger(views_fair.comparacao, *LEITURA_FAIR), name='fair_comparar'),
+    path('fair/<int:pk>/sensibilidade/', proteger(views_fair.sensibilidade, *LEITURA_FAIR), name='fair_sensibilidade'),
     path('fair/<int:origem_pk>/copiar/', proteger(views_fair.novo, *ESCRITA_FAIR), name='fair_copiar'),
     path('fair/<int:pk>/execucoes/<int:execucao_id>/', proteger(views_fair.execucao, *LEITURA_FAIR), name='fair_execucao'),
     path('fair/<int:pk>/execucoes/<int:execucao_id>/baixar/', proteger(views_fair.exportar, *LEITURA_FAIR), name='fair_exportar'),

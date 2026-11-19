@@ -147,6 +147,22 @@ class CompararForm(SimularForm):
         return dados
 
 
+class SensibilidadeFAIRForm(forms.Form):
+    premissa = forms.ChoiceField(label='Premissa a examinar')
+    n = forms.IntegerField(label='Simulações por alternativa', min_value=100, max_value=3000, initial=1000)
+    seed = forms.IntegerField(label='Semente', min_value=0, max_value=2**32-1, initial=42)
+
+    def __init__(self, *args, cenario, **kwargs):
+        super().__init__(*args, **kwargs)
+        nomes = {'frequencia': 'Frequência em 30 dias', 'acao': 'Chance de ação',
+                 'suscetibilidade': 'Suscetibilidade', 'capacidade': 'Capacidade',
+                 'resistencia': 'Resistência', 'slef': 'Chance de reação secundária'}
+        opcoes = [(k, v) for k, v in nomes.items() if cenario.premissas.get(k) is not None]
+        opcoes += [(f'perda:{i}', f"Valor: {p['tipo']} · {p['categoria']}")
+                   for i, p in enumerate(cenario.premissas['perdas'])]
+        self.fields['premissa'].choices = opcoes
+
+
 @never_cache
 @require_GET
 def lista(request):
@@ -283,4 +299,27 @@ def comparacao(request, pk):
         except (ValueError, ValidationError) as erro:
             form.add_error(None, '; '.join(erro.messages) if isinstance(erro, ValidationError) else str(erro))
     return render(request, 'inventario/fair_comparacao.html', {'cenario': atual, 'form': form,
+        'resultado': resultado}, status=status)
+
+
+@never_cache
+@require_http_methods(['GET', 'POST'])
+def sensibilidade(request, pk):
+    from inventario.aplicacao.sensibilidade_fair import analisar
+    cenario = get_object_or_404(CenarioFAIR.objects.select_related('ativo'), pk=pk)
+    form = SensibilidadeFAIRForm(request.POST or None, cenario=cenario)
+    resultado = None
+    status = 200
+    if request.method == 'POST' and form.is_valid():
+        escolhido = form.cleaned_data['premissa']
+        fator, indice = ('valor_perda', int(escolhido.split(':')[1])) if escolhido.startswith('perda:') else (escolhido, None)
+        try:
+            resultado = analisar(cenario, request.user, fator, indice, form.cleaned_data['n'], form.cleaned_data['seed'])
+            resultado['rotulo'] = dict(form.fields['premissa'].choices)[escolhido]
+        except LimiteSimulacoes:
+            form.add_error(None, 'Há muitas simulações em andamento. Tente novamente em alguns segundos.')
+            status = 429
+        except (ValueError, ValidationError) as erro:
+            form.add_error(None, '; '.join(erro.messages) if isinstance(erro, ValidationError) else str(erro))
+    return render(request, 'inventario/fair_sensibilidade.html', {'cenario': cenario, 'form': form,
         'resultado': resultado}, status=status)
