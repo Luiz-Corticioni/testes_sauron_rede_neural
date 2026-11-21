@@ -1,0 +1,4 @@
+<p><strong>Situação:</strong> {{ fonte.resumo.rotulo }} · <strong>Origem:</strong> {{ fonte.resumo.origem }}.</p>
+<p><strong>Última atualização local:</strong> {{ fonte.resumo.atualizado_em|default:"desconhecida" }}.
+{% if fonte.resumo.idade_segundos != None %}Idade aproximada: {{ fonte.resumo.idade_segundos }} segundos.{% endif %}</p>
+{% if fonte.consulta.ultima %}<p><strong>Última tentativa:</strong> {{ fonte.consulta.ultima.descricao }} em {{ fonte.consulta.ultima.data }}.</p>{% endif %}

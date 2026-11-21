@@ -10,12 +10,22 @@ from django.contrib.auth.models import Permission
 from django.conf import settings
 from django.utils import timezone
 
-from inventario.aplicacao.estado_fontes import resumo_fontes, estado_cobertura
-from inventario.models import ObservacaoEPSS, SensorHoneypot
+from inventario.aplicacao.estado_fontes import resumo_fontes, estado_cobertura, classificar_fonte, idade_segundos
+from inventario.models import ObservacaoEPSS, RelatorioScanner, SensorHoneypot
 from .base import BancoTeste
 
 
 class EstadoFontes(BancoTeste):
+    def test_situacoes_sao_conservadoras_e_separam_falha_de_dados(self):
+        self.assertEqual(classificar_fonte("lacuna", 0, None)["codigo"], "vazio")
+        self.assertEqual(classificar_fonte("atualizada", 1, None)["codigo"], "ok")
+        self.assertEqual(classificar_fonte("desatualizada", 1, None)["codigo"], "vencido")
+        self.assertEqual(classificar_fonte("lacuna", 1, None)["codigo"], "incompleto")
+        self.assertEqual(classificar_fonte("atualizada", 1, {"ultima": {"estado": "falha"}})["codigo"], "inacessivel")
+        self.assertEqual(classificar_fonte("atualizada", 1, {"ultima": {"estado": "parcial"}})["codigo"], "incompleto")
+        self.assertIsNone(idade_segundos("não é data"))
+        self.assertIsNone(idade_segundos(timezone.now() + timedelta(days=1)))
+
     def test_fogueiras_diferenciam_cobertura_local_e_lacunas(self):
         self.assertEqual(estado_cobertura(0, 0), 'lacuna')
         self.assertEqual(estado_cobertura(3, 3), 'atualizada')
@@ -117,9 +127,11 @@ class EstadoFontes(BancoTeste):
         pagina = self.client.get("/fontes/")
         self.assertEqual(pagina.status_code, 200)
         self.assertNotContains(pagina, "Sensores de isca")
+        self.assertNotContains(pagina, "Relatórios importados")
         self.assertNotContains(pagina, "Restrito")
         self.autenticar(self.usuario)
         self.assertContains(self.client.get("/fontes/"), "Sensores de isca")
+        self.assertContains(self.client.get("/fontes/"), "Relatórios importados")
 
     def test_acesso_exige_permissao_e_mfa(self):
         sem = get_user_model().objects.create_user("sem-fontes")
@@ -127,3 +139,17 @@ class EstadoFontes(BancoTeste):
         self.assertEqual(self.client.get("/fontes/").status_code, 403)
         self.client.force_login(self.usuario)
         self.assertEqual(self.client.get("/fontes/").url, "/mfa/")
+
+    def test_importacao_preserva_origem_data_e_exige_permissoes(self):
+        RelatorioScanner.objects.create(ativo=self.a, escopo="teste", origem="Scanner fictício",
+            observado_em=timezone.now() - timedelta(days=1), sha256="a" * 64, achados=[],
+            importado_por=self.usuario)
+        dados = resumo_fontes(ver_importacoes=True)["importacoes"]
+        self.assertEqual(dados["total"], 1)
+        self.assertEqual(dados["ultima"]["origem"], "Scanner fictício")
+        self.assertGreaterEqual(dados["idade_observacao_segundos"], 86400)
+        self.assertContains(self.client.get("/fontes/"), "Scanner fictício")
+        leitor = get_user_model().objects.create_user("sem-scanner")
+        leitor.user_permissions.add(Permission.objects.get(content_type__app_label="inventario", codename="view_vulnerabilidade"))
+        self.autenticar(leitor)
+        self.assertNotContains(self.client.get("/fontes/"), "Scanner fictício")

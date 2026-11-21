@@ -1,6 +1,6 @@
 """Diagnóstico local: não testa a internet nem modifica cache, fontes ou inventário."""
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.db.models import Count, F, Max, Q
@@ -27,8 +27,34 @@ def estado_consulta(fonte):
     dados = ler_estado(fonte)
     if not dados:
         return None
-    return {chave: {"data": valor["data"], "descricao": DESCRICOES[valor["estado"]]}
+    return {chave: {"data": valor["data"], "estado": valor["estado"], "descricao": DESCRICOES[valor["estado"]]}
             for chave, valor in dados.items()}
+
+
+def idade_segundos(data):
+    if isinstance(data, str):
+        try:
+            data = datetime.fromisoformat(data)
+        except ValueError:
+            return None
+    if not isinstance(data, datetime) or timezone.is_naive(data):
+        return None
+    idade = (timezone.now() - data).total_seconds()
+    return int(idade) if idade >= 0 else None
+
+
+def classificar_fonte(fogueira, disponiveis, consulta):
+    """Resumo conservador; falha indica apenas o resultado da última tentativa."""
+    ultimo = (consulta or {}).get("ultima", {}).get("estado")
+    if ultimo in {"falha", "limitada"}:
+        return {"codigo": "inacessivel", "rotulo": "Falha na última tentativa"}
+    if not disponiveis:
+        return {"codigo": "vazio", "rotulo": "Sem dados locais válidos"}
+    if fogueira == "desatualizada":
+        return {"codigo": "vencido", "rotulo": "Dados vencidos"}
+    if fogueira == "atualizada" and ultimo != "parcial":
+        return {"codigo": "ok", "rotulo": "Dados locais atuais"}
+    return {"codigo": "incompleto", "rotulo": "Dados incompletos ou situação desconhecida"}
 
 
 def _rotina_kev():
@@ -60,7 +86,12 @@ def estado_kev():
     estado = "Desatualizado" if "expirado" in origem else "Atualizado no cache"
     if not dados["vulnerabilities"]:
         estado = "Catálogo vazio (desatualizado)" if estado == "Desatualizado" else "Catálogo vazio"
-    return {"estado": estado, "detalhe": origem, "quantidade": len(dados["vulnerabilities"]), "rotina": rotina}
+    try:
+        data_cache = json.loads(caminho.read_text(encoding="utf-8"))["atualizado_em"]
+    except (OSError, ValueError, KeyError, TypeError):
+        data_cache = None
+    return {"estado": estado, "detalhe": origem, "quantidade": len(dados["vulnerabilities"]), "rotina": rotina,
+            "atualizado_em": data_cache}
 
 
 def estado_nvd(qs, total):
@@ -105,12 +136,13 @@ def estado_epss(qs, total):
     return dados
 
 
-def resumo_fontes(ver_isca=False):
+def resumo_fontes(ver_isca=False, ver_importacoes=False):
     qs = Vulnerabilidade.objects.exclude(cve_id__isnull=True).exclude(cve_id="")
     total = qs.count()
     resultado = {"kev": estado_kev(), "nvd": estado_nvd(qs, total), "epss": estado_epss(qs, total)}
     resultado["nvd"]["consulta"] = estado_consulta("nvd")
     resultado["epss"]["consulta"] = estado_consulta("epss")
+    resultado["kev"]["consulta"] = estado_consulta("kev")
     kev = resultado['kev']
     kev['fogueira'] = ('atualizada' if kev['estado'] == 'Atualizado no cache' else
                        'desatualizada' if kev['estado'] in ('Desatualizado', 'Catálogo vazio (desatualizado)') else 'lacuna')
@@ -119,6 +151,20 @@ def resumo_fontes(ver_isca=False):
         nvd['ausentes'] + nvd['invalidos'] + nvd['nao_lidos'], nvd['parcial'])
     epss['fogueira'] = estado_cobertura(epss['total'], epss['recentes'], epss['antigos'],
         epss['futuros'] + epss['sem_dados_coerentes'])
+    for item, nome, data, disponiveis in (
+        (kev, "CISA KEV", kev.get("atualizado_em"), kev.get("quantidade", 0)),
+        (nvd, "NVD", nvd["ultima"], nvd["recentes"] + nvd["antigos"]),
+        (epss, "FIRST EPSS", epss["ultima_coleta"], epss["recentes"] + epss["antigos"]),
+    ):
+        item["resumo"] = {**classificar_fonte(item["fogueira"], disponiveis, item.get("consulta")),
+                          "origem": nome, "atualizado_em": data, "idade_segundos": idade_segundos(data)}
+    if ver_importacoes:
+        from inventario.models import RelatorioScanner
+        ultimo = RelatorioScanner.objects.order_by("-importado_em", "-pk").values(
+            "origem", "observado_em", "importado_em").first()
+        resultado["importacoes"] = {"total": RelatorioScanner.objects.count(), "ultima": ultimo,
+            "idade_observacao_segundos": idade_segundos(ultimo["observado_em"]) if ultimo else None,
+            "estado": "Importação manual; validade e cobertura não determinadas" if ultimo else "Sem importações"}
     if ver_isca:
         from inventario.models import EventoHoneypot, SensorHoneypot
         resultado["isca"] = {"sensores": SensorHoneypot.objects.count(),

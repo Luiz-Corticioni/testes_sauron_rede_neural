@@ -12,7 +12,7 @@ ESTADOS = {"resposta", "falha", "limitada", "desativada", "parcial"}
 
 
 def ler_estado(fonte):
-    if fonte not in {"nvd", "epss"}:
+    if fonte not in {"nvd", "epss", "kev"}:
         raise ValueError("Fonte desconhecida.")
     caminho = settings.DATA_DIR / "estado_fontes" / f"{fonte}.json"
     try:
@@ -33,7 +33,7 @@ def ler_estado(fonte):
 
 
 def registrar_estado(fonte, estado):
-    if fonte not in {"nvd", "epss"} or estado not in ESTADOS:
+    if fonte not in {"nvd", "epss", "kev"} or estado not in ESTADOS:
         raise ValueError("Fonte ou estado desconhecido.")
     caminho = settings.DATA_DIR / "estado_fontes" / f"{fonte}.json"
     try:

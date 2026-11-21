@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from inventario.aplicacao.epss import sincronizar_epss
 from inventario.aplicacao.estado_fontes import resumo_fontes
-from inventario.infraestrutura.cve_client import IntegracaoCVEError, NvdClient, URL_NVD
+from inventario.infraestrutura.cve_client import CisaKevClient, IntegracaoCVEError, NvdClient, URL_NVD
 from inventario.infraestrutura.estado_consultas_fontes import ler_estado
 from .base import BancoTeste
 
@@ -64,3 +64,16 @@ class HistoricoConsultaFontes(BancoTeste):
         cliente = NvdClient(cache_dir=settings.DATA_DIR / "nvd")
         with patch.object(cliente, "reservar_requisicao"), patch("inventario.infraestrutura.cve_client._baixar_json", return_value={}), patch("inventario.infraestrutura.estado_consultas_fontes.salvar_json_atomico", side_effect=OSError("erro simulado")):
             self.assertEqual(cliente.baixar(URL_NVD), {})
+
+    def test_kev_registra_falha_e_sucesso_sem_expor_detalhes(self):
+        cliente = CisaKevClient(settings.DATA_DIR / "kev.json")
+        with patch("inventario.infraestrutura.cve_client._baixar_json", side_effect=IntegracaoCVEError("segredo")):
+            with self.assertRaises(IntegracaoCVEError):
+                cliente.atualizar(forcar=True)
+        self.assertEqual(ler_estado("kev")["ultima"]["estado"], "falha")
+        with patch("inventario.infraestrutura.cve_client._baixar_json", return_value={"vulnerabilities": []}):
+            cliente.atualizar(forcar=True)
+        estado = ler_estado("kev")
+        self.assertEqual(estado["ultima"]["estado"], "resposta")
+        self.assertEqual(estado["ultima_falha"]["estado"], "falha")
+        self.assertNotIn("segredo", (settings.DATA_DIR / "estado_fontes" / "kev.json").read_text())

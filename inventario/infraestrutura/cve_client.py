@@ -114,16 +114,25 @@ class CisaKevClient:
                         return dados
                 except (IntegracaoCVEError, ValueError, KeyError, TypeError, OSError):
                     pass
-            dados = _baixar_json(URL_KEV)
-            validar_kev(dados)
-            salvar_json_atomico(
-                self.cache,
-                {
-                    "atualizado_em": datetime.now(timezone.utc).isoformat(),
-                    "fonte": "CISA KEV",
-                    "dados": dados,
-                },
-            )
+            from inventario.infraestrutura.estado_consultas_fontes import registrar_estado
+            try:
+                dados = _baixar_json(URL_KEV)
+                validar_kev(dados)
+                salvar_json_atomico(
+                    self.cache,
+                    {
+                        "atualizado_em": datetime.now(timezone.utc).isoformat(),
+                        "fonte": "CISA KEV",
+                        "dados": dados,
+                    },
+                )
+            except FonteLimitada:
+                registrar_estado("kev", "limitada")
+                raise
+            except (IntegracaoCVEError, OSError):
+                registrar_estado("kev", "falha")
+                raise
+            registrar_estado("kev", "resposta")
             return dados
 
     def carregar(self, permitir_rede=False):
