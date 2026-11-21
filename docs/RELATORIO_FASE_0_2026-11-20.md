@@ -57,14 +57,42 @@ são medições antes/depois nem incluem banco, autorização, cache ou HTTP; um
 Os 47 achados históricos pertencem à imagem Debian anterior; o
 [relatório Alpine](RELATORIO_IMAGEM_ALPINE_2026-11-15.md) registra ausência de
 HIGH/CRITICAL na varredura daquele artefato e daquela data. Isso não caracteriza
-a imagem atual. `docker version --format '{{.Server.Version}}'` não conseguiu
-conectar ao mecanismo Docker local. A tentativa de iniciar o Desktop não o tornou
-disponível. Faltam reconstrução, nova triagem Trivy e validações reais de
-migração, concorrência e restauração PostgreSQL; nenhum resultado foi presumido.
+a imagem atual. Após iniciar o Docker Desktop fora do isolamento da sessão,
+uma imagem local foi construída e analisada pelo Trivy 0.76.2 a partir de um
+arquivo exportado, sem montar o socket Docker; a execução terminou com código 0
+para HIGH/CRITICAL. Uma reconstrução sem cache atualizou `libcrypto3`, `libssl3`,
+`krb5-libs` e `zlib`; em seguida a imagem com a correção do backup foi construída
+usando essas camadas. A varredura de arquivo exportado com Trivy 0.76.2 terminou
+com código 0 e registrou **zero achados HIGH/CRITICAL** em dois alvos detectados.
+O resultado é limitado à imagem e à base de vulnerabilidades naquela execução;
+não demonstra ausência de falhas. Não foram desativados alertas nem alterada a
+política do workflow.
+
+Em PostgreSQL 16 temporário, isolado e acessível somente por loopback, todas as
+migrações passaram usando psycopg 3.2.12 instalado em pasta de testes, sem
+alteração das dependências do projeto. O teste `tests.test_postgres_concorrencia`
+verificou oito gravações simultâneas e cadeia íntegra. Um backup lógico do
+PostgreSQL, com quatro ativos fictícios, foi restaurado para SQLite novo e a
+contagem conferiu; isso não prova restauração para PostgreSQL, que o projeto
+atualmente não implementa. TLS foi desativado exclusivamente na conexão local
+descartável; não é configuração recomendada para produção.
+
+Uma execução de 83 testes de API, relações e cobertura em PostgreSQL terminou
+com dois erros: testes de backup são executados dentro de `TestCase`, que já
+abriu uma transação, e o backup precisa iniciar `REPEATABLE READ` antes de
+consultas. Fora dessa transação, o backup descrito acima funcionou. O código agora
+recusa uma chamada aninhada com mensagem explícita, sem enfraquecer o isolamento.
+Três testes PostgreSQL passaram: recusa sem invalidar a transação, oito gravações
+simultâneas e backup/restauração em `TransactionTestCase`. A suíte desses
+83 testes ainda precisa ser adaptada para demonstrar o backup sem o invólucro
+transacional; não foi declarada aprovada em PostgreSQL.
 
 ## Outras verificações e pendências
 
 Suíte Django inicial: 538 testes passaram; após a alteração, 539 testes passaram.
+Na imagem Linux, com rede desativada, 542 testes foram executados com sucesso,
+dos quais dois testes exclusivos de PostgreSQL foram pulados; um terceiro teste
+de PostgreSQL foi acrescentado posteriormente e validado no banco temporário.
 `python -m pytest -q testes_pytest`:
 6 passaram; `ruff check .`, mypy no escopo de dois arquivos do CI, bandit e
 `makemigrations --check --dry-run` passaram. Bandit informou aviso de anotação
@@ -75,11 +103,12 @@ O validador OpenAPI e os onze scripts JavaScript do workflow passaram;
 O teste `scripts/testar_smtp_local.py` inicialmente falhou com `WinError 10013`
 ao tentar conectar ao servidor local no ambiente restrito. Após liberar acesso
 de rede para a execução, passou com STARTTLS, certificado e autenticação
-simulados. Não testa entrega externa de e-mails. `pip-audit -r
-requirements.txt` falhou ao tentar preparar ferramentas do ambiente isolado;
-uma segunda tentativa com `--disable-pip --no-deps` foi interrompida após não
-apresentar resultado. Nenhuma conclusão sobre vulnerabilidades atuais das
-dependências é possível.
+simulados. Não testa entrega externa de e-mails. Uma execução de `pip-audit
+--disable-pip --no-deps -r requirements.txt` fora do isolamento consultou a
+base e não indicou vulnerabilidades conhecidas nas dependências diretamente
+fixadas. A execução posterior `pip-audit -r requirements.txt --progress-spinner off`,
+com resolução de dependências transitivas, também terminou sem vulnerabilidades
+conhecidas reportadas; o resultado depende da resolução e da base naquela data.
 
 Tokens máquina-a-máquina ainda não foram implementados. A integração deve
 considerar que a API atual depende do middleware de sessão e MFA, sem abrir

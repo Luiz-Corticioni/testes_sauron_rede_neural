@@ -37,6 +37,8 @@ def cifra():
 
 def backup_sqlite(retencao=None):
     """Nome legado: exportação lógica também suporta backend PostgreSQL configurado."""
+    if connection.vendor == "postgresql" and connection.in_atomic_block:
+        raise ValueError("Backup PostgreSQL exige execução fora de uma transação existente para preservar a consistência.")
     retencao=settings.BACKUP_RETENCAO if retencao is None else retencao
     if type(retencao) is not int or not 1<=retencao<=365:
         raise ValueError("Retenção deve estar entre 1 e 365 cópias.")
