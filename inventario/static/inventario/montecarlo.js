@@ -78,12 +78,22 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const limpar = () => {
     for (const id of ["mc-distribuicao", "mc-excedencia", "mc-comparacao", "mc-contribuicoes", "mc-excedencia-tabela", "mc-fontes"]) porId(id).replaceChildren();
-    for (const id of ["mc-ganho", "mc-hipotese", "mc-escopo"]) porId(id).textContent = "";
+    for (const id of ["mc-ganho", "mc-hipotese", "mc-escopo", "mc-qualidade"]) porId(id).textContent = "";
     for (const id of ["mc-kpi-media", "mc-kpi-p95", "mc-kpi-perda", "mc-kpi-reducao"]) porId(id).textContent = "—";
     saida.textContent = "";
   };
+  const mostrarQualidade = qualidade => {
+    const alvo = porId("mc-qualidade");
+    if (!qualidade || !Array.isArray(qualidade.componentes)) {
+      alvo.textContent = "Qualidade das evidências: indisponível.";
+      return;
+    }
+    const itens = qualidade.componentes.map(c => `${c.nome}: ${c.percentual == null ? "indeterminado" : `${c.percentual}%`} (${c.origem}${c.data ? `; data ${c.data}` : ""}${c.idade_dias != null ? `; idade ${c.idade_dias} dia(s)` : ""}${c.motivo ? `; ${c.motivo}` : ""})`);
+    alvo.textContent = `Qualidade das evidências: ${qualidade.score == null ? "índice indisponível" : `${qualidade.score}%`}. ${itens.join(" · ")}. ${qualidade.aviso}`;
+  };
   const desenhar = r => {
     if (r.horizonte_dias !== 30) throw new Error("Resultado incompatível com o horizonte de 30 dias. Atualize a página.");
+    mostrarQualidade(r.qualidade_dados);
     if (!r.disponivel) {
       for (const id of ["mc-kpi-media", "mc-kpi-p95", "mc-kpi-perda", "mc-kpi-reducao"]) porId(id).textContent = "—";
       for (const id of ["mc-distribuicao", "mc-excedencia", "mc-comparacao", "mc-contribuicoes", "mc-excedencia-tabela", "mc-fontes"]) porId(id).replaceChildren();
@@ -97,6 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (r.quantidade_incidencias === 0) {
       limpar();
+      mostrarQualidade(r.qualidade_dados);
       porId("mc-frase").textContent = "Não há incidências elegíveis para esta análise.";
       status.textContent = "Cadastre e revise os vínculos do inventário. Ausência de registros não demonstra ausência de risco.";
       status.dataset.erro = "1";

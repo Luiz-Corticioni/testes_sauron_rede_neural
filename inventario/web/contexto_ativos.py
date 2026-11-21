@@ -25,6 +25,10 @@ def ficha_ativo(ativo, usuario):
     contexto = {"ativo": ativo}
     from inventario.aplicacao.procedencia import evidencias_ativo
     contexto['procedencia'] = evidencias_ativo(ativo, usuario)
+    from inventario.aplicacao.qualidade_dados import PERMISSOES as PERMISSOES_QUALIDADE, qualidade_ativo
+    if usuario.has_perms(PERMISSOES_QUALIDADE):
+        contexto["qualidade"] = qualidade_ativo(usuario, ativo.pk)
+        contexto["perimetros_qualidade"] = ativo.perimetros_declarados.select_related("perimetro").order_by("perimetro__nome")[:100]
     if usuario.has_perm("inventario.view_incidencia") and usuario.has_perm(
         "inventario.view_vulnerabilidade"
     ):

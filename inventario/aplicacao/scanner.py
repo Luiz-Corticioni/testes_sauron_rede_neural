@@ -2,8 +2,8 @@
 import hashlib
 import json
 import re
-from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import DatabaseError, transaction
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from inventario.aplicacao.documentos import autorizar
@@ -56,8 +56,20 @@ def extrair_relatorio(conteudo, formato='trivy', observado_em=''):
     raise ValidationError('Formato de scanner não suportado.')
 
 
-@transaction.atomic
 def gravar(ativo_id, escopo, origem, conteudo, usuario, formato='trivy', observado_em=''):
+    from inventario.infraestrutura.estado_consultas_fontes import registrar_estado
+
+    try:
+        resultado = _gravar(ativo_id, escopo, origem, conteudo, usuario, formato, observado_em)
+    except (ValidationError, ObjectDoesNotExist, DatabaseError, OSError):
+        registrar_estado("scanner", "falha")
+        raise
+    transaction.on_commit(lambda: registrar_estado("scanner", "resposta"))
+    return resultado
+
+
+@transaction.atomic
+def _gravar(ativo_id, escopo, origem, conteudo, usuario, formato='trivy', observado_em=''):
     usuario = autorizar(usuario)
     data, achados, ignorados, assinatura = extrair_relatorio(conteudo, formato, observado_em)
     if formato == 'osv':
@@ -65,6 +77,7 @@ def gravar(ativo_id, escopo, origem, conteudo, usuario, formato='trivy', observa
         if len(origem) > 200:
             raise ValidationError('A origem é muito longa; use até 187 caracteres para OSV-Scanner.')
     travar_escrita()
+    usuario = autorizar(usuario)
     ativo = Ativo.objects.get(pk=ativo_id)
     if ativo.status in ("INATIVO", "BAIXADO"):
         raise ValidationError("Selecione um ativo ativo ou em manutenção.")
@@ -79,6 +92,7 @@ def gravar(ativo_id, escopo, origem, conteudo, usuario, formato='trivy', observa
 def revisar(relatorio_id, indice, classificacao, justificativa, usuario):
     usuario = autorizar(usuario)
     travar_escrita()
+    usuario = autorizar(usuario)
     relatorio = RelatorioScanner.objects.get(pk=relatorio_id)
     if type(indice) is not int or not 0 <= indice < len(relatorio.achados):
         raise ValidationError("Achado não encontrado.")

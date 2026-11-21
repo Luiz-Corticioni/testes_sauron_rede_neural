@@ -672,6 +672,223 @@
           }
         ]
       }
+    },
+    "/api/v1/qualidade/ativos/{pk}/": {
+      "get": {
+        "operationId": "qualidadeAtivo",
+        "summary": "Avaliar evidências de um ativo em contexto declarado",
+        "description": "A revisão exige perímetro e camada; sem contexto o índice composto é indisponível. Somente sessão com MFA e permissões de cobertura.",
+        "security": [
+          {
+            "sessao": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "pk",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "perimetro",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "tipo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "REDE",
+                "NEGOCIO",
+                "IDENTIDADE"
+              ],
+              "default": "REDE"
+            }
+          },
+          {
+            "name": "principal",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Componentes e índice de completude de evidências",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QualidadeDados"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão necessária",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permissão ou MFA necessário",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Registro não encontrado",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Contexto inválido",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/qualidade/servicos/{pk}/": {
+      "get": {
+        "operationId": "qualidadeServico",
+        "summary": "Avaliar evidências de um serviço",
+        "description": "Usa o perímetro declarado e a camada NEGOCIO. Somente sessão com MFA e permissões de cobertura.",
+        "security": [
+          {
+            "sessao": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "pk",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Componentes e índice de completude de evidências",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QualidadeDados"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão necessária",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permissão ou MFA necessário",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Registro não encontrado",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Contexto inválido",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/qualidade/fontes/": {
+      "get": {
+        "operationId": "qualidadeFontes",
+        "summary": "Consultar estado local das fontes",
+        "description": "Leitura local; importações e iscas dependem de permissões adicionais. Não verifica conectividade atual.",
+        "security": [
+          {
+            "sessao": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado das fontes NVD, EPSS e KEV, além de importações autorizadas"
+          },
+          "401": {
+            "description": "Sessão necessária",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acesso negado",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -772,6 +989,118 @@
             "type": "string"
           },
           "ativo__hostname": {
+            "type": "string"
+          }
+        }
+      },
+      "QualidadeDados": {
+        "type": "object",
+        "required": [
+          "versao",
+          "score",
+          "metodo",
+          "componentes",
+          "aviso"
+        ],
+        "properties": {
+          "versao": {
+            "type": "string",
+            "const": "sauron.qualidade/1"
+          },
+          "score": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Índice de completude; nulo se um componente for indeterminado."
+          },
+          "metodo": {
+            "type": "string"
+          },
+          "componentes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "codigo",
+                "nome",
+                "validos",
+                "total",
+                "percentual",
+                "origem",
+                "data",
+                "motivo"
+              ],
+              "properties": {
+                "codigo": {
+                  "type": "string"
+                },
+                "nome": {
+                  "type": "string"
+                },
+                "validos": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "total": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "percentual": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "origem": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "motivo": {
+                  "type": "string"
+                },
+                "idade_dias": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "fontes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  },
+                  "description": "Estados e datas locais das fontes consideradas, quando aplicável."
+                },
+                "fontes_declaradas": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "campo": {
+                        "type": "string"
+                      },
+                      "descricao": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "description": "Origens declaradas, sem validação independente."
+                }
+              }
+            }
+          },
+          "aviso": {
             "type": "string"
           }
         }

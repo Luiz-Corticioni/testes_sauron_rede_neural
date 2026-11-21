@@ -42,6 +42,9 @@ PERMISSOES_RISCO = (
 
 
 urlpatterns = [
+    path("api/v1/qualidade/fontes/", api_v1.qualidade_fontes, name="api_v1_qualidade_fontes"),
+    path("api/v1/qualidade/ativos/<str:pk>/", partial(api_v1.qualidade, entidade="ativo"), name="api_v1_qualidade_ativo"),
+    path("api/v1/qualidade/servicos/<int:pk>/", partial(api_v1.qualidade, entidade="servico"), name="api_v1_qualidade_servico"),
     path("api/v1/credenciais/", api_credenciais.gerenciar, name="api_v1_credencial_criar"),
     path("api/v1/credenciais/<uuid:identificador>/<str:acao>/", api_credenciais.gerenciar, name="api_v1_credencial_gerenciar"),
     path('servicos-negocio/', proteger(views_servicos_negocio.lista, *LEITURA_COBERTURA, 'inventario.view_serviconegocio'), name='servicos_negocio'),

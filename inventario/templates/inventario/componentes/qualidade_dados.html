@@ -1,0 +1,5 @@
+<article class="panel"><h2>Qualidade das evidências</h2>
+<p>Índice composto: <strong>{% if qualidade.score != None %}{{ qualidade.score }}%{% else %}indisponível{% endif %}</strong>.</p>
+<p>{{ qualidade.metodo }}</p>
+<ul>{% for item in qualidade.componentes %}<li><strong>{{ item.nome }}:</strong> {% if item.percentual != None %}{{ item.percentual }}% ({{ item.validos }} de {{ item.total }}){% else %}indeterminado{% endif %}. Origem: {{ item.origem }}.{% if item.data %} Data: {{ item.data }}.{% endif %}{% if item.idade_dias != None %} Idade: {{ item.idade_dias }} dia(s).{% endif %}{% if item.motivo %} {{ item.motivo }}{% endif %}{% for fonte in item.fontes_declaradas %} {{ fonte.campo }}: {{ fonte.descricao }}.{% endfor %}</li>{% endfor %}</ul>
+<p>{{ qualidade.aviso }}</p>{% if perms.inventario.view_vulnerabilidade %}<p><a href="{% url 'estado_fontes' %}">Ver datas e situação das fontes</a></p>{% endif %}</article>

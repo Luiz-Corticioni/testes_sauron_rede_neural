@@ -23,6 +23,7 @@ class EstadoFontes(BancoTeste):
         self.assertEqual(classificar_fonte("lacuna", 1, None)["codigo"], "incompleto")
         self.assertEqual(classificar_fonte("atualizada", 1, {"ultima": {"estado": "falha"}})["codigo"], "inacessivel")
         self.assertEqual(classificar_fonte("atualizada", 1, {"ultima": {"estado": "parcial"}})["codigo"], "incompleto")
+        self.assertEqual(classificar_fonte("lacuna", 0, None, parcial=True)["codigo"], "incompleto")
         self.assertIsNone(idade_segundos("não é data"))
         self.assertIsNone(idade_segundos(timezone.now() + timedelta(days=1)))
 
@@ -153,3 +154,8 @@ class EstadoFontes(BancoTeste):
         leitor.user_permissions.add(Permission.objects.get(content_type__app_label="inventario", codename="view_vulnerabilidade"))
         self.autenticar(leitor)
         self.assertNotContains(self.client.get("/fontes/"), "Scanner fictício")
+        api = self.client.get("/api/v1/qualidade/fontes/")
+        self.assertEqual(api.status_code, 200)
+        self.assertNotIn("importacoes", api.json())
+        self.assertNotIn("isca", api.json())
+        self.assertIn("resumo", api.json()["kev"])

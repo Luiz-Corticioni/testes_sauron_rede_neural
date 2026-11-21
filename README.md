@@ -17,6 +17,7 @@ do ambiente.
 | Criar o primeiro administrador e configurar o segundo fator | [Primeiro administrador e login](#primeiro-administrador-e-login) e [e-mail e MFA](docs/EMAIL_E_MFA.md) |
 | Integrar consultas com outra aplicação | [Credenciais de integração](docs/CREDENCIAIS_INTEGRACAO.md) |
 | Entender os resultados sem conhecimento técnico profundo | [Guia simples das funcionalidades](docs/GUIA_SIMPLES_REANALISE_2026-11-10.md) |
+| Entender lacunas e qualidade das evidências | [Qualidade dos dados](docs/QUALIDADE_DADOS.md) |
 | Executar com Docker ou implantar em servidor | [Docker](docs/DOCKER_TRABALHO_2.md) e [implantação](docs/IMPLANTACAO.md) |
 | Acompanhar requisitos da Sprint 5 | [Rastreabilidade e pendências](docs/SPRINT5_RASTREABILIDADE.md) |
 | Entender a licença e os componentes de terceiros | [Licença do Sauron](docs/DECISAO_LICENCA.md) |

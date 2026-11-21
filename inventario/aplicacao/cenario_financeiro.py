@@ -26,7 +26,16 @@ def calcular_cenario(cenario, usuario, n=20000, seed=42, limite=None, secundaria
     exigir(usuario, "inventario.view_ativo", "inventario.view_cenariofinanceiro")
     cenario.full_clean()
     with vaga_simulacao():
-        return simular_interrupcao(cenario, n=n, seed=seed, limite=limite, secundaria=secundaria)
+        resultado = simular_interrupcao(cenario, n=n, seed=seed, limite=limite, secundaria=secundaria)
+    from inventario.aplicacao.qualidade_dados import qualidade_premissas
+    qualidade = qualidade_premissas(cenario)
+    if secundaria is not None:
+        from inventario.dominio.qualidade_dados import avaliar, componente
+        qualidade = avaliar(qualidade["componentes"] + [componente(
+            "origem_secundaria", "Origem da perda secundária", None, None,
+            "Parâmetros da simulação", motivo="A origem não é recebida por este serviço; validação indisponível.")])
+    resultado["qualidade_dados"] = qualidade
+    return resultado
 
 
 def calcular_compartilhado(cenario, usuario, escopo, impactos, sem_sobreposicao, n=20000, seed=42, limite=None):
@@ -80,6 +89,12 @@ def calcular_compartilhado(cenario, usuario, escopo, impactos, sem_sobreposicao,
     resultado.update(escopo=grafo["escopo"],
                      snapshot_sha256=grafo["snapshot_sha256"], relacoes_excluidas=grafo["excluidas"],
                      custos_servicos=selecionados, custo_total_hora=float(custos), custo_total_adicional=float(adicionais))
+    from inventario.aplicacao.qualidade_dados import qualidade_premissas
+    from inventario.dominio.qualidade_dados import avaliar, componente
+    qualidade = qualidade_premissas(cenario)
+    justificativas = componente("impactos", "Justificativas declaradas dos impactos", len(selecionados), len(selecionados),
+        "Declarações dos impactos selecionados", motivo="A existência do texto não verifica a evidência ou a ausência de sobreposição.")
+    resultado["qualidade_dados"] = avaliar(qualidade["componentes"] + [justificativas])
     return resultado
 
 

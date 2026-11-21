@@ -17,13 +17,13 @@ def contexto_risco(request):
         "risco": None,
         "risco_json": {},
         "erro_risco": None,
-        "indice_medio": 0,
+        "indice_medio": None,
     }
     try:
         risco = calcular_risco_banco(perfil=perfil)
         contexto.update(risco=risco, risco_json=risco)
         indices = risco["indices"]
-        contexto["indice_medio"] = sum(indices) / len(indices) if indices else 0
+        contexto["indice_medio"] = sum(indices) / len(indices) if indices else None
     except ValueError as erro:
         contexto["erro_risco"] = str(erro)
     return contexto

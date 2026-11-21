@@ -10,6 +10,7 @@ from inventario.aplicacao.risco import namespace_risco, versao_dados
 from inventario.matematica.montecarlo import CUSTOS_CLIENTE, numero, validar_custos, simular
 from inventario.models import Incidencia
 from inventario.aplicacao.epss import sincronizar_epss, situacao_epss  # noqa: F401
+from inventario.aplicacao.qualidade_dados import qualidade_montecarlo
 
 STATUS_CONSIDERADOS = ("ABERTA", "TRATAMENTO", "MITIGADA", "ACEITA")
 CAMPOS = {"custos", "n", "seed", "teto", "exposicao_internet", "exposicao_interna",
@@ -50,7 +51,7 @@ def calcular_montecarlo(dados=None):
         versao = versao_dados("puro")
         assinatura = hashlib.sha256(json.dumps(parametros, sort_keys=True, allow_nan=False).encode()).hexdigest()
         hoje = timezone.now().date()
-        chave = f"montecarlo:30d-v1:{namespace_risco()}:{versao}:{hoje}:{assinatura}"
+        chave = f"montecarlo:30d-v1:qualidade1:{namespace_risco()}:{versao}:{hoje}:{assinatura}"
         def construir():
             incidencias = list(incidencias_elegiveis())
             # Limite explícito de trabalho/memória para requisições locais concorrentes.
@@ -65,14 +66,17 @@ def calcular_montecarlo(dados=None):
                 v, o = i.vulnerabilidade, i.vulnerabilidade.epss_observacao
                 if (v.epss is None or o is None or v.epss_data is None
                         or not hoje-timedelta(days=2) <= v.epss_data <= hoje
-                        or o.cve_id != v.cve_id or o.data != v.epss_data or o.epss != v.epss):
+                        or not v.cve_id or o.cve_id != v.cve_id or o.data != v.epss_data or o.epss != v.epss):
                     pendencias.append({"incidencia": i.pk, "ativo": i.ativo_id, "cve": v.cve_id or v.pk,
                         "motivo": "EPSS ausente, sem observação de origem coerente ou fora da janela local de atualização (2 dias)."})
+            pendentes_ids = {p["incidencia"] for p in pendencias}
+            datas = [i.vulnerabilidade.epss_data for i in incidencias if i.pk not in pendentes_ids]
+            qualidade = qualidade_montecarlo(len(incidencias), len(pendencias), min(datas).isoformat() if datas else None)
             if pendencias:
                 return {"versao_modelo": "sauron.montecarlo/30d-v1", "horizonte_dias": 30, "disponivel": False,
                     "n": parametros["n"], "versao_dados": versao, "quantidade_incidencias": len(incidencias), "pendencias_total": len(pendencias),
                     "pendencias": pendencias[:100], "pendencias_limitadas": len(pendencias) > 100,
-                    "antes": None, "depois": None,
+                    "antes": None, "depois": None, "qualidade_dados": qualidade,
                     "aviso": "Dados insuficientes para calcular perdas. Use a atualização EPSS nesta página ou solicite ao responsável; confira as incidências indicadas. Não foi atribuído zero ou uma probabilidade derivada de CVSS."}
             entradas = []
             for i in incidencias:
@@ -86,6 +90,7 @@ def calcular_montecarlo(dados=None):
                 resultado = simular(entradas, **{k: parametros[k] for k in ("custos", "n", "seed", "teto")},
                     corrigidas=parametros["cves_corrigidas"] + parametros["incidencias_corrigidas"])
             resultado.update(parametros=parametros, versao_dados=versao,
+                qualidade_dados=qualidade,
                 quantidade_incidencias=len(incidencias), quantidade_ativos=len({i.ativo_id for i in incidencias}),
                 hipotese_epss="EPSS observado em até 2 dias é usado somente no horizonte de 30 dias. KEV é evidência de exploração e não cria piso numérico. Fatores de cenário, custos e independência entre vínculos são hipóteses, não calibração local.",
                 escopo="Abertas, em tratamento, mitigadas e aceitas em ativos ativos/em manutenção. Corrigidas e sugeridas excluídas.")

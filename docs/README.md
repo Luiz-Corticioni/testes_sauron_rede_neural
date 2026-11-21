@@ -15,6 +15,7 @@ em que foram escritos. Eles não são um certificado de que um servidor está se
 | Aprender o fluxo de telas e cada grupo de recursos | [Manual de uso](GUIA_DE_USO.md) |
 | Entender funções e limitações em linguagem simples | [Guia simples](GUIA_SIMPLES_REANALISE_2026-11-10.md) |
 | Entender a origem das informações de um ativo | [Procedência e evidências](RELATORIO_PROCEDENCIA_ATIVOS.md) |
+| Interpretar o índice de qualidade das evidências | [Qualidade dos dados](QUALIDADE_DADOS.md) |
 | Relacionar serviços de negócio aos ativos | [Serviços de negócio](RELATORIO_SERVICOS_NEGOCIO.md) |
 | Comparar uma intervenção e seu custo declarado | [Comparação de intervenções](RELATORIO_COMPARACAO_INTERVENCOES.md) |
 | Examinar uma premissa de análise FAIR | [Sensibilidade FAIR](RELATORIO_SENSIBILIDADE_FAIR.md) |
@@ -40,6 +41,7 @@ e ações depende das permissões de cada conta.
 - [Sprint 5: requisitos, evidências e pendências](SPRINT5_RASTREABILIDADE.md).
 - [Fase 0: resultados parciais e pendências](RELATORIO_FASE_0_2026-11-20.md).
 - [Fase 0: credenciais e PostgreSQL](RELATORIO_FASE_0_2026-11-21.md).
+- [Fase 1: qualidade, fontes e pendências](RELATORIO_FASE_1_2026-11-21.md).
 - [Licença Apache 2.0 e componentes de terceiros](DECISAO_LICENCA.md).
 - [Registro da aplicação da licença](RELATORIO_LICENCA_2026-11-21.md).
 

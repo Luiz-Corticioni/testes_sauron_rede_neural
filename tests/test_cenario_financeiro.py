@@ -21,6 +21,8 @@ class CenáriosFinanceiros(BancoTeste):
                         controle='Hipótese de controle', custo_hora=Decimal('0'), custo_adicional=Decimal('100'))
         secundaria = {'probabilidade': 1., 'minimo': 10., 'moda': 20., 'maximo': 30.}
         r = calcular_cenario(c, self.usuario, n=1000, seed=7, limite=100, secundaria=secundaria)
+        self.assertIsNone(r['qualidade_dados']['score'])
+        self.assertIsNone(r['qualidade_dados']['componentes'][-1]['percentual'])
         self.assertEqual(r, calcular_cenario(c, self.usuario, n=1000, seed=7, limite=100, secundaria=secundaria))
         self.assertEqual(r['componentes']['media_primaria'], 100)
         self.assertEqual(r['componentes']['eventos_secundarios'], 1000)
@@ -46,6 +48,7 @@ class CenáriosFinanceiros(BancoTeste):
                    'secundaria_moda': '20', 'secundaria_max': '30', 'secundaria_origem': 'Exemplo fictício',
                    'secundaria_sem_sobreposicao': 'on'}
         resposta = self.client.post(url, entrada)
+        self.assertContains(resposta, 'Qualidade das evidências')
         self.assertContains(resposta, 'Composição da média simulada')
         self.assertContains(resposta, 'Quanto pode ultrapassar cada valor?')
         self.assertGreater(resposta.context['resultado']['componentes']['media_secundaria'], 0)
@@ -262,6 +265,8 @@ class CenáriosFinanceiros(BancoTeste):
                  "servicos-0-justificativa": "Custo adicional independente"}
         resposta = self.client.post(url, dados)
         self.assertContains(resposta, "Resultado da hipótese compartilhada")
+        self.assertContains(resposta, "Qualidade das evidências")
+        self.assertIsNone(resposta.context["resultado"]["qualidade_dados"]["score"])
         self.assertEqual(resposta.context["resultado"]["atual"]["media"], 30)
         dados["servicos-0-probabilidade_condicional"] = "0"
         resposta = self.client.post(url, dados)

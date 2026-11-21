@@ -27,7 +27,8 @@ def estado_consulta(fonte):
     dados = ler_estado(fonte)
     if not dados:
         return None
-    return {chave: {"data": valor["data"], "estado": valor["estado"], "descricao": DESCRICOES[valor["estado"]]}
+    descricoes = {**DESCRICOES, **({"resposta": "importação confirmada", "falha": "falha de processamento ou gravação"} if fonte == "scanner" else {})}
+    return {chave: {"data": valor["data"], "estado": valor["estado"], "descricao": descricoes[valor["estado"]]}
             for chave, valor in dados.items()}
 
 
@@ -43,11 +44,13 @@ def idade_segundos(data):
     return int(idade) if idade >= 0 else None
 
 
-def classificar_fonte(fogueira, disponiveis, consulta):
+def classificar_fonte(fogueira, disponiveis, consulta, parcial=False):
     """Resumo conservador; falha indica apenas o resultado da última tentativa."""
     ultimo = (consulta or {}).get("ultima", {}).get("estado")
     if ultimo in {"falha", "limitada"}:
         return {"codigo": "inacessivel", "rotulo": "Falha na última tentativa"}
+    if parcial:
+        return {"codigo": "incompleto", "rotulo": "Amostra incompleta; situação indeterminada"}
     if not disponiveis:
         return {"codigo": "vazio", "rotulo": "Sem dados locais válidos"}
     if fogueira == "desatualizada":
@@ -156,7 +159,7 @@ def resumo_fontes(ver_isca=False, ver_importacoes=False):
         (nvd, "NVD", nvd["ultima"], nvd["recentes"] + nvd["antigos"]),
         (epss, "FIRST EPSS", epss["ultima_coleta"], epss["recentes"] + epss["antigos"]),
     ):
-        item["resumo"] = {**classificar_fonte(item["fogueira"], disponiveis, item.get("consulta")),
+        item["resumo"] = {**classificar_fonte(item["fogueira"], disponiveis, item.get("consulta"), item.get("parcial", False)),
                           "origem": nome, "atualizado_em": data, "idade_segundos": idade_segundos(data)}
     if ver_importacoes:
         from inventario.models import RelatorioScanner
@@ -164,6 +167,7 @@ def resumo_fontes(ver_isca=False, ver_importacoes=False):
             "origem", "observado_em", "importado_em").first()
         resultado["importacoes"] = {"total": RelatorioScanner.objects.count(), "ultima": ultimo,
             "idade_observacao_segundos": idade_segundos(ultimo["observado_em"]) if ultimo else None,
+            "consulta": estado_consulta("scanner"),
             "estado": "Importação manual; validade e cobertura não determinadas" if ultimo else "Sem importações"}
     if ver_isca:
         from inventario.models import EventoHoneypot, SensorHoneypot

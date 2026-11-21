@@ -57,6 +57,12 @@ def detalhe(request, pk):
     servico = get_object_or_404(ServicoNegocio.objects.select_related('perimetro', 'criado_por'), pk=pk)
     membros = servico.perimetro.membros.select_related('ativo').order_by('ativo_id')[:100]
     contexto = {'servico': servico, 'membros': membros}
+    from inventario.aplicacao.qualidade_dados import PERMISSOES as PERMISSOES_QUALIDADE, qualidade_servico
+    if request.user.has_perms(PERMISSOES_QUALIDADE):
+        try:
+            contexto['qualidade'] = qualidade_servico(request.user, servico.pk)
+        except (ValidationError, ValueError):
+            contexto['qualidade_erro'] = 'Não foi possível avaliar a qualidade deste perímetro; revise os limites e dados.'
     if request.user.has_perms(('inventario.view_incidencia', 'inventario.view_vulnerabilidade')):
         contexto['incidencias'] = Incidencia.objects.filter(
             ativo_id__in=servico.perimetro.membros.values('ativo_id')).select_related(

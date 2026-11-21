@@ -1,7 +1,9 @@
 import json
 from pathlib import Path
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.contrib.auth import get_user_model
+from unittest.mock import patch
 from inventario.aplicacao.scanner import extrair
 from inventario.models import Incidencia, RelatorioScanner, RevisaoAchadoScanner
 from .base import BancoTeste
@@ -94,3 +96,21 @@ class ScannerTeste(BancoTeste):
         self.assertEqual(resposta.context['resumo']['APLICAVEL'], 0)
         self.assertEqual(resposta.context['pagina'][0]['indice'], 1)
         self.assertContains(resposta, url)
+
+    def test_perda_de_permissao_apos_trava_impede_gravacao_e_revisao(self):
+        from inventario.aplicacao.scanner import gravar, revisar
+        from inventario.infraestrutura.auditoria import travar_escrita
+
+        conteudo = json.dumps(self.doc).encode()
+        relatorio, _ = gravar(self.a.pk, "imagem", "teste", conteudo, self.usuario)
+        def revogar_apos_trava():
+            travar_escrita()
+            get_user_model().objects.filter(pk=self.usuario.pk).update(is_active=False)
+
+        with patch("inventario.aplicacao.scanner.travar_escrita", side_effect=revogar_apos_trava):
+            with self.assertRaises(PermissionDenied):
+                gravar(self.b.pk, "imagem", "teste", conteudo, self.usuario)
+            with self.assertRaises(PermissionDenied):
+                revisar(relatorio.pk, 0, "INCONCLUSIVO", "Revisão fictícia", self.usuario)
+        self.assertEqual(RelatorioScanner.objects.count(), 1)
+        self.assertFalse(RevisaoAchadoScanner.objects.exists())

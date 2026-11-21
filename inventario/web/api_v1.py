@@ -136,6 +136,50 @@ def ativos_afetados(request, pk):
     return paginar(request, registros)
 
 
+def qualidade(request, pk, entidade):
+    from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
+    from inventario.aplicacao.qualidade_dados import PERMISSOES, qualidade_ativo, qualidade_servico
+
+    permissoes = PERMISSOES + (("inventario.view_serviconegocio",) if entidade == "servico" else ())
+    erro = verificar(request, permissoes)
+    if erro:
+        return erro
+    try:
+        if entidade == "servico":
+            resultado = qualidade_servico(request.user, pk)
+        else:
+            valor = request.GET.get("perimetro", "")
+            perimetro = int(valor) if valor else None
+            tipo = request.GET.get("tipo", "REDE")
+            principal = request.GET.get("principal", "").strip()
+            if (perimetro is not None and perimetro < 1) or tipo not in {"REDE", "NEGOCIO", "IDENTIDADE"} or len(principal) > 200:
+                raise ValueError
+            resultado = qualidade_ativo(request.user, pk, perimetro, tipo, principal)
+        resposta = JsonResponse(resultado)
+        resposta["Cache-Control"] = "no-store"
+        return resposta
+    except (ValueError, ValidationError):
+        return problema(422, "Parâmetro inválido", "Confira o perímetro, a camada e o principal informados.")
+    except ObjectDoesNotExist:
+        return problema(404, "Não encontrado", "Ativo, serviço ou perímetro não encontrado.")
+    except PermissionDenied:
+        return problema(403, "Acesso negado", "A conta não possui as permissões necessárias.")
+
+
+def qualidade_fontes(request):
+    erro = verificar(request, ("inventario.view_vulnerabilidade",))
+    if erro:
+        return erro
+    from inventario.aplicacao.documentos import LEITURA as LEITURA_DOCUMENTOS
+    from inventario.aplicacao.estado_fontes import resumo_fontes
+
+    resposta = JsonResponse(resumo_fontes(
+        ver_isca=request.user.has_perms(("inventario.view_ativo", "inventario.view_sensorhoneypot", "inventario.view_eventohoneypot")),
+        ver_importacoes=request.user.has_perms(LEITURA_DOCUMENTOS)))
+    resposta["Cache-Control"] = "no-store"
+    return resposta
+
+
 def especificacao(request):
     erro = verificar(request, ())
     if erro:

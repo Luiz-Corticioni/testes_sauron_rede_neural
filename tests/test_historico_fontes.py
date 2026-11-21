@@ -77,3 +77,34 @@ class HistoricoConsultaFontes(BancoTeste):
         self.assertEqual(estado["ultima"]["estado"], "resposta")
         self.assertEqual(estado["ultima_falha"]["estado"], "falha")
         self.assertNotIn("segredo", (settings.DATA_DIR / "estado_fontes" / "kev.json").read_text())
+
+    def test_importacao_scanner_registra_falha_e_sucesso_apos_commit(self):
+        import json
+        from django.core.exceptions import ValidationError
+        from inventario.aplicacao.scanner import gravar
+
+        with self.assertRaises(ValidationError):
+            gravar(self.a.pk, "imagem", "origem", b'{"segredo":', self.usuario)
+        self.assertEqual(ler_estado("scanner")["ultima"]["estado"], "falha")
+        conteudo = json.dumps({"SchemaVersion": 2, "CreatedAt": "2026-11-13T12:00:00Z", "Results": []}).encode()
+        with self.captureOnCommitCallbacks(execute=True):
+            gravar(self.a.pk, "imagem", "origem", conteudo, self.usuario)
+        dados = ler_estado("scanner")
+        self.assertEqual(dados["ultima"]["estado"], "resposta")
+        self.assertEqual(dados["ultima_falha"]["estado"], "falha")
+        self.assertNotIn("segredo", (settings.DATA_DIR / "estado_fontes" / "scanner.json").read_text())
+        self.assertContains(self.client.get("/fontes/"), "importação confirmada")
+
+    def test_importacao_revertida_nao_registra_sucesso(self):
+        import json
+        from django.db import transaction
+        from inventario.aplicacao.scanner import gravar
+        from inventario.models import RelatorioScanner
+
+        conteudo = json.dumps({"SchemaVersion": 2, "CreatedAt": "2026-11-13T12:00:00Z", "Results": []}).encode()
+        with self.assertRaisesMessage(RuntimeError, "rollback"):
+            with transaction.atomic():
+                gravar(self.a.pk, "imagem", "origem", conteudo, self.usuario)
+                raise RuntimeError("rollback")
+        self.assertFalse(RelatorioScanner.objects.exists())
+        self.assertIsNone(ler_estado("scanner"))

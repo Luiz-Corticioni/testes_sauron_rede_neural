@@ -12,6 +12,19 @@ from .test_fair_matematica import exemplo
 
 
 class FluxoFAIR(BancoTeste):
+    def test_criacao_revalida_autorizacao_apos_trava(self):
+        from unittest.mock import patch
+        from inventario.infraestrutura.auditoria import travar_escrita
+
+        def revogar_apos_trava():
+            travar_escrita()
+            get_user_model().objects.filter(pk=self.usuario.pk).update(is_active=False)
+
+        with patch("inventario.aplicacao.fair.travar_escrita", side_effect=revogar_apos_trava):
+            with self.assertRaises(PermissionDenied):
+                criar(self.modelo(), self.usuario, True)
+        self.assertFalse(CenarioFAIR.objects.exists())
+
     def test_sensibilidade_fair_extremos_sem_alterar_cenario(self):
         from copy import deepcopy
         from inventario.aplicacao.sensibilidade_fair import analisar
@@ -112,7 +125,11 @@ class FluxoFAIR(BancoTeste):
         self.assertEqual(registro.usuario_id, self.usuario.pk)
         self.assertNotIn('100', str(registro.detalhes))
         self.assertTrue(registro.detalhes['custos_distintos_declarados'])
-        self.assertEqual(calcular(cenario, self.usuario, n=100, seed=7)['versao_modelo'], 'sauron.fair/30d-v2')
+        resultado = calcular(cenario, self.usuario, n=100, seed=7)
+        self.assertEqual(resultado['versao_modelo'], 'sauron.fair/30d-v2')
+        self.assertIsNone(resultado['qualidade_dados']['score'])
+        self.assertEqual(resultado['qualidade_dados']['componentes'][0]['percentual'], 100)
+        self.assertTrue(resultado['qualidade_dados']['componentes'][0]['fontes_declaradas'])
         with self.assertRaises(ValueError):
             criar(self.modelo(), self.usuario, False)
         with self.assertRaises(ValidationError):

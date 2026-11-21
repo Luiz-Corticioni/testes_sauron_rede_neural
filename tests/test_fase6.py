@@ -177,12 +177,16 @@ class HorizonteEOrientacao(BancoTeste):
         self.assertFalse(r["disponivel"])
         self.assertIsNone(r["antes"])
         self.assertEqual(r["pendencias_total"], 2)
+        self.assertIsNone(r["qualidade_dados"]["score"])
+        self.assertEqual(r["qualidade_dados"]["componentes"][0]["percentual"], 0)
 
     def test_ep_ss_recente_retornam_30_dias_sem_campos_anuais(self):
         self.preparar()
         r = self.calcular()
         self.assertTrue(r["disponivel"])
         self.assertEqual(r["horizonte_dias"], 30)
+        self.assertEqual(r["qualidade_dados"]["componentes"][0]["percentual"], 100)
+        self.assertIsNone(r["qualidade_dados"]["score"])
         self.assertEqual(r["entradas"][0]["probabilidade_cenario_30d"], .1)
         self.assertFalse({"ALE", "mensal", "ganho_ALE"} & set(r))
         self.assertNotIn("ALE", r["antes"])

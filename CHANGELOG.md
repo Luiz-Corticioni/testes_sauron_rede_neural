@@ -3,6 +3,7 @@
 ## Não lançado — Sprint 5
 
 - Fontes: histórico sanitizado de tentativas KEV e resumo de atualidade, idade e lacunas; importações de scanner visíveis somente com permissão.
+- Índice de completude de evidências por ativo e serviço; simulação informa cobertura EPSS e componentes financeiros indeterminados, sem alterar o risco.
 
 - API v1: seleção incremental para páginas ordenadas por risco; ausência de um resultado deixa de ser tratada como risco zero. O cálculo global do modelo mantém seus custos e limitações.
 - Medição reproduzível do modelo matemático em grafos sintéticos de 10 mil e 100 mil ativos, com pico de memória do processo e limitações documentadas.

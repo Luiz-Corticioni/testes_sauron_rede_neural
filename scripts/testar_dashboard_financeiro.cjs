@@ -55,11 +55,13 @@ assert.equal(no("mc-contexto-aplicar").disabled, true);
   const resumo = {media:12000, P5:0, P50:0, P90:10000, P95:20000, P99:40000, probabilidade_perda:.2};
   resposta = {horizonte_dias:30, disponivel:true, antes:resumo, depois:resumo, ganho_media:1000,
     excedencia:[{perda:0, probabilidade:.2, probabilidade_depois:.1}], contribuicoes:[], entradas:[],
-    hipotese_epss:"hipótese", escopo:"escopo", n:100, seed:42, quantidade_ativos:1, quantidade_incidencias:1};
+    hipotese_epss:"hipótese", escopo:"escopo", n:100, seed:42, quantidade_ativos:1, quantidade_incidencias:1,
+    qualidade_dados:{score:null, aviso:"Não mede risco.", componentes:[{nome:"EPSS",percentual:100,origem:"teste"}]}};
   await temporizador();
   assert.match(no("mc-kpi-media").textContent, /12\.000/);
   assert.match(no("mc-kpi-p95").textContent, /20\.000/);
   assert.match(no("mc-kpi-perda").textContent, /20%/);
+  assert.match(no("mc-qualidade").textContent, /índice indisponível.*EPSS: 100%/);
   resposta = {...resposta, quantidade_incidencias:0};
   parametros.eventos.submit({preventDefault(){}});
   await temporizador();

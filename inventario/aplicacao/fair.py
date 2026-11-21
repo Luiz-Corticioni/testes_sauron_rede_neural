@@ -20,6 +20,7 @@ def criar(cenario, usuario, sem_sobreposicao):
     if sem_sobreposicao is not True:
         raise ValueError('Confirme que as parcelas de perda são distintas e cabem nos 30 dias.')
     travar_escrita()
+    usuario = exigir(usuario, *ESCRITA)
     cenario.criado_por = usuario
     cenario.full_clean()
     with usar_usuario(usuario):
@@ -35,7 +36,10 @@ def calcular(cenario, usuario, n=10000, seed=42):
     if cenario.versao_modelo not in ('sauron.fair/30d-v1', 'sauron.fair/30d-v2'):
         raise ValueError('Versão do modelo não suportada; preserve o cenário e procure atualização compatível.')
     with vaga_simulacao():
-        return simular(cenario.premissas, n=n, seed=seed)
+        resultado = simular(cenario.premissas, n=n, seed=seed)
+    from inventario.aplicacao.qualidade_dados import qualidade_premissas
+    resultado['qualidade_dados'] = qualidade_premissas(cenario)
+    return resultado
 
 
 def snapshot(cenario):

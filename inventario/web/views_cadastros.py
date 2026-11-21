@@ -130,10 +130,22 @@ def listar_ativos(request):
 
 def detalhe_ativo(request, pk):
     ativo = get_object_or_404(Ativo.objects.select_related("sala"), pk=pk)
+    contexto = ficha_ativo(ativo, request.user)
+    if "qualidade" in contexto and request.GET.get("qualidade_perimetro"):
+        from django.core.exceptions import ObjectDoesNotExist, ValidationError
+        from inventario.aplicacao.qualidade_dados import qualidade_ativo
+        try:
+            perimetro = int(request.GET["qualidade_perimetro"])
+            tipo = request.GET.get("qualidade_tipo", "REDE")
+            if perimetro < 1 or tipo not in {"REDE", "NEGOCIO"}:
+                raise ValueError
+            contexto["qualidade"] = qualidade_ativo(request.user, ativo.pk, perimetro, tipo)
+        except (ValueError, ValidationError, ObjectDoesNotExist):
+            contexto["qualidade_erro"] = "Selecione um perímetro ao qual o ativo pertence e uma camada válida."
     return render(
         request,
         "inventario/ativo_detalhe.html",
-        ficha_ativo(ativo, request.user),
+        contexto,
     )
 
 
