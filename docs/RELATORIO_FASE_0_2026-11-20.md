@@ -61,11 +61,14 @@ Suíte Django inicial: 538 testes passaram; após a alteração, 539 testes pass
 O validador OpenAPI e os onze scripts JavaScript do workflow passaram;
 `python scripts/check_producao.py` informou nenhum problema.
 
-O teste `scripts/testar_smtp_local.py` falhou com `WinError 10013` ao tentar
-conectar ao servidor SMTP local no ambiente restrito desta execução. Não foi
-possível avaliar por esse teste a entrega externa de e-mails. `pip-audit -r
+O teste `scripts/testar_smtp_local.py` inicialmente falhou com `WinError 10013`
+ao tentar conectar ao servidor local no ambiente restrito. Após liberar acesso
+de rede para a execução, passou com STARTTLS, certificado e autenticação
+simulados. Não testa entrega externa de e-mails. `pip-audit -r
 requirements.txt` falhou ao tentar preparar ferramentas do ambiente isolado;
-nenhuma conclusão sobre vulnerabilidades atuais das dependências é possível.
+uma segunda tentativa com `--disable-pip --no-deps` foi interrompida após não
+apresentar resultado. Nenhuma conclusão sobre vulnerabilidades atuais das
+dependências é possível.
 
 Tokens máquina-a-máquina ainda não foram implementados. A integração deve
 considerar que a API atual depende do middleware de sessão e MFA, sem abrir
