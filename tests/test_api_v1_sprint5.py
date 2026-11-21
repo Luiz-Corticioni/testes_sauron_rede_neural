@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from unittest.mock import patch
 
 from .base import BancoTeste
 
@@ -34,6 +35,21 @@ class ConsultasV1(BancoTeste):
         self.assertEqual(self.client.get("/api/v1/ativos/").status_code, 200)
         self.assertEqual(self.client.get("/api/v1/ativos/", {"ordenar": "-risco"}).status_code, 403)
         self.assertEqual(self.client.get(f"/api/v1/vulnerabilidades/{self.v.pk}/ativos/").status_code, 403)
+
+    def test_paginacao_risco_desempata_por_id_e_nao_inventa_zero(self):
+        ids = sorted([self.a.pk, self.b.pk])
+        resultado = {"ids_ativos": ids, "risco_efetivo": [3.0, 3.0]}
+        with patch("inventario.aplicacao.risco.calcular_risco_banco", return_value=resultado):
+            for pagina, pk in enumerate(ids, 1):
+                resposta = self.client.get("/api/v1/ativos/", {"ordenar": "-risco", "tamanho": 1, "pagina": pagina})
+                self.assertEqual(resposta.status_code, 200)
+                self.assertEqual(resposta.json()["resultados"][0]["id"], pk)
+                self.assertEqual(resposta.json()["total"], 2)
+            self.assertEqual(self.client.get("/api/v1/ativos/", {"ordenar": "-risco", "pagina": 3, "tamanho": 1}).status_code, 404)
+        resultado["ids_ativos"].pop()
+        resultado["risco_efetivo"].pop()
+        with patch("inventario.aplicacao.risco.calcular_risco_banco", return_value=resultado):
+            self.assertEqual(self.client.get("/api/v1/ativos/", {"ordenar": "-risco"}).status_code, 503)
 
     def test_ativos_afetados_por_vulnerabilidade(self):
         resposta = self.client.get(f"/api/v1/vulnerabilidades/{self.v.pk}/ativos/")

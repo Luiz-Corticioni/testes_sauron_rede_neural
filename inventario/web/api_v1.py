@@ -3,6 +3,7 @@
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.db.models import Q
+from heapq import nsmallest
 from inventario.models import Ativo, Incidencia, Vulnerabilidade
 
 
@@ -42,17 +43,36 @@ def paginar(request, registros):
                          "paginas": paginador.num_pages, "resultados": list(parte.object_list)})
 
 
-def ativos_por_risco(qs, campos):
-    """Reutiliza o cálculo de risco existente sem alterar o significado do score."""
+def ativos_por_risco(qs, campos, inicio, fim):
+    """Seleciona IDs incrementalmente e carrega os campos apenas da página."""
     from inventario.aplicacao.risco import calcular_risco_banco
 
     resultado = calcular_risco_banco(perfil="puro")
     riscos = dict(zip(resultado["ids_ativos"], resultado["risco_efetivo"], strict=True))
-    registros = list(qs.order_by("id").values(*campos))
-    for item in registros:
-        item["risco_efetivo"] = riscos.get(item["id"], 0.0)
-    registros.sort(key=lambda item: (-item["risco_efetivo"], item["id"]))
-    return registros
+    ids = nsmallest(fim, qs.order_by().values_list("id", flat=True).iterator(),
+                    key=lambda pk: (-riscos[pk], pk))[inicio:fim]
+    registros = {item["id"]: item for item in qs.filter(id__in=ids).values(*campos)}
+    return [{**registros[pk], "risco_efetivo": riscos[pk]} for pk in ids]
+
+
+def paginar_risco(request, qs, campos):
+    try:
+        pagina = int(request.GET.get("pagina", "1"))
+        tamanho = int(request.GET.get("tamanho", "25"))
+        if pagina < 1 or not 1 <= tamanho <= 100:
+            raise ValueError
+    except ValueError:
+        return problema(422, "Parâmetro inválido", "Use página positiva e tamanho entre 1 e 100.")
+    paginador = Paginator(qs.order_by("id"), tamanho)
+    if pagina > paginador.num_pages:
+        return problema(404, "Página não encontrada", "A página solicitada não existe.")
+    inicio = (pagina - 1) * tamanho
+    try:
+        registros = ativos_por_risco(qs, campos, inicio, inicio + tamanho)
+    except KeyError:
+        return problema(503, "Risco indisponível", "O inventário mudou durante o cálculo. Tente novamente.")
+    return JsonResponse({"pagina": pagina, "tamanho": tamanho, "total": paginador.count,
+                         "paginas": paginador.num_pages, "resultados": registros})
 
 
 def ativos(request):
@@ -74,7 +94,7 @@ def ativos(request):
                       "inventario.view_dependencia")
         if not request.user.has_perms(permissoes):
             return problema(403, "Acesso negado", "A ordenação por risco exige acesso ao modelo de risco.")
-        registros = ativos_por_risco(qs, campos)
+        return paginar_risco(request, qs, campos)
     else:
         registros = qs.order_by(ordem, "id").values(*campos) if ordem != "id" else qs.order_by("id").values(*campos)
     return paginar(request, registros)
