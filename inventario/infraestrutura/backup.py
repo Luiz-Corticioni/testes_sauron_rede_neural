@@ -57,7 +57,7 @@ def backup_sqlite(retencao=None):
         tabelas=set(connection.introspection.table_names())
         aplicadas=MigrationRecorder(connection).applied_migrations()
         for modelo in apps.get_models():
-            if not modelo._meta.managed or modelo._meta.proxy or modelo._meta.label_lower in ("sessions.session", "inventario.limitelogin"):
+            if not modelo._meta.managed or modelo._meta.proxy or modelo._meta.label_lower in ("sessions.session", "inventario.limitelogin", "inventario.credencialapi", "inventario.limiteorigemapi"):
                 continue
             if modelo._meta.db_table not in tabelas:
                 if (modelo._meta.label_lower=="inventario.dispositivoemail"

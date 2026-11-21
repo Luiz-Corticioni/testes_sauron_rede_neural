@@ -17,6 +17,10 @@ class AcessoObrigatorioMiddleware(LoginRequiredMiddleware):
     def process_view(self, request, view_func, view_args, view_kwargs):
         if request.resolver_match.url_name in {"entrar", "api_saude"}:
             return None
+        if (request.resolver_match.url_name in {"api_v1_ativos", "api_v1_ativos_afetados"}
+                and request.headers.get("Authorization", "").startswith("Bearer ")):
+            # Apenas essas views validam o token e seu escopo; nenhuma outra rota é liberada.
+            return None
         if not request.user.is_authenticated:
             if request.path.startswith("/api/v1/"):
                 from inventario.web.api_v1 import problema

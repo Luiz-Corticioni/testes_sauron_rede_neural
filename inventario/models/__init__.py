@@ -27,3 +27,4 @@ from inventario.models.cenario_financeiro import CenarioFinanceiro
 from inventario.models.scanner import RelatorioScanner, RevisaoAchadoScanner
 from inventario.models.fair import CenarioFAIR, ExecucaoFAIR
 from inventario.models.servicos_negocio import ServicoNegocio
+from inventario.models.credenciais_api import CredencialAPI, LimiteOrigemAPI

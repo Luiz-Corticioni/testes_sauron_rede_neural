@@ -6,6 +6,7 @@ from inventario.web import views
 from inventario.web import views_paginas
 from inventario.web import views_servicos_negocio
 from inventario.web import api_v1
+from inventario.web import api_credenciais
 from inventario.web import views_honeypot
 from inventario.web import views_fontes
 from inventario.web import views_cenario_financeiro
@@ -41,6 +42,8 @@ PERMISSOES_RISCO = (
 
 
 urlpatterns = [
+    path("api/v1/credenciais/", api_credenciais.gerenciar, name="api_v1_credencial_criar"),
+    path("api/v1/credenciais/<uuid:identificador>/<str:acao>/", api_credenciais.gerenciar, name="api_v1_credencial_gerenciar"),
     path('servicos-negocio/', proteger(views_servicos_negocio.lista, *LEITURA_COBERTURA, 'inventario.view_serviconegocio'), name='servicos_negocio'),
     path('servicos-negocio/novo/', proteger(views_servicos_negocio.formulario, *LEITURA_COBERTURA, 'inventario.view_serviconegocio', 'inventario.add_serviconegocio'), name='servico_negocio_novo'),
     path('servicos-negocio/<int:pk>/', proteger(views_servicos_negocio.detalhe, *LEITURA_COBERTURA, 'inventario.view_serviconegocio'), name='servico_negocio'),

@@ -38,6 +38,10 @@ class Regressao(BancoTeste):
                     kwargs[chave] = "ativos"
                 elif chave == "cve_id":
                     kwargs[chave] = self.v.cve_id
+                elif chave == "identificador":
+                    kwargs[chave] = "00000000-0000-0000-0000-000000000000"
+                elif chave == "acao":
+                    kwargs[chave] = "revogar"
                 elif chave in ("indice", "execucao_id", "origem_pk"):
                     kwargs[chave] = 0
                 elif chave == "pk":

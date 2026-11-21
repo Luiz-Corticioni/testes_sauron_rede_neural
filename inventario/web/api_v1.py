@@ -15,13 +15,32 @@ def problema(status, titulo, detalhe):
     return resposta
 
 
-def verificar(request, permissoes):
-    if not request.user.is_authenticated:
-        return problema(401, "Autenticação necessária", "Entre e conclua o segundo fator.")
+def verificar(request, permissoes, escopo=None):
     if request.method != "GET":
         resposta = problema(405, "Método não permitido", "Use GET nesta rota.")
         resposta["Allow"] = "GET"
         return resposta
+    autorizacao = request.headers.get("Authorization", "")
+    if escopo and autorizacao.startswith("Bearer "):
+        from django.core.exceptions import PermissionDenied
+        from inventario.aplicacao.credenciais_api import autenticar, limitar_origem, CredencialInvalida, LimiteCredencial
+        from inventario.seguranca import ip_cliente
+        try:
+            if not limitar_origem(ip_cliente(request)):
+                raise LimiteCredencial
+            request.user = autenticar(autorizacao[7:], escopo)
+        except CredencialInvalida:
+            from inventario.infraestrutura.auditoria import registrar_evento
+            registrar_evento("CREDENCIAL_API_NEGADA", "HTTP", request.path, {"motivo": "invalida"})
+            return problema(401, "Credencial inválida", "A credencial é inválida, expirou ou foi revogada.")
+        except PermissionDenied:
+            return problema(403, "Acesso negado", "A credencial não permite esta consulta.")
+        except LimiteCredencial:
+            resposta = problema(429, "Limite excedido", "Aguarde antes de repetir a consulta.")
+            resposta["Retry-After"] = "60"
+            return resposta
+    if not request.user.is_authenticated:
+        return problema(401, "Autenticação necessária", "Entre e conclua o segundo fator.")
     if not request.user.has_perms(permissoes):
         return problema(403, "Acesso negado", "A conta não possui as permissões necessárias.")
     return None
@@ -80,7 +99,8 @@ def paginar_risco(request, qs, campos):
 
 
 def ativos(request):
-    erro = verificar(request, ("inventario.view_ativo",))
+    escopo = "risco" if request.GET.get("ordenar") == "-risco" else "ativos"
+    erro = verificar(request, ("inventario.view_ativo",), escopo)
     if erro:
         return erro
     ordem = request.GET.get("ordenar", "id")
@@ -106,7 +126,7 @@ def ativos(request):
 
 def ativos_afetados(request, pk):
     erro = verificar(request, ("inventario.view_ativo", "inventario.view_vulnerabilidade",
-                               "inventario.view_incidencia"))
+                               "inventario.view_incidencia"), "incidencias")
     if erro:
         return erro
     if not Vulnerabilidade.objects.filter(pk=pk).exists():

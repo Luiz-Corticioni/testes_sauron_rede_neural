@@ -3,7 +3,7 @@
   "info": {
     "title": "Sauron — API de consultas v1",
     "version": "1.0.0",
-    "description": "Consultas autenticadas por sessão Django com MFA concluído. A documentação cobre somente as duas rotas v1 descritas; as rotas antigas não estão incluídas. Escritas não são oferecidas por esta versão."
+    "description": "Consultas por sessão Django com MFA ou credencial de integração restrita por escopo. Emissão e gestão exigem sessão administrativa, MFA e reautenticação."
   },
   "security": [
     {
@@ -15,7 +15,7 @@
       "get": {
         "operationId": "listarAtivos",
         "summary": "Listar ativos com paginação, busca e ordenação",
-        "description": "A ordem -risco usa o risco efetivo do perfil puro e exige também acesso a vulnerabilidades, incidências e dependências.",
+        "description": "A ordem -risco usa o risco efetivo do perfil puro e exige também acesso a vulnerabilidades, incidências e dependências. Token: escopo ativos, ou risco para ordenar=-risco.",
         "parameters": [
           {
             "name": "pagina",
@@ -145,8 +145,26 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Limite de requisições excedido",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "sessao": []
+          },
+          {
+            "integracao": []
+          }
+        ]
       }
     },
     "/api/v1/vulnerabilidades/{pk}/ativos/": {
@@ -260,8 +278,399 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Limite de requisições excedido",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessao": []
+          },
+          {
+            "integracao": []
+          }
+        ],
+        "description": " Token: escopo incidencias."
+      }
+    },
+    "/api/v1/credenciais/": {
+      "post": {
+        "operationId": "criarCredencial",
+        "summary": "Criar credencial de leitura",
+        "security": [
+          {
+            "sessao": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "escopos": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "ativos",
+                        "risco",
+                        "incidencias"
+                      ]
+                    }
+                  },
+                  "dias": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 90
+                  }
+                },
+                "required": [
+                  "escopos",
+                  "dias"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Concluído",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "escopos",
+                    "expira_em",
+                    "segredo"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "escopos": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "ativos",
+                          "risco",
+                          "incidencias"
+                        ]
+                      }
+                    },
+                    "expira_em": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "segredo": {
+                      "type": "string",
+                      "description": "Exibido uma única vez; nunca registre em logs."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão necessária",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "MFA, CSRF ou autorização necessária",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Credencial não encontrada",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
           }
         }
+      },
+      "get": {
+        "operationId": "listarCredenciais",
+        "summary": "Listar credenciais do administrador sem segredos",
+        "security": [
+          {
+            "sessao": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "pagina",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de credenciais"
+          },
+          "401": {
+            "description": "Sessão necessária"
+          },
+          "403": {
+            "description": "Acesso negado"
+          },
+          "404": {
+            "description": "Página não encontrada"
+          },
+          "422": {
+            "description": "Parâmetro inválido"
+          }
+        }
+      }
+    },
+    "/api/v1/credenciais/{identificador}/rotacionar/": {
+      "post": {
+        "operationId": "rotacionarCredencial",
+        "summary": "Rotacionar credencial de leitura",
+        "security": [
+          {
+            "sessao": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "dias": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 90
+                  }
+                },
+                "required": [
+                  "dias"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Concluído",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "escopos",
+                    "expira_em",
+                    "segredo"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "escopos": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "ativos",
+                          "risco",
+                          "incidencias"
+                        ]
+                      }
+                    },
+                    "expira_em": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "segredo": {
+                      "type": "string",
+                      "description": "Exibido uma única vez; nunca registre em logs."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sessão necessária",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "MFA, CSRF ou autorização necessária",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Credencial não encontrada",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "identificador",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/credenciais/{identificador}/revogar/": {
+      "post": {
+        "operationId": "revogarCredencial",
+        "summary": "Revogar credencial de leitura",
+        "security": [
+          {
+            "sessao": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Concluído"
+          },
+          "401": {
+            "description": "Sessão necessária",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "MFA, CSRF ou autorização necessária",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Credencial não encontrada",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "identificador",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     }
   },
@@ -272,6 +681,11 @@
         "in": "cookie",
         "name": "sessionid",
         "description": "Sessão estabelecida em /entrar/ e verificada em /mfa/. O cookie isolado não substitui o segundo fator."
+      },
+      "integracao": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Credencial de integração com escopo explícito; não é JWT. Somente as duas rotas de consulta aceitam esta autenticação."
       }
     },
     "schemas": {
