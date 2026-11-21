@@ -3,6 +3,9 @@
 **Situação: fase não concluída.** Este registro distingue resultados locais de
 itens ainda pendentes; não é uma certificação da aplicação.
 
+**Atualização de 21/11/2026:** a licença Apache 2.0 foi escolhida pelo responsável;
+veja [a decisão](DECISAO_LICENCA.md).
+
 ## Demonstração operacional
 
 No estado inicial da branch foram executados `python manage.py test
@@ -142,6 +145,6 @@ PostgreSQL: passou com três exclusões de testes `TestCase` de backup, cobertos
 por cenário equivalente em `TransactionTestCase`. A latência e capacidade de
 produção do limitador não foram medidas.
 
-A escolha de licença permanece pendente em [DECISAO_LICENCA.md](DECISAO_LICENCA.md).
+A escolha da Apache 2.0 está registrada em [DECISAO_LICENCA.md](DECISAO_LICENCA.md).
 Faltam as verificações finais da fase, incluindo execução integral do CI e suas
 verificações na imagem atualizada.

@@ -1,9 +1,12 @@
 # Fase 0 — credenciais e validação PostgreSQL — 21/11/2026
 
 Este relatório complementa o [registro anterior](RELATORIO_FASE_0_2026-11-20.md).
-A fase permanece aberta: falta a decisão de licença e a medição ponta a ponta
-do cálculo de risco com banco e HTTP em 10 mil e 100 mil ativos; a implantação
+A fase permanece aberta: falta a medição ponta a ponta do cálculo de risco com
+banco e HTTP em 10 mil e 100 mil ativos; a implantação
 real e o CI da branch não foram verificados.
+
+O responsável escolheu a Apache 2.0 para o código próprio; a
+[decisão e os limites da verificação](DECISAO_LICENCA.md) foram registrados.
 
 ## Mudanças
 

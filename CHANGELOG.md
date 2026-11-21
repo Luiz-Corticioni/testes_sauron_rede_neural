@@ -6,7 +6,7 @@
 - Medição reproduzível do modelo matemático em grafos sintéticos de 10 mil e 100 mil ativos, com pico de memória do processo e limitações documentadas.
 - Backup PostgreSQL chamado dentro de transação existente é recusado com mensagem explícita para preservar o isolamento necessário; concorrência da auditoria verificada em banco temporário.
 - Credenciais de integração de leitura com escopos, expiração, rotação, revogação, limites por credencial e origem e auditoria; emissão exige superusuário com sessão, MFA, reautenticação e CSRF.
-- Decisão de licença registrada como pendente, sem selecionar uma licença pelo responsável.
+- Licença Apache 2.0 escolhida pelo responsável para o código próprio; avisos de componentes de terceiros preservados.
 
 - Sensores de isca, importação manual de eventos minimizados e alertas agrupados; sem coletor nem exposição de rede.
 

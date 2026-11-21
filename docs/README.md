@@ -40,7 +40,8 @@ e ações depende das permissões de cada conta.
 - [Sprint 5: requisitos, evidências e pendências](SPRINT5_RASTREABILIDADE.md).
 - [Fase 0: resultados parciais e pendências](RELATORIO_FASE_0_2026-11-20.md).
 - [Fase 0: credenciais e PostgreSQL](RELATORIO_FASE_0_2026-11-21.md).
-- [Licença: alternativas e decisão pendente](DECISAO_LICENCA.md).
+- [Licença Apache 2.0 e componentes de terceiros](DECISAO_LICENCA.md).
+- [Registro da aplicação da licença](RELATORIO_LICENCA_2026-11-21.md).
 
 - [Melhorias da curadoria — relatório e testes](RELATORIO_MELHORIAS_CURADORIA_2026-11-15.md).
 - [Análise dos CVEs da imagem Docker](RELATORIO_ANALISE_CVES_DOCKER_2026-11-15.md).
