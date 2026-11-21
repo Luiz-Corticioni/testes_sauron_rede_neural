@@ -304,6 +304,8 @@ class CenáriosFinanceiros(BancoTeste):
         dados = {"origem": "Estimativa sintética", "probabilidade_min": "0.1", "probabilidade_max": "0.8", "n": 100, "seed": 42}
         r = self.client.post(url, dados)
         self.assertContains(r, "Resultado por premissa")
+        self.assertContains(r, "Qualidade das evidências")
+        self.assertIsNone(r.context["resultado"]["qualidade_dados"]["score"])
         self.assertEqual(r.context["resultado"]["faixas"][0]["campo"], "probabilidade")
         dados["probabilidade_min"] = "0.6"
         self.assertContains(self.client.post(url, dados), "deve incluir o valor original")

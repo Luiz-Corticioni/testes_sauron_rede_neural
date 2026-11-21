@@ -40,6 +40,8 @@ class FluxoFAIR(BancoTeste):
         self.assertContains(self.client.get(f'/fair/{cenario.pk}/sensibilidade/'), 'não mede causalidade')
         resposta = self.client.post(f'/fair/{cenario.pk}/sensibilidade/', {'premissa': 'frequencia', 'n': '100', 'seed': '42'})
         self.assertContains(resposta, 'Premissa fixada no mínimo')
+        self.assertContains(resposta, 'Qualidade das evidências')
+        self.assertIsNone(resposta.context['resultado']['qualidade_dados']['score'])
         sem = get_user_model().objects.create_user('sem-sensibilidade-fair')
         with self.assertRaises(PermissionDenied):
             analisar(cenario, sem, 'frequencia', n=100)

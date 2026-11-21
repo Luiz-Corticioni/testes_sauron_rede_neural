@@ -130,5 +130,11 @@ def analisar_sensibilidade(cenario, usuario, faixas, n=10000, seed=42):
                 medias.append(simular_interrupcao(variante, n=n, seed=seed)["atual"]["media"])
             resultados.append({"campo": campo, "minimo": baixo, "maximo": alto,
                                "media_min": medias[0], "media_max": medias[1]})
+    from inventario.aplicacao.qualidade_dados import qualidade_premissas
+    from inventario.dominio.qualidade_dados import avaliar, componente
+    qualidade = qualidade_premissas(cenario)
+    origem_faixas = componente("faixas", "Origem das faixas de sensibilidade", None, None,
+        "Faixas da análise", motivo="O serviço não recebe nem verifica a origem informada na interface.")
     return {"versao_modelo": "sauron.sensibilidade/30d-v1", "n": n, "seed": seed,
-            "media_base": base, "faixas": resultados}
+            "media_base": base, "faixas": resultados,
+            "qualidade_dados": avaliar(qualidade["componentes"] + [origem_faixas])}

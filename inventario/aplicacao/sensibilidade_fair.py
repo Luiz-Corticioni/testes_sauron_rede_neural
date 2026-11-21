@@ -37,5 +37,7 @@ def analisar(cenario, usuario, fator, indice=None, n=1000, seed=42):
     with vaga_simulacao():
         medias = [simular(premissas, n=n, seed=seed)['perda']['media']
                   for premissas in (dados, *extremos)]
+    from inventario.aplicacao.qualidade_dados import qualidade_premissas
     return {'faixa': faixa, 'media_base': medias[0], 'media_min': medias[1], 'media_max': medias[2],
-            'n': n, 'seed': seed, 'modelo': cenario.versao_modelo}
+            'n': n, 'seed': seed, 'modelo': cenario.versao_modelo,
+            'qualidade_dados': qualidade_premissas(cenario)}

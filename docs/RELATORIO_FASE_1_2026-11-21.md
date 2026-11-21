@@ -45,7 +45,9 @@ um índice zero quando o cálculo estiver indisponível.
 
 Uma CVE vazia não é considerada evidência EPSS válida, mesmo quando um registro
 inconsistente repete esse valor vazio. O resultado de causa compartilhada também
-mostra os componentes de qualidade das premissas.
+mostra os componentes de qualidade das premissas. As análises de sensibilidade
+FAIR e financeira também mostram essa avaliação. No segundo fluxo, a origem das
+faixas permanece indeterminada no serviço, que não recebe o texto do formulário.
 
 ## Verificações realizadas
 
@@ -57,6 +59,8 @@ mostra os componentes de qualidade das premissas.
   não foi realizada.
 - Após os últimos ajustes, 62 testes focados de qualidade, Monte Carlo e
   cenários financeiros passaram novamente em container sem rede.
+- Após a extensão às análises de sensibilidade, 33 testes FAIR e financeiros
+  passaram em container sem rede.
 - A auditoria `pip-audit` das dependências não encontrou vulnerabilidades
   conhecidas; o Trivy não reportou CVEs nos pacotes de sistema e Python da imagem
   construída para esta verificação. Isso depende da base de dados e da imagem
