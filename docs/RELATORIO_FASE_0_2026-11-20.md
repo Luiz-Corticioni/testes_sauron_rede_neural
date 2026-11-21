@@ -68,6 +68,11 @@ O resultado é limitado à imagem e à base de vulnerabilidades naquela execuç�
 não demonstra ausência de falhas. Não foram desativados alertas nem alterada a
 política do workflow.
 
+Uma segunda imagem, contendo as credenciais e migrações novas, também foi
+exportada e analisada com Trivy 0.76.2: código 0, dois alvos e zero achados
+HIGH/CRITICAL. A análise usou arquivo montado somente para leitura, sem acesso
+ao socket Docker.
+
 Em PostgreSQL 16 temporário, isolado e acessível somente por loopback, todas as
 migrações passaram usando psycopg 3.2.12 instalado em pasta de testes, sem
 alteração das dependências do projeto. O teste `tests.test_postgres_concorrencia`
@@ -95,6 +100,10 @@ Suíte Django inicial: 538 testes passaram; após a alteração, 539 testes pass
 Na imagem Linux, com rede desativada, 542 testes foram executados com sucesso,
 dos quais dois testes exclusivos de PostgreSQL foram pulados; um terceiro teste
 de PostgreSQL foi acrescentado posteriormente e validado no banco temporário.
+Após a implementação das credenciais, a imagem atual executou 552 testes com
+sucesso e quatro exclusões exclusivas de PostgreSQL.
+No Windows, a suíte final executou 553 testes com quatro exclusões PostgreSQL,
+incluindo o teste adicional de isolamento entre administradores.
 `python -m pytest -q testes_pytest`:
 6 passaram; `ruff check .`, mypy no escopo de dois arquivos do CI, bandit e
 `makemigrations --check --dry-run` passaram. Bandit informou aviso de anotação
@@ -112,8 +121,27 @@ fixadas. A execução posterior `pip-audit -r requirements.txt --progress-spinne
 com resolução de dependências transitivas, também terminou sem vulnerabilidades
 conhecidas reportadas; o resultado depende da resolução e da base naquela data.
 
-Tokens máquina-a-máquina ainda não foram implementados. A integração deve
-considerar que a API atual depende do middleware de sessão e MFA, sem abrir
-exceções genéricas para rotas sensíveis. A escolha de licença está pendente em
-[DECISAO_LICENCA.md](DECISAO_LICENCA.md). Faltam as verificações finais da fase,
-incluindo execução integral do CI e suas verificações de imagem.
+## Credenciais de integração
+
+A API aceita credenciais `Bearer` apenas nas duas consultas de inventário,
+com escopos de leitura separados. Emissão, listagem, rotação e revogação são
+restritas ao superusuário proprietário por sessão; as escritas exigem MFA,
+reautenticação recente e CSRF. A credencial tem prazo de 1 a 90 dias, segredo
+aleatório exibido uma vez, hash persistido e limite por credencial e origem.
+A rotação é atômica e a trilha registra criação, uso, falhas e revogação sem o
+segredo. Backups e exportações excluem credenciais, evitando reativá-las após
+restauração. Detalhes e limitações: [guia](CREDENCIAIS_INTEGRACAO.md) e
+[ADR 014](adr/014-credenciais-integracao.md).
+
+Testes específicos cobriram credencial válida, inválida, expirada, revogada,
+sem escopo, rotação, rollback, rate limit, MFA, CSRF e reautenticação. No
+PostgreSQL, oito acessos concorrentes ao mesmo token respeitaram o limite de
+quatro no ensaio; o teste verificou ainda a cadeia de auditoria. O conjunto de
+API, credenciais, relações, cobertura e concorrência executou 95 testes no
+PostgreSQL: passou com três exclusões de testes `TestCase` de backup, cobertos
+por cenário equivalente em `TransactionTestCase`. A latência e capacidade de
+produção do limitador não foram medidas.
+
+A escolha de licença permanece pendente em [DECISAO_LICENCA.md](DECISAO_LICENCA.md).
+Faltam as verificações finais da fase, incluindo execução integral do CI e suas
+verificações na imagem atualizada.

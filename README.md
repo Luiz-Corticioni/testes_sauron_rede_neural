@@ -15,6 +15,7 @@ do ambiente.
 | Instalar e abrir no Linux | [Instalação Linux](docs/INSTALACAO_LINUX.md) |
 | Usar a interface, do cadastro aos relatórios | [Manual de uso](docs/GUIA_DE_USO.md) |
 | Criar o primeiro administrador e configurar o segundo fator | [Primeiro administrador e login](#primeiro-administrador-e-login) e [e-mail e MFA](docs/EMAIL_E_MFA.md) |
+| Integrar consultas com outra aplicação | [Credenciais de integração](docs/CREDENCIAIS_INTEGRACAO.md) |
 | Entender os resultados sem conhecimento técnico profundo | [Guia simples das funcionalidades](docs/GUIA_SIMPLES_REANALISE_2026-11-10.md) |
 | Executar com Docker ou implantar em servidor | [Docker](docs/DOCKER_TRABALHO_2.md) e [implantação](docs/IMPLANTACAO.md) |
 | Acompanhar requisitos da Sprint 5 | [Rastreabilidade e pendências](docs/SPRINT5_RASTREABILIDADE.md) |

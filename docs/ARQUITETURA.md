@@ -7,6 +7,11 @@ Fase 6: [consolidação de acesso, cenários de 30 dias e orientação](RELATORI
 Django 5.2; domínio e matemática independentes de HTTP, aplicação compartilhada por
 web/CLI/rotinas, persistência no ORM e infraestrutura de fontes/arquivos.
 
+Integrações podem consultar duas rotas v1 com credenciais restritas por escopo;
+emissão e gerenciamento continuam exigindo sessão administrativa com MFA e
+reautenticação. Veja [ADR 014](adr/014-credenciais-integracao.md) e
+[guia de credenciais](CREDENCIAIS_INTEGRACAO.md).
+
 ```mermaid
 flowchart LR
   Web --> Aplicacao

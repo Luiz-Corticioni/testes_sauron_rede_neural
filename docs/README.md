@@ -21,6 +21,7 @@ em que foram escritos. Eles não são um certificado de que um servidor está se
 | Importar resultados offline do OSV-Scanner | [Importação OSV](RELATORIO_IMPORTACAO_OSV.md) |
 | Repetir e planejar a validação do percurso de decisão | [Validação do percurso](VALIDACAO_DECISAO_SEGURANCA.md) |
 | Criar conta inicial, configurar SMTP/TOTP e recuperar acesso | [E-mail e MFA](EMAIL_E_MFA.md) |
+| Criar e revogar credenciais de integração de leitura | [Credenciais de integração](CREDENCIAIS_INTEGRACAO.md) |
 | Entender CVSS 3.1 e comparação com 4.0 | [Comparação CVSS](COMPARACAO_CVSS.md) |
 | Criar e interpretar um cenário financeiro contextual | [Cenários financeiros em 30 dias](CENARIOS_FINANCEIROS.md) |
 | Registrar e interpretar análise por fatores FAIR | [Guia FAIR em 30 dias](GUIA_FAIR_30_DIAS.md) |
@@ -38,6 +39,7 @@ e ações depende das permissões de cada conta.
 
 - [Sprint 5: requisitos, evidências e pendências](SPRINT5_RASTREABILIDADE.md).
 - [Fase 0: resultados parciais e pendências](RELATORIO_FASE_0_2026-11-20.md).
+- [Fase 0: credenciais e PostgreSQL](RELATORIO_FASE_0_2026-11-21.md).
 - [Licença: alternativas e decisão pendente](DECISAO_LICENCA.md).
 
 - [Melhorias da curadoria — relatório e testes](RELATORIO_MELHORIAS_CURADORIA_2026-11-15.md).
