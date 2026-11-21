@@ -1,4 +1,4 @@
-"""Compara apenas a seleção da primeira página, com risco sintético pré-calculado.
+"""Compara seleção da primeira e última página com risco sintético pré-calculado.
 
 Executar: python scripts/benchmark_paginacao_risco.py
 Banco temporário SQLite descartável; não mede o cálculo global de risco.
@@ -61,19 +61,20 @@ with TemporaryDirectory(prefix="sauron-benchmark-") as pasta:
         riscos = {pk: float((i * 37) % 101) for i, pk in enumerate(ids)}
         qs = AtivoSintetico.objects.all()
 
-        def anterior():
+        def anterior(inicio):
             registros = list(qs.order_by("id").values(*campos))
             for item in registros:
                 item["risco_efetivo"] = riscos.get(item["id"], 0.0)
             registros.sort(key=lambda item: (-item["risco_efetivo"], item["id"]))
-            return registros[:25]
+            return registros[inicio:inicio + 25]
 
         dados = {"ids_ativos": ids, "risco_efetivo": [riscos[pk] for pk in ids]}
-        antes, tempo_a, memoria_a = medir(anterior)
-        with patch("inventario.aplicacao.risco.calcular_risco_banco", return_value=dados):
-            depois, tempo_d, memoria_d = medir(lambda: ativos_por_risco(qs, campos, 0, 25))
-        if antes != depois:
-            raise AssertionError("A página mudou em relação à implementação anterior.")
-        print(f"ativos={total} anterior={tempo_a:.3f}s/{memoria_a:.2f}MiB "
-              f"novo={tempo_d:.3f}s/{memoria_d:.2f}MiB")
+        for inicio, pagina in ((0, "primeira"), (total - 25, "ultima")):
+            antes, tempo_a, memoria_a = medir(lambda: anterior(inicio))
+            with patch("inventario.aplicacao.risco.calcular_risco_banco", return_value=dados):
+                depois, tempo_d, memoria_d = medir(lambda: ativos_por_risco(qs, campos, inicio, inicio + 25, total))
+            if antes != depois:
+                raise AssertionError("A página mudou em relação à implementação anterior.")
+            print(f"ativos={total} pagina={pagina} anterior={tempo_a:.3f}s/{memoria_a:.2f}MiB "
+                  f"novo={tempo_d:.3f}s/{memoria_d:.2f}MiB")
     connection.close()

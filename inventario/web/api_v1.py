@@ -3,7 +3,7 @@
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.db.models import Q
-from heapq import nsmallest
+from heapq import nlargest, nsmallest
 from inventario.models import Ativo, Incidencia, Vulnerabilidade
 
 
@@ -43,14 +43,18 @@ def paginar(request, registros):
                          "paginas": paginador.num_pages, "resultados": list(parte.object_list)})
 
 
-def ativos_por_risco(qs, campos, inicio, fim):
+def ativos_por_risco(qs, campos, inicio, fim, total):
     """Seleciona IDs incrementalmente e carrega os campos apenas da página."""
     from inventario.aplicacao.risco import calcular_risco_banco
 
     resultado = calcular_risco_banco(perfil="puro")
     riscos = dict(zip(resultado["ids_ativos"], resultado["risco_efetivo"], strict=True))
-    ids = nsmallest(fim, qs.order_by().values_list("id", flat=True).iterator(),
-                    key=lambda pk: (-riscos[pk], pk))[inicio:fim]
+    chave = lambda pk: (-riscos[pk], pk)
+    candidatos = qs.order_by().values_list("id", flat=True).iterator()
+    if fim <= total - inicio:
+        ids = nsmallest(fim, candidatos, key=chave)[inicio:fim]
+    else:
+        ids = sorted(nlargest(total - inicio, candidatos, key=chave), key=chave)[:fim - inicio]
     registros = {item["id"]: item for item in qs.filter(id__in=ids).values(*campos)}
     return [{**registros[pk], "risco_efetivo": riscos[pk]} for pk in ids]
 
@@ -68,7 +72,7 @@ def paginar_risco(request, qs, campos):
         return problema(404, "Página não encontrada", "A página solicitada não existe.")
     inicio = (pagina - 1) * tamanho
     try:
-        registros = ativos_por_risco(qs, campos, inicio, inicio + tamanho)
+        registros = ativos_por_risco(qs, campos, inicio, inicio + tamanho, paginador.count)
     except KeyError:
         return problema(503, "Risco indisponível", "O inventário mudou durante o cálculo. Tente novamente.")
     return JsonResponse({"pagina": pagina, "tamanho": tamanho, "total": paginador.count,

@@ -51,6 +51,26 @@ class ConsultasV1(BancoTeste):
         with patch("inventario.aplicacao.risco.calcular_risco_banco", return_value=resultado):
             self.assertEqual(self.client.get("/api/v1/ativos/", {"ordenar": "-risco"}).status_code, 503)
 
+    def test_risco_preserva_ordem_em_paginas_intermediarias_e_com_filtro(self):
+        from inventario.models import Ativo
+        for numero in range(7):
+            Ativo.objects.create(tipo="1", nome=f"Teste {numero}", fabricante="Dell", sala=self.sala)
+        ids = list(Ativo.objects.order_by("id").values_list("id", flat=True))
+        valores = {pk: float(indice % 3) for indice, pk in enumerate(ids)}
+        resultado = {"ids_ativos": ids, "risco_efetivo": [valores[pk] for pk in ids]}
+        with patch("inventario.aplicacao.risco.calcular_risco_banco", return_value=resultado):
+            for filtro in ("", "Teste"):
+                esperados = sorted(Ativo.objects.filter(nome__icontains=filtro).values_list("id", flat=True),
+                                   key=lambda pk: (-valores[pk], pk))
+                recebidos = []
+                for pagina in range(1, (len(esperados) + 1) // 2 + 1):
+                    resposta = self.client.get("/api/v1/ativos/", {
+                        "ordenar": "-risco", "tamanho": 2, "pagina": pagina, "busca": filtro,
+                    })
+                    self.assertEqual(resposta.status_code, 200)
+                    recebidos.extend(item["id"] for item in resposta.json()["resultados"])
+                self.assertEqual(recebidos, esperados)
+
     def test_ativos_afetados_por_vulnerabilidade(self):
         resposta = self.client.get(f"/api/v1/vulnerabilidades/{self.v.pk}/ativos/")
         self.assertEqual(resposta.status_code, 200)

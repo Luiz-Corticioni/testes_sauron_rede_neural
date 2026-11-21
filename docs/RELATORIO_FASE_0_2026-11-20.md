@@ -21,23 +21,25 @@ ordenar. A nova implementação percorre identificadores, seleciona os necessár
 e busca os campos da página. Se um identificador não aparece no cálculo, retorna
 503 em vez de atribuir zero. Desempate por identificador e permissões existentes
 foram preservados. Testes: `python manage.py test tests.test_api_v1_sprint5
---noinput`, oito aprovados.
+--noinput`, nove aprovados, incluindo páginas intermediárias, empates e filtro.
 
 `python scripts/benchmark_paginacao_risco.py` cria tabela SQLite sintética
-temporária e compara as implementações na **primeira página**, com riscos
+temporária e compara as implementações na primeira e última páginas, com riscos
 pré-calculados; mede tempo de seleção e pico de alocações Python via tracemalloc.
 Em Windows, Python 3.12.14, Django 5.2.19, uma execução apresentou:
 
-| Ativos sintéticos | Anterior | Nova seleção |
-|---:|---:|---:|
-| 10.000 | 0,053 s; 5,58 MiB | 0,010 s; 0,61 MiB |
-| 100.000 | 0,669 s; 54,83 MiB | 0,088 s; 5,50 MiB |
+| Ativos sintéticos | Página | Anterior | Nova seleção |
+|---:|---|---:|---:|
+| 10.000 | Primeira | 0,055 s; 5,58 MiB | 0,010 s; 0,61 MiB |
+| 10.000 | Última | 0,054 s; 5,51 MiB | 0,010 s; 0,52 MiB |
+| 100.000 | Primeira | 0,868 s; 54,83 MiB | 0,119 s; 5,50 MiB |
+| 100.000 | Última | 0,712 s; 54,77 MiB | 0,088 s; 5,50 MiB |
 
 O script confere que os resultados da página coincidem. **Limitações:** não mede
 memória nativa/RSS, tempo de autenticação, concorrência, cache, PostgreSQL ou
 o cálculo real de risco. Este continua global e dependente do número de ativos,
-vulnerabilidades e relações; páginas profundas também podem exigir memória
-proporcional ao deslocamento. Os números não demonstram capacidade de produção
+vulnerabilidades e relações; a seleção de páginas próximas ao meio ainda pode
+reter quantidade de identificadores proporcional ao total. Os números não demonstram capacidade de produção
 com 100 mil ativos. Ainda é necessário um benchmark ponta a ponta com o modelo
 real, perfis representativos e memória do processo.
 
