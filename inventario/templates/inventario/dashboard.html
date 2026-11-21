@@ -11,6 +11,7 @@
 {% if cursor_olho %}<p class="eye-event" id="eye-event" role="status" aria-live="polite"></p>{{ cursor_olho|json_script:'eye-cursor' }}{% endif %}
 {% include 'inventario/componentes/perfil.html' %}
 {% include 'inventario/componentes/qualidade_painel.html' %}
+{% if mudancas_risco %}{% include 'inventario/componentes/mudancas_risco.html' with mudancas=mudancas_risco %}{% endif %}
 <form class="panel filters" method="get" aria-label="Filtrar o painel por ativos">
   <input type="hidden" name="perfil" value="{{ perfil }}">
   <label for="filtro-tipo">Tipo</label><select id="filtro-tipo" name="tipo"><option value="">Todos</option>{% for codigo,nome in recorte.tipos %}<option value="{{ codigo }}" {% if recorte.filtros.tipo == codigo %}selected{% endif %}>{{ nome }}</option>{% endfor %}</select>

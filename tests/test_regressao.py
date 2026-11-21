@@ -19,6 +19,9 @@ class Regressao(BancoTeste):
             self.assertEqual(api.status_code, 200)
             resultado = api.json()
             resultado.pop("versao_dados")  # Hash inclui timestamps, não é saída numérica.
+            for prioridade in resultado["prioridade_correcao"]:
+                explicacao = prioridade.pop("explicacao")
+                self.assertEqual(explicacao["reducao_total"], prioridade["reducao_total_estimada"])
             simulacao = self.client.post(reverse("api_simular_risco"),
                 data=json.dumps({"perfil": perfil, "incidencias_corrigidas": [self.i.pk]}), content_type="application/json")
             self.assertEqual(simulacao.status_code, 200)

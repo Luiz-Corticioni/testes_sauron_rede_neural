@@ -1,0 +1,9 @@
+<section class="panel"><h2>Mudanças entre os últimos registros</h2>
+{% if mudancas.disponivel %}
+<p>Perfil puro · de {{ mudancas.anterior }} até {{ mudancas.atual }}. {% if mudancas.contem_simulacao %}<strong>Inclui dados de demonstração.</strong>{% endif %}</p>
+<p>Variação do risco total: {{ mudancas.variacao_risco|floatformat:2 }} ({{ mudancas.risco_anterior|floatformat:2 }} → {{ mudancas.risco_atual|floatformat:2 }}). Esse índice não é valor financeiro nem probabilidade.</p>
+{% if mudancas.top %}<p>Entraram no top 10: {{ mudancas.top.entraram|join:", "|default:"nenhuma" }}. Saíram: {{ mudancas.top.sairam|join:", "|default:"nenhuma" }}.</p>{% else %}<p>Mudanças no top 10 indisponíveis: os registros antigos não guardavam essa informação.</p>{% endif %}
+{% if mudancas.backlog %}<p>Incidências vencidas: {{ mudancas.backlog.anterior }} → {{ mudancas.backlog.atual }}.</p>{% else %}<p>Backlog histórico indisponível.</p>{% endif %}
+{% if mudancas.mttr %}<p>MTTR (dias): {{ mudancas.mttr.anterior.dias|default_if_none:"indisponível" }} → {{ mudancas.mttr.atual.dias|default_if_none:"indisponível" }}. Correções consideradas: {{ mudancas.mttr.anterior.correcoes }} → {{ mudancas.mttr.atual.correcoes }}.</p>{% else %}<p>MTTR histórico indisponível.</p>{% endif %}
+{% else %}<p>{{ mudancas.motivo }}</p>{% endif %}
+<p>Compara snapshots registrados, não necessariamente o estado atual. Gere registros pela rotina de snapshot para acompanhar a evolução.</p></section>

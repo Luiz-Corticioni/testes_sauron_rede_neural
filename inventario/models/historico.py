@@ -26,6 +26,7 @@ class SnapshotRisco(models.Model):
     por_ativo = models.JSONField(default=dict)
     perfil = models.CharField(max_length=12, default="puro")
     chave = models.CharField(max_length=100, unique=True)
+    detalhes = models.JSONField(null=True, blank=True)
 
     class Meta:
         ordering = ["ts", "id"]

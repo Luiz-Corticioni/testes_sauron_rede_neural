@@ -35,7 +35,7 @@ def namespace_risco():
 def versao_dados(perfil="puro"):
     # Inclui o formato do resultado: arquivos de cache antigos não contêm resíduos.
     geracao = VersaoInventario.objects.filter(pk=1).values_list("versao", flat=True).first() or 0
-    versao = [("modelo", 4), ("geracao", geracao)]
+    versao = [("modelo", 5), ("geracao", geracao)]
     for modelo in (Ativo, Vulnerabilidade, Incidencia, Dependencia):
         estado = modelo.objects.aggregate(total=Count("pk"), ultima=Max("atualizado_em"))
         ultima = estado["ultima"].isoformat() if estado["ultima"] else ""
@@ -166,7 +166,7 @@ def calcular_risco_banco(usar_exposicao=False, perfil=None):
         chave = f"risco:v2:{namespace_risco()}:{perfil}:{versao}"
         def construir():
             modelo, origem = carregar_modelo_risco(perfil)
-            resultado = modelo.calcular(**parametros_risco(perfil)).to_dict()
+            resultado = modelo.calcular(**parametros_risco(perfil), explicar=True).to_dict()
             resultado.update(versao_dados=versao, origem_kev=origem)
             # Chave versionada: um cálculo atrasado não sobrescreve a versão seguinte.
             cache.set(f"risco:ultimo:{namespace_risco()}:{perfil}", chave, timeout=3600)
@@ -184,6 +184,7 @@ def simular_correcao(incidencias_corrigidas, perfil="puro"):
 
 def gravar_snapshot_risco():
     from inventario.infraestrutura.auditoria import travar_escrita
+    from inventario.aplicacao.operacao import calcular_mttr
 
     with transaction.atomic():
         # Serializar antes da leitura evita upgrade concorrente de leitor para escritor.
@@ -197,6 +198,13 @@ def gravar_snapshot_risco():
                 "risco_total": sum(resultado["risco_efetivo"]),
                 "por_ativo": por_ativo,
                 "perfil": "puro",
+                "detalhes": {
+                    "versao": 1,
+                    "top_vulnerabilidades": [item["vulnerabilidade_id"] for item in resultado["prioridade_correcao"]
+                                             if item["reducao_total_estimada"] > 0][:10],
+                    "backlog_vencido": Incidencia.objects.pendentes_sla().filter(prazo_correcao__lt=timezone.localdate()).count(),
+                    "mttr": calcular_mttr(),
+                },
             },
         )
         return snapshot

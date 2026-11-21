@@ -11,6 +11,19 @@
     }
   ],
   "paths": {
+    "/api/v1/risco/mudancas/": {
+      "get": {
+        "operationId": "consultarMudancasRisco",
+        "summary": "Comparar os dois últimos snapshots de risco puro",
+        "description": "Exige sessão com MFA e permissões de risco, snapshots e histórico. Registros antigos sem detalhes retornam top, backlog e MTTR nulos. Não compara automaticamente com o estado atual.",
+        "responses": {
+          "200": {"description": "Comparação ou motivo de indisponibilidade", "content": {"application/json": {"schema": {"type": "object", "required": ["disponivel"], "properties": {"disponivel": {"type": "boolean"}, "motivo": {"type": "string"}, "perfil": {"type": "string"}, "anterior": {"type": "string", "format": "date-time"}, "atual": {"type": "string", "format": "date-time"}, "risco_anterior": {"type": "number"}, "risco_atual": {"type": "number"}, "variacao_risco": {"type": "number"}, "contem_simulacao": {"type": "boolean"}, "top": {"type": ["object", "null"]}, "backlog": {"type": ["object", "null"]}, "mttr": {"type": ["object", "null"]}}}}}},
+          "401": {"description": "Autenticação necessária", "content": {"application/problem+json": {"schema": {"$ref": "#/components/schemas/Problema"}}}},
+          "403": {"description": "Permissão insuficiente", "content": {"application/problem+json": {"schema": {"$ref": "#/components/schemas/Problema"}}}},
+          "405": {"description": "Método não permitido", "content": {"application/problem+json": {"schema": {"$ref": "#/components/schemas/Problema"}}}}
+        }
+      }
+    },
     "/api/v1/ativos/": {
       "get": {
         "operationId": "listarAtivos",

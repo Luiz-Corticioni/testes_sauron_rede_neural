@@ -130,6 +130,7 @@ class ModeloRisco:
         tau: float = 25,
         precisao: int = 6,
         diagnostico: bool = False,
+        explicar: bool = False,
     ) -> ResultadoRisco:
         # O parâmetro legado continua disponível; corresponde ao perfil operacional.
         perfil = "operacional" if usar_exposicao else perfil
@@ -167,16 +168,37 @@ class ModeloRisco:
 
         prioridades = []
         for j, vulnerabilidade in enumerate(self.vulnerabilidades):
-            ganho_por_ativo = resolver(incidencia_ponderada[:,j].toarray().ravel()) * severidade[j]
-            prioridades.append(
-                {
+            incidencias_vul = incidencia_ponderada[:, j].toarray().ravel()
+            ganho_por_ativo = resolver(incidencias_vul) * severidade[j]
+            item = {
                     "vulnerabilidade_id": vulnerabilidade.id,
                     "cve_id": vulnerabilidade.cve_id,
                     "cvss": vulnerabilidade.cvss,
                     "reducao_total_estimada": round(float(ganho_por_ativo.sum()), 6),
                     "reducao_por_ativo": ganho_por_ativo.round(precisao).tolist(),
                 }
-            )
+            if explicar:
+                total = item["reducao_total_estimada"]
+                direto = round(float(incidencias_vul.sum() * severidade[j]), 6)
+                item["explicacao"] = {
+                    "perfil": perfil,
+                    "cvss_base": float(v[j]),
+                    "kev_aplicado": bool(kev[j]) if perfil == "operacional" else False,
+                    "multiplicador_kev": float(1 + kappa * kev[j]) if perfil == "operacional" else 1.0,
+                    "severidade_calculada": float(severidade[j]),
+                    "reducao_direta": direto,
+                    "reducao_propagada": round(total - direto, 6),
+                    "reducao_total": total,
+                    "cvss_ambiental_ordenacao": self.scores_ambientais.get(vulnerabilidade.id, vulnerabilidade.cvss) if self.scores_ambientais else None,
+                    "exposicao_aplicada": perfil == "operacional",
+                    "ativos_diretos": [
+                        {"id": self.ids_ativos[i], "fator_exposicao": float(incidencias_vul[i]),
+                         "contribuicao": round(float(incidencias_vul[i] * severidade[j]), 6)}
+                        for i in m[:, j].nonzero()[0]
+                    ],
+                    "nao_utilizados": ["epss", "ssvc", "criticidade_servico"],
+                }
+            prioridades.append(item)
         if self.scores_ambientais:
             prioridades.sort(key=lambda item: (item["reducao_total_estimada"] > 0, self.scores_ambientais.get(item["vulnerabilidade_id"],item["cvss"]),
                                                 item["reducao_total_estimada"]),reverse=True)

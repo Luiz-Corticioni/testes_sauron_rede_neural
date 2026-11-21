@@ -16,6 +16,7 @@ em que foram escritos. Eles não são um certificado de que um servidor está se
 | Entender funções e limitações em linguagem simples | [Guia simples](GUIA_SIMPLES_REANALISE_2026-11-10.md) |
 | Entender a origem das informações de um ativo | [Procedência e evidências](RELATORIO_PROCEDENCIA_ATIVOS.md) |
 | Interpretar o índice de qualidade das evidências | [Qualidade dos dados](QUALIDADE_DADOS.md) |
+| Entender prioridades e mudanças entre registros | [Explicabilidade e mudanças — Fase 2](RELATORIO_FASE_2_2026-11-21.md) |
 | Relacionar serviços de negócio aos ativos | [Serviços de negócio](RELATORIO_SERVICOS_NEGOCIO.md) |
 | Comparar uma intervenção e seu custo declarado | [Comparação de intervenções](RELATORIO_COMPARACAO_INTERVENCOES.md) |
 | Examinar uma premissa de análise FAIR | [Sensibilidade FAIR](RELATORIO_SENSIBILIDADE_FAIR.md) |

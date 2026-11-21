@@ -42,6 +42,7 @@ PERMISSOES_RISCO = (
 
 
 urlpatterns = [
+    path("api/v1/risco/mudancas/", api_v1.mudancas_risco, name="api_v1_mudancas_risco"),
     path("api/v1/qualidade/fontes/", api_v1.qualidade_fontes, name="api_v1_qualidade_fontes"),
     path("api/v1/qualidade/ativos/<str:pk>/", partial(api_v1.qualidade, entidade="ativo"), name="api_v1_qualidade_ativo"),
     path("api/v1/qualidade/servicos/<int:pk>/", partial(api_v1.qualidade, entidade="servico"), name="api_v1_qualidade_servico"),

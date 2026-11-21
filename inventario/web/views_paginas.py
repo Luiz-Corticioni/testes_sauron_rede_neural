@@ -37,6 +37,9 @@ def dashboard(request: HttpRequest):
     from inventario.aplicacao.demo_realista import FONTE as FONTE_REALISTA
     contexto['empresa_ficticia'] = Vulnerabilidade.objects.filter(fonte__in=[FONTE, FONTE_REALISTA]).exists()
     contexto['demo_realista'] = Vulnerabilidade.objects.filter(fonte=FONTE_REALISTA).exists()
+    from inventario.aplicacao.mudancas_risco import PERMISSOES as PERMISSOES_MUDANCAS, mudancas
+    if request.user.has_perms(PERMISSOES_MUDANCAS) and not contexto['recorte']['ativo'] and contexto['perfil'] == 'puro':
+        contexto['mudancas_risco'] = mudancas()
     if request.user.has_perm('inventario.view_snapshotrisco') and not contexto['recorte']['ativo']:
         from inventario.models import SnapshotRisco
         amostras = list(SnapshotRisco.objects.filter(perfil=contexto['perfil'])

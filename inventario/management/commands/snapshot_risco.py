@@ -4,7 +4,7 @@ from inventario.aplicacao.risco import gravar_snapshot_risco
 
 
 class Command(BaseCommand):
-    help = "Registra o risco puro atual; idempotente por versão dos dados e dia."
+    help = "Registra um novo snapshot do risco puro atual."
 
     def handle(self, *args, **options):
         try:

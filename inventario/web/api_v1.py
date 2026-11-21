@@ -180,6 +180,16 @@ def qualidade_fontes(request):
     return resposta
 
 
+def mudancas_risco(request):
+    from inventario.aplicacao.mudancas_risco import PERMISSOES, mudancas
+    erro = verificar(request, PERMISSOES)
+    if erro:
+        return erro
+    resposta = JsonResponse(mudancas())
+    resposta["Cache-Control"] = "no-store"
+    return resposta
+
+
 def especificacao(request):
     erro = verificar(request, ())
     if erro:
