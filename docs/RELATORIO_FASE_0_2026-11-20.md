@@ -83,9 +83,11 @@ abriu uma transação, e o backup precisa iniciar `REPEATABLE READ` antes de
 consultas. Fora dessa transação, o backup descrito acima funcionou. O código agora
 recusa uma chamada aninhada com mensagem explícita, sem enfraquecer o isolamento.
 Três testes PostgreSQL passaram: recusa sem invalidar a transação, oito gravações
-simultâneas e backup/restauração em `TransactionTestCase`. A suíte desses
-83 testes ainda precisa ser adaptada para demonstrar o backup sem o invólucro
-transacional; não foi declarada aprovada em PostgreSQL.
+simultâneas e backup/restauração em `TransactionTestCase`, incluindo autoria e
+evidência de relação, membros de perímetro e revisão. A repetição da suíte de
+API, relações, cobertura e PostgreSQL terminou com 86 testes, dois pulados:
+os dois testes originais envoltos em `TestCase` são substituídos no PostgreSQL
+pelo teste transacional equivalente. Essa seleção não é a suíte PostgreSQL inteira.
 
 ## Outras verificações e pendências
 

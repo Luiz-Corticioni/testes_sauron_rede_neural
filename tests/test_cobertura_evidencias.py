@@ -4,6 +4,8 @@ from pathlib import Path
 import re
 import sqlite3
 from unittest.mock import Mock, patch
+from unittest import skipIf
+from django.db import connection
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission, Group
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -408,6 +410,7 @@ class FluxoCobertura(BancoTeste):
             self.assertEqual("add_perimetrorelacoes" in permissoes, nome == "Gerentes")
             self.assertNotIn("change_revisaocobertura", permissoes)
 
+    @skipIf(connection.vendor == "postgresql", "No PostgreSQL, o teste equivalente executa fora de TestCase.")
     def test_backup_e_exportacao_preservam_membros_e_revisoes(self):
         from inventario.infraestrutura.backup import backup_sqlite, restaurar_backup
         from inventario.infraestrutura.exportacao import inventario_completo

@@ -3,10 +3,11 @@ import json
 from pathlib import Path
 import sqlite3
 from unittest.mock import Mock, patch
+from unittest import skipIf
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, connection, transaction
 from django.db.models.deletion import ProtectedError
 from django.test import Client, SimpleTestCase, override_settings
 from django.utils import timezone
@@ -353,6 +354,7 @@ class IntegracaoRelacoes(BancoTeste):
         with self.assertRaises(ProtectedError):
             self.a.delete()
 
+    @skipIf(connection.vendor == "postgresql", "No PostgreSQL, o teste equivalente executa fora de TestCase.")
     def test_exportacao_e_backup_restauram_relacoes_com_autoria_e_evidencia(self):
         from inventario.infraestrutura.backup import backup_sqlite, restaurar_backup
         from inventario.infraestrutura.exportacao import inventario_completo
