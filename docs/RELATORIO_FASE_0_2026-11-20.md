@@ -41,6 +41,15 @@ proporcional ao deslocamento. Os números não demonstram capacidade de produç�
 com 100 mil ativos. Ainda é necessário um benchmark ponta a ponta com o modelo
 real, perfis representativos e memória do processo.
 
+Como medição adicional, `python scripts/benchmark_modelo_risco.py 10000` e
+`python scripts/benchmark_modelo_risco.py 100000` executaram o modelo matemático
+real em processos separados: uma vulnerabilidade, uma incidência e uma cadeia
+de dependências com peso 0,2. Para 10 mil ativos, cálculo e serialização levaram
+0,032 s, com pico de memória residente do processo de 68,03 MiB; para 100 mil,
+0,358 s e 145,66 MiB. Os picos incluem imports e preparação do processo. Não
+são medições antes/depois nem incluem banco, autorização, cache ou HTTP; uma
+única vulnerabilidade e uma cadeia esparsa não representam todos os inventários.
+
 ## Imagem e PostgreSQL
 
 Os 47 achados históricos pertencem à imagem Debian anterior; o
