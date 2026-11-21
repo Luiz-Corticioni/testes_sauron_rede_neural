@@ -37,6 +37,8 @@ responsáveis pelo negócio, analistas e responsáveis pelo inventário. Acesso 
 e ações depende das permissões de cada conta.
 
 - [Sprint 5: requisitos, evidências e pendências](SPRINT5_RASTREABILIDADE.md).
+- [Fase 0: resultados parciais e pendências](RELATORIO_FASE_0_2026-11-20.md).
+- [Licença: alternativas e decisão pendente](DECISAO_LICENCA.md).
 
 - [Melhorias da curadoria — relatório e testes](RELATORIO_MELHORIAS_CURADORIA_2026-11-15.md).
 - [Análise dos CVEs da imagem Docker](RELATORIO_ANALISE_CVES_DOCKER_2026-11-15.md).

@@ -2,6 +2,9 @@
 
 ## Não lançado — Sprint 5
 
+- API v1: seleção incremental para páginas ordenadas por risco; ausência de um resultado deixa de ser tratada como risco zero. O cálculo global do modelo mantém seus custos e limitações.
+- Decisão de licença registrada como pendente, sem selecionar uma licença pelo responsável.
+
 - Sensores de isca, importação manual de eventos minimizados e alertas agrupados; sem coletor nem exposição de rede.
 
 - Senhas novas usam Argon2id; hashes legados compatíveis são atualizados após verificação.

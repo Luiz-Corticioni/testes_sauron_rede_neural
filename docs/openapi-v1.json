@@ -135,6 +135,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Risco indisponível durante atualização do inventário",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problema"
+                }
+              }
+            }
           }
         }
       }
