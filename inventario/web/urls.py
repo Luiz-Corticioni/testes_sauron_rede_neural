@@ -11,6 +11,7 @@ from inventario.web import views_honeypot
 from inventario.web import views_fontes
 from inventario.web import views_cenario_financeiro
 from inventario.web import views_fair
+from inventario.web import views_perdas_financeiras
 from inventario.aplicacao.fair import LEITURA as LEITURA_FAIR, ESCRITA as ESCRITA_FAIR
 from inventario.web import views_documentos
 from inventario.web import views_scanner
@@ -107,6 +108,10 @@ urlpatterns = [
     path("mfa/", verificar_mfa, name="mfa"),
     path("montecarlo/", proteger(views_analises.montecarlo, *PERMISSOES_RISCO), name="montecarlo"),
     path("api/montecarlo/", proteger(views_analises.api_montecarlo, *PERMISSOES_RISCO), name="api_montecarlo"),
+    path("api/montecarlo/v2/", proteger(views_analises.api_montecarlo_v2, *PERMISSOES_RISCO, "inventario.view_relacaoativos"), name="api_montecarlo_v2"),
+    path("montecarlo/v2/", proteger(views_analises.montecarlo_v2, *PERMISSOES_RISCO, "inventario.view_relacaoativos"), name="montecarlo_v2"),
+    path("perdas-financeiras/", proteger(views_perdas_financeiras.perdas, "inventario.view_ativo", "inventario.view_incidente", "inventario.view_perdafinanceira"), name="perdas_financeiras"),
+    path("perdas-financeiras/incidente/", proteger(views_perdas_financeiras.incidente_historico, "inventario.view_ativo", "inventario.view_incidente", "inventario.add_incidente", "inventario.view_perdafinanceira"), name="perda_incidente_historico"),
     path("api/impacto/", proteger(views_analises.api_impacto,
          "inventario.view_ativo", "inventario.view_dependencia"), name="api_impacto"),
     path("api/risco/diagnostico/", proteger(views_analises.api_diagnostico,

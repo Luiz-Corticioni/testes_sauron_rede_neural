@@ -1,0 +1,3 @@
+{% extends 'inventario/base.html' %}
+{% block title %}Registrar incidente encerrado — Sauron{% endblock %}
+{% block content %}<section class="page-heading"><div><h1>Registrar incidente encerrado</h1><p>Informe um evento histórico antes de associar suas perdas financeiras.</p></div></section><article class="panel"><p>As datas são registradas ao início do dia no fuso configurado. A descrição é declarada pelo responsável e não deve conter segredos.</p><form method="post" class="form">{% csrf_token %}{{ form.as_p }}<button class="button" type="submit">Registrar incidente</button></form><p><a href="{% url 'perdas_financeiras' %}">Voltar às perdas</a></p></article>{% endblock %}

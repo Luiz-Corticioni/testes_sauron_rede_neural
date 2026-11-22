@@ -2,6 +2,7 @@
 
 ## Não lançado — Sprint 5
 
+- Monte Carlo v2: fatores declarados, caminhos, causa comum, apetite, intervenções, sensibilidade e ajuste heurístico opcional por perdas registradas.
 - Prioridades explicam parcelas direta e propagada; snapshots novos registram top 10, backlog vencido e MTTR para comparação histórica autorizada.
 - Fontes: histórico sanitizado de tentativas KEV e resumo de atualidade, idade e lacunas; importações de scanner visíveis somente com permissão.
 - Índice de completude de evidências por ativo e serviço; simulação informa cobertura EPSS e componentes financeiros indeterminados, sem alterar o risco.

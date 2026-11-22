@@ -78,7 +78,8 @@ def resumo(x):
             "probabilidade_perda": float((x > 0).mean())}
 
 
-def simular(vulns, custos=None, n=20_000, seed=42, teto=None, corrigidas=None):
+def simular(vulns, custos=None, n=20_000, seed=42, teto=None, corrigidas=None,
+            probabilidades=None, uniformes=None, limite_excedencia=None):
     """Um evento por vínculo/30 dias; maior perda por ativo e soma entre ativos.
     Amostras comuns mantêm a comparação reprodutível. Ganhos marginais não somam.
     """
@@ -88,6 +89,7 @@ def simular(vulns, custos=None, n=20_000, seed=42, teto=None, corrigidas=None):
         raise ValueError("Seed deve ser inteiro de 0 a 4294967295.")
     custos = validar_custos(CUSTOS_CLIENTE if custos is None else custos)
     teto = numero(teto, "Teto para 30 dias") if teto is not None else None
+    limite_excedencia = numero(limite_excedencia, "Limite de apetite") if limite_excedencia is not None else None
     if not isinstance(vulns, (list, tuple)):
         raise ValueError("Entradas e correções devem ser listas.")
     corrigidas = [] if corrigidas is None else corrigidas
@@ -101,12 +103,23 @@ def simular(vulns, custos=None, n=20_000, seed=42, teto=None, corrigidas=None):
         if chave in vistos:
             raise ValueError("Vínculo ativo/CVE duplicado.")
         vistos.add(chave)
-        prob, epss = prob_30dias(v)
+        if probabilidades is None:
+            prob, epss = prob_30dias(v)
+        else:
+            numero(v.get("cvss"), "CVSS", 0, 10)
+            if type(v.get("kev", False)) is not bool:
+                raise ValueError("KEV deve ser verdadeiro ou falso.")
+            epss = None if v.get("epss") is None else numero(v["epss"], "EPSS", 0, 1)
+        chave_entrada = v.get("id", v["cve"])
+        if probabilidades is not None:
+            prob = np.asarray(probabilidades[chave_entrada], dtype=float)
+            if prob.shape not in ((), (n,)) or not np.all(np.isfinite(prob)) or np.any((prob < 0) | (prob > 1)):
+                raise ValueError("Probabilidade de cenário inválida.")
         cia, estimado = parse_vetor(v.get("vetor", ""), float(v["cvss"]))
         grupos[v["ativo"]].append((v, prob, cia))
         metadados.append({"ativo": v["ativo"], "cve": v["cve"], "epss": epss,
-            "origem_epss": "informado", "epss_data": v.get("epss_data"), "impacto_estimado": estimado,
-            "probabilidade_cenario_30d": prob, "kev": v.get("kev", False),
+            "origem_epss": "informado" if epss is not None else "indisponível", "epss_data": v.get("epss_data"), "impacto_estimado": estimado,
+            "probabilidade_cenario_30d": float(np.mean(prob)), "kev": v.get("kev", False),
             "observacao_epss_id": v.get("observacao_epss_id"), "epss_fonte": v.get("epss_fonte"),
             "epss_situacao": v.get("epss_situacao", "Não informada")})
     ids = sorted({v["cve"] for v in vulns})
@@ -122,7 +135,12 @@ def simular(vulns, custos=None, n=20_000, seed=42, teto=None, corrigidas=None):
         for indice, (v, prob, cia) in enumerate(entradas):
             chave = hashlib.sha256(f"{seed}|{ativo}|{v['cve']}".encode()).digest()
             rng = np.random.default_rng(int.from_bytes(chave[:16], "big"))
-            ocorre, custo = rng.random(n) < prob, np.zeros(n)
+            sorteios = rng.random(n)
+            if uniformes is not None:
+                sorteios = np.asarray(uniformes[v.get("id", v["cve"])], dtype=float)
+                if sorteios.shape != (n,) or not np.all(np.isfinite(sorteios)) or np.any((sorteios < 0) | (sorteios > 1)):
+                    raise ValueError("Sorteios correlacionados inválidos.")
+            ocorre, custo = sorteios < prob, np.zeros(n)
             for dim in "CIA":
                 c = custos[dim]
                 custo += cia[dim] * (pert(*c, n, rng) if isinstance(c, tuple) else c)
@@ -147,10 +165,13 @@ def simular(vulns, custos=None, n=20_000, seed=42, teto=None, corrigidas=None):
     contribuicao = [{"cve": c, "media_atribuida": float((atribuicoes[c]*fator).mean()),
         "ganho_correcao": float((total-(np.minimum(bruto-reducoes[c], teto) if teto is not None else bruto-reducoes[c])).mean())} for c in ids]
     limites = np.unique(np.r_[0., np.percentile(total, np.linspace(0, 100, 41))])
-    return {"versao_modelo": "sauron.montecarlo/30d-v1", "horizonte_dias": 30, "disponivel": True,
+    resultado = {"versao_modelo": "sauron.montecarlo/30d-v1", "horizonte_dias": 30, "disponivel": True,
         "n": n, "seed": seed, "antes": resumo(total), "depois": resumo(depois),
         "ganho_media": float((total-depois).mean()),
         "excedencia": [{"perda": float(x), "probabilidade": float((total > x).mean()),
                         "probabilidade_depois": float((depois > x).mean())} for x in limites],
         "contribuicoes": contribuicao, "entradas": metadados,
         "aviso": "Estimativa, não previsão. Cenário hipotético de 30 dias; custos e fatores não calibrados. Não estima a chance de comprometimento de um ativo e não implementa FAIR completo."}
+    if limite_excedencia is not None:
+        resultado["probabilidade_acima_limite"] = float((total > limite_excedencia).mean())
+    return resultado

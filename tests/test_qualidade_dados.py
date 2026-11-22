@@ -53,8 +53,9 @@ class QualidadeAplicacao(BancoTeste):
         self.assertEqual(sem_contexto["componentes"][0]["percentual"], 100)
         p = salvar_perimetro(self.usuario, "qualidade", "Perímetro fictício", [self.a.pk])
         _, resumo = preparar_revisao(self.usuario, p.pk, "REDE", self.a.pk)
+        data_revisao = timezone.localdate()
         registrar_revisao(self.usuario, p.pk, "REDE", self.a.pk, "", "SEM_RELACOES", "Revisão fictícia",
-                          data, data + timedelta(days=10), resumo["sha256"])
+                          data_revisao, data_revisao + timedelta(days=10), resumo["sha256"])
         antes = RegistroAuditoria.objects.count()
         resultado = qualidade_ativo(self.usuario, self.a.pk, p.pk)
         self.assertEqual(resultado["score"], 66.67)

@@ -5,6 +5,7 @@
 {% block head %}<link rel="stylesheet" href="{% static 'inventario/montecarlo.css' %}">{% endblock %}
 {% block content %}
 <div id="mc-painel">
+{% if perms.inventario.view_relacaoativos %}<p><a class="button secondary" href="{% url 'montecarlo_v2' %}">Abrir simulação contextual v2</a></p>{% endif %}
 {% if perms.inventario.view_ativo and perms.inventario.view_cenariofinanceiro %}<p><a class="button secondary" href="{% url 'cenarios_financeiros' %}">Abrir cenários de negócio contextualizados</a></p>{% endif %}
 
 <section class="panel mc-resumo" aria-labelledby="mc-titulo">
