@@ -12,6 +12,8 @@ from inventario.web import views_fontes
 from inventario.web import views_cenario_financeiro
 from inventario.web import views_fair
 from inventario.web import views_perdas_financeiras
+from inventario.web import views_observacoes
+from inventario.aplicacao.observacoes import LEITURA as LEITURA_OBSERVACOES, IMPORTAR as IMPORTAR_OBSERVACOES
 from inventario.aplicacao.fair import LEITURA as LEITURA_FAIR, ESCRITA as ESCRITA_FAIR
 from inventario.web import views_documentos
 from inventario.web import views_scanner
@@ -96,6 +98,10 @@ urlpatterns = [
     path("api/grafo-relacoes/", proteger(views_relacoes.api, *LEITURA_RELACOES), name="api_grafo_relacoes"),
     path("documentos/", proteger(views_documentos.lista, *LEITURA_DOCUMENTOS), name="documentos"),
     path("scanner/", proteger(views_scanner.importar, *ESCRITA_DOCUMENTOS), name="scanner_importar"),
+    path("observacoes/", proteger(views_observacoes.lista, *LEITURA_OBSERVACOES), name="observacoes_lista"),
+    path("observacoes/importar/", proteger(views_observacoes.importar_web, *IMPORTAR_OBSERVACOES), name="observacoes_importar"),
+    path("observacoes/<int:pk>/", proteger(views_observacoes.detalhe, *LEITURA_OBSERVACOES), name="observacao_detalhe"),
+    path("api/observacoes/<int:pk>/", proteger(views_observacoes.api_detalhe, *LEITURA_OBSERVACOES), name="api_observacao_detalhe"),
     path("scanner/<int:pk>/", proteger(views_scanner.detalhe, *LEITURA_DOCUMENTOS), name="scanner_detalhe"),
     path("scanner/<int:pk>/achados/<int:indice>/revisar/", proteger(views_scanner.revisao, *ESCRITA_DOCUMENTOS), name="scanner_revisao"),
     path("documentos/<int:pk>/", proteger(views_documentos.detalhe, *LEITURA_DOCUMENTOS), name="documento"),

@@ -28,6 +28,70 @@ class BackupEmTransacaoPostgres(TestCase):
 
 @skipUnless(connection.vendor == "postgresql", "Teste exige PostgreSQL real.")
 class ConcorrenciaPostgres(TransactionTestCase):
+    @override_settings(SAURON_IMPORTACAO_OBSERVACOES_ENABLED=True)
+    def test_importacoes_simultaneas_sao_idempotentes(self):
+        from django.contrib.auth import get_user_model
+        from django.utils import timezone
+        from inventario.aplicacao.observacoes import importar
+        from inventario.models import ObservacaoImportada
+
+        usuario = get_user_model().objects.create_superuser("observacao-pg", "teste@example.org", "senha-sintetica")
+        instante = timezone.now().isoformat()
+        conteudo = b'[{"id":"1","name":"Sintetico","itemtype":"Computer"}]'
+        barreira = Barrier(2)
+
+        def gravar(_):
+            close_old_connections()
+            try:
+                barreira.wait(timeout=15)
+                return importar("glpi_json", conteudo, "fonte-pg", "1", instante, "MEDIA", usuario)
+            finally:
+                connections.close_all()
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            resultados = list(executor.map(gravar, range(2)))
+        self.assertEqual(sum(r["novos"] for r in resultados), 1)
+        self.assertEqual(sum(r["repetidos"] for r in resultados), 1)
+        self.assertEqual(ObservacaoImportada.objects.count(), 1)
+        self.assertTrue(verificar_cadeia(verificar_ancora=False)["integra"])
+
+    @override_settings(SAURON_IMPORTACAO_OBSERVACOES_ENABLED=True)
+    def test_promocoes_simultaneas_criam_uma_unica_relacao(self):
+        import json
+        from django.contrib.auth import get_user_model
+        from django.core.exceptions import ValidationError
+        from django.utils import timezone
+        from inventario.aplicacao.observacoes import importar, revisar
+        from inventario.models import Ativo, ObservacaoImportada, RelacaoAtivos, Sala
+
+        usuario = get_user_model().objects.create_superuser("promocao-pg", "teste@example.org", "senha-sintetica")
+        sala = Sala.objects.create(id="SALA-OBS-PG", nome="Sala fictícia")
+        origem = Ativo.objects.create(tipo="1", nome="Origem", fabricante="Dell", sala=sala)
+        destino = Ativo.objects.create(tipo="1", nome="Destino", fabricante="Dell", sala=sala)
+        arquivo = json.dumps({"rules": [{"id": "R1", "acao": "allow", "origem_ativo": origem.pk,
+            "destino_ativo": destino.pk, "escopo": "Rede", "protocolo": "tcp", "porta": 443}]}).encode()
+        importar("firewall", arquivo, "fonte-pg", "1", timezone.now().isoformat(), "MEDIA", usuario)
+        obs = ObservacaoImportada.objects.get()
+        barreira = Barrier(2)
+
+        def promover(_):
+            close_old_connections()
+            try:
+                barreira.wait(timeout=15)
+                try:
+                    revisar(obs.pk, "RELACAO_CRIADA", "Revisão sintética", usuario, timezone.localdate()+timedelta(days=30))
+                    return True
+                except ValidationError:
+                    return False
+            finally:
+                connections.close_all()
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            resultados = list(executor.map(promover, range(2)))
+        self.assertEqual(sum(resultados), 1)
+        self.assertEqual(RelacaoAtivos.objects.count(), 1)
+        self.assertTrue(verificar_cadeia(verificar_ancora=False)["integra"])
+
     def test_gravacoes_simultaneas_preservam_cadeia(self):
         trabalhadores = 8
         barreira = Barrier(trabalhadores)

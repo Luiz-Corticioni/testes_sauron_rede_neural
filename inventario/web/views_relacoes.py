@@ -3,7 +3,7 @@ from django import forms
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError
-from django.db.models import Q
+from django.db.models import OuterRef, Q, Subquery
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -11,6 +11,17 @@ from django.views.decorators.http import require_GET, require_http_methods
 from inventario.aplicacao.relacoes import analisar_relacoes, salvar_relacao
 from inventario.models import Ativo, RelacaoAtivos
 from inventario.web.paginacao import paginar
+
+
+def com_procedencia(qs, usuario):
+    if not usuario.has_perms(("inventario.view_observacaoimportada", "inventario.view_revisaoobservacao")):
+        return qs
+    from inventario.models import RevisaoObservacao
+    revisoes = RevisaoObservacao.objects.filter(relacao_id=OuterRef("pk"), classificacao="RELACAO_CRIADA").order_by("-pk")
+    return qs.annotate(obs_confianca=Subquery(revisoes.values("observacao__confianca")[:1]),
+        obs_data=Subquery(revisoes.values("observacao__observado_em")[:1]),
+        obs_id=Subquery(revisoes.values("observacao_id")[:1]),
+        obs_revisada_em=Subquery(revisoes.values("criada_em")[:1]))
 
 
 class RelacaoForm(forms.ModelForm):
@@ -52,7 +63,7 @@ class AnaliseRelacoesForm(forms.Form):
 
 @require_GET
 def lista(request):
-    qs = RelacaoAtivos.objects.select_related("origem", "destino", "atualizada_por")
+    qs = com_procedencia(RelacaoAtivos.objects.select_related("origem", "destino", "atualizada_por"), request.user)
     if request.GET.get("q"):
         termo = request.GET["q"][:200]
         qs = qs.filter(Q(escopo__icontains=termo) | Q(origem_id__icontains=termo) | Q(destino_id__icontains=termo) | Q(principal__icontains=termo))
@@ -84,7 +95,8 @@ def formulario(request, pk=None):
 
 @require_GET
 def detalhe(request, pk):
-    obj = get_object_or_404(RelacaoAtivos.objects.select_related("origem", "destino", "criada_por", "atualizada_por"), pk=pk)
+    qs = com_procedencia(RelacaoAtivos.objects.select_related("origem", "destino", "criada_por", "atualizada_por"), request.user)
+    obj = get_object_or_404(qs, pk=pk)
     return render(request, "inventario/relacao_detalhe.html", {"r": obj, "hoje": timezone.localdate()})
 
 

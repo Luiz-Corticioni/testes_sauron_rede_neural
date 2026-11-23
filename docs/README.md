@@ -19,6 +19,7 @@ em que foram escritos. Eles não são um certificado de que um servidor está se
 | Entender prioridades e mudanças entre registros | [Explicabilidade e mudanças — Fase 2](RELATORIO_FASE_2_2026-11-21.md) |
 | Simular hipóteses financeiras contextuais e perdas | [Monte Carlo v2 — Fase 3](RELATORIO_FASE_3_2026-11-21.md) |
 | Comparar prioridades com dados históricos locais | [Backtest de priorização — Fase 4](RELATORIO_BACKTEST.md) |
+| Importar e revisar observações de scanners, GLPI e rede | [Observações offline — Fase 5](RELATORIO_FASE_5_2026-11-22.md) |
 | Relacionar serviços de negócio aos ativos | [Serviços de negócio](RELATORIO_SERVICOS_NEGOCIO.md) |
 | Comparar uma intervenção e seu custo declarado | [Comparação de intervenções](RELATORIO_COMPARACAO_INTERVENCOES.md) |
 | Examinar uma premissa de análise FAIR | [Sensibilidade FAIR](RELATORIO_SENSIBILIDADE_FAIR.md) |

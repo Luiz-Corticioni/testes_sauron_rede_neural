@@ -2,6 +2,7 @@
 
 ## Não lançado — Sprint 5
 
+- Observações offline versionadas, desativadas por padrão, com prévia, importação atômica e revisão humana; perfis restritos para scanners, GLPI e regras de rede.
 - Backtest offline de cinco estratégias em snapshots históricos, com limites temporais, métricas e intervalos ilustrativos; fixture sintética separada de dados reais.
 - Monte Carlo v2: fatores declarados, caminhos, causa comum, apetite, intervenções, sensibilidade e ajuste heurístico opcional por perdas registradas.
 - Prioridades explicam parcelas direta e propagada; snapshots novos registram top 10, backlog vencido e MTTR para comparação histórica autorizada.

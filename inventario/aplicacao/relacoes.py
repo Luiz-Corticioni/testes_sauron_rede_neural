@@ -59,7 +59,7 @@ def carregar_recorte(tipo, escopo, principal=""):
 
 
 def analisar_relacoes(usuario, tipo, escopo, origem, destino=None, principal="", remover_relacao=None, remover_ativo=None, limite=50):
-    autorizar(usuario)
+    usuario = autorizar(usuario)
     if remover_relacao is not None and (type(remover_relacao) is not int or remover_relacao < 1):
         raise ValueError("ID da relação retirada deve ser inteiro positivo.")
     hoje = timezone.localdate()
@@ -80,5 +80,21 @@ def analisar_relacoes(usuario, tipo, escopo, origem, destino=None, principal="",
     referencias = [a for a in elegiveis if a["id"] in usados]
     resultado["evidencias"] = [{k: a[k] for k in ("id", "origem_id", "destino_id", "protocolo", "porta", "principal", "privilegio", "fonte", "evidencia", "observada_em", "revisar_em")}
                                for a in referencias[:200]]
+    if usuario.has_perms(("inventario.view_observacaoimportada", "inventario.view_revisaoobservacao")):
+        from inventario.models import RevisaoObservacao
+        procedencias = {}
+        revisoes = RevisaoObservacao.objects.filter(relacao_id__in=[r["id"] for r in referencias[:200]],
+            classificacao="RELACAO_CRIADA").select_related("observacao").order_by("-pk")
+        for revisao in revisoes:
+            procedencias.setdefault(revisao.relacao_id, revisao)
+        por_id = {r["id"]: r for r in referencias[:200]}
+        for evidencia in resultado["evidencias"]:
+            revisao = procedencias.get(evidencia["id"])
+            if revisao:
+                obs = revisao.observacao
+                evidencia["observacao_id"] = obs.pk
+                evidencia["confianca_declarada"] = obs.confianca
+                evidencia["idade_segundos"] = max(0, int((timezone.now() - obs.observado_em).total_seconds()))
+                evidencia["relacao_alterada_apos_revisao"] = por_id[evidencia["id"]]["atualizado_em"] > revisao.criada_em
     resultado["evidencias_limitadas"] = len(referencias) > 200
     return resultado

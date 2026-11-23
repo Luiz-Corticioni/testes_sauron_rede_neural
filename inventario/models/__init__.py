@@ -29,3 +29,4 @@ from inventario.models.fair import CenarioFAIR, ExecucaoFAIR
 from inventario.models.servicos_negocio import ServicoNegocio
 from inventario.models.credenciais_api import CredencialAPI, LimiteOrigemAPI
 from inventario.models.perda_financeira import PerdaFinanceira
+from inventario.models.observacao import ObservacaoImportada, RevisaoObservacao
