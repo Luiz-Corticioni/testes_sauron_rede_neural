@@ -1,0 +1,10 @@
+{% extends "inventario/base.html" %}
+{% block title %}Emitir OpenVEX · Sauron{% endblock %}
+{% block content %}
+<section class="page-heading"><div><span class="kicker">REMEDIAÇÃO</span><h1>Emitir declaração OpenVEX</h1></div></section>
+<article class="panel"><p>{{ inc.pk }} · {{ inc.ativo }} · {{ inc.vulnerabilidade.cve_id }} · {{ inc.get_status_display }}</p>
+<p>Apenas decisões concluídas como corrigidas, com componente PURL exato e evidência, podem gerar esta declaração. O arquivo expressa uma afirmação do autor para o produto e a CVE indicados; não é prova independente de correção.</p>
+<p><strong>O texto da evidência será incluído no arquivo.</strong> Revise informações internas e dados pessoais antes de exportar.</p><p>Produto: {{ inc.software.purl|default:"não informado" }}</p><p>Evidência: {{ inc.evidencia|default:"não informada" }}</p></article>
+<form method="post" class="panel">{% csrf_token %}{{ form.as_p }}<button class="button" type="submit">Validar e baixar OpenVEX</button></form>
+<p><a href="{% url 'incidencias' %}">Voltar às incidências</a></p>
+{% endblock %}

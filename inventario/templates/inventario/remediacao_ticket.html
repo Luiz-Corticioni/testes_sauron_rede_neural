@@ -1,0 +1,10 @@
+{% extends "inventario/base.html" %}
+{% block title %}Chamados · Sauron{% endblock %}
+{% block content %}
+<section class="page-heading"><div><span class="kicker">REMEDIAÇÃO</span><h1>Chamados externos</h1></div></section>
+<article class="panel"><p>{{ inc.pk }} · {{ inc.vulnerabilidade.cve_id|default:inc.vulnerabilidade_id }} · prazo {{ inc.prazo_correcao|default:"não definido" }}</p>
+<p>O envio requer configuração do administrador do servidor e autorização explícita. Serão enviados o identificador da incidência, CVE ou identificador da vulnerabilidade e prazo; não são enviados detalhes técnicos, IPs ou credenciais do inventário.</p>
+<p>Se o estado for <strong>incerto</strong> ou permanecer em envio, consulte o sistema externo: o chamado pode ter sido criado. O Sauron não repete automaticamente a tentativa.</p></article>
+<form method="post" class="panel">{% csrf_token %}{{ form.as_p }}<button class="button" type="submit">Solicitar chamado</button></form>
+<article class="panel"><h2>Tentativas</h2>{% for ticket in tickets %}<p>{{ ticket.get_provedor_display }} · {{ ticket.get_estado_display }} · {{ ticket.referencia_externa|default:"sem identificador confirmado" }} · {{ ticket.criado_em }}</p>{% empty %}<p>Nenhuma tentativa.</p>{% endfor %}</article><p><a href="{% url 'incidencias' %}">Voltar às incidências</a></p>
+{% endblock %}

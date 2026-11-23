@@ -2,6 +2,7 @@
 
 ## Não lançado — Sprint 5
 
+- Remediação: comparação revisável de scans Trivy, chamados Jira/GLPI opcionais e emissão OpenVEX validada; backup compatível com migrações anteriores.
 - Observações offline versionadas, desativadas por padrão, com prévia, importação atômica e revisão humana; perfis restritos para scanners, GLPI e regras de rede.
 - Backtest offline de cinco estratégias em snapshots históricos, com limites temporais, métricas e intervalos ilustrativos; fixture sintética separada de dados reais.
 - Monte Carlo v2: fatores declarados, caminhos, causa comum, apetite, intervenções, sensibilidade e ajuste heurístico opcional por perdas registradas.

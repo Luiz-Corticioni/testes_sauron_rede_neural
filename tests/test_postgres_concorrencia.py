@@ -28,6 +28,36 @@ class BackupEmTransacaoPostgres(TestCase):
 
 @skipUnless(connection.vendor == "postgresql", "Teste exige PostgreSQL real.")
 class ConcorrenciaPostgres(TransactionTestCase):
+    @override_settings(SAURON_TICKETS_JIRA_ENABLED=True, SAURON_JIRA_URL="https://jira.example",
+        SAURON_JIRA_USER="sintetico", SAURON_JIRA_API_TOKEN="falso", SAURON_JIRA_PROJECT="SAU", SAURON_JIRA_ISSUE_TYPE="Task")
+    def test_solicitacoes_simultaneas_de_ticket_nao_duplicam_envio(self):
+        from django.contrib.auth import get_user_model
+        from inventario.aplicacao.tickets import criar_ticket
+        from inventario.models import Ativo, Incidencia, Sala, TicketRemediacao, Vulnerabilidade
+
+        usuario = get_user_model().objects.create_superuser("tickets-pg", "teste@example.org", "senha-sintetica")
+        sala = Sala.objects.create(id="SALA-TICKET-PG", nome="Sala fictícia")
+        ativo = Ativo.objects.create(tipo="1", nome="Origem", fabricante="Dell", sala=sala)
+        vuln = Vulnerabilidade.objects.create(id="VUL-TICKET-PG", descricao="Exemplo", categoria="RCE", cvss=5.3)
+        inc = Incidencia.objects.create(id="INC-TICKET-PG", ativo=ativo, vulnerabilidade=vuln)
+        barreira = Barrier(2)
+
+        def criar(_):
+            close_old_connections()
+            try:
+                barreira.wait(timeout=15)
+                return criar_ticket(inc.pk, "jira", usuario).pk
+            finally:
+                connections.close_all()
+
+        with patch("inventario.infraestrutura.tickets.Jira.criar", return_value="SAU-123") as envio:
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                resultados = list(executor.map(criar, range(2)))
+        self.assertEqual(resultados[0], resultados[1])
+        self.assertEqual(envio.call_count, 1)
+        self.assertEqual(TicketRemediacao.objects.count(), 1)
+        self.assertTrue(verificar_cadeia(verificar_ancora=False)["integra"])
+
     @override_settings(SAURON_IMPORTACAO_OBSERVACOES_ENABLED=True)
     def test_importacoes_simultaneas_sao_idempotentes(self):
         from django.contrib.auth import get_user_model

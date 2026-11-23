@@ -13,6 +13,10 @@ from inventario.web import views_cenario_financeiro
 from inventario.web import views_fair
 from inventario.web import views_perdas_financeiras
 from inventario.web import views_observacoes
+from inventario.web import views_remediacao
+from inventario.aplicacao.remediacao import PERMISSOES as PERMISSOES_REMEDIACAO
+from inventario.aplicacao.vex_emissao import PERMISSOES_VEX
+from inventario.aplicacao.tickets import PERMISSOES_TICKET
 from inventario.aplicacao.observacoes import LEITURA as LEITURA_OBSERVACOES, IMPORTAR as IMPORTAR_OBSERVACOES
 from inventario.aplicacao.fair import LEITURA as LEITURA_FAIR, ESCRITA as ESCRITA_FAIR
 from inventario.web import views_documentos
@@ -45,6 +49,9 @@ PERMISSOES_RISCO = (
 
 
 urlpatterns = [
+    path("incidencias/<str:pk>/comparar-scan/", proteger(views_remediacao.comparar, *PERMISSOES_REMEDIACAO), name="comparar_correcao"),
+    path("incidencias/<str:pk>/openvex/", proteger(views_remediacao.exportar_vex, *PERMISSOES_VEX), name="emitir_vex"),
+    path("incidencias/<str:pk>/ticket/", proteger(views_remediacao.ticket_web, *PERMISSOES_TICKET), name="ticket_remediacao"),
     path("api/v1/risco/mudancas/", api_v1.mudancas_risco, name="api_v1_mudancas_risco"),
     path("api/v1/qualidade/fontes/", api_v1.qualidade_fontes, name="api_v1_qualidade_fontes"),
     path("api/v1/qualidade/ativos/<str:pk>/", partial(api_v1.qualidade, entidade="ativo"), name="api_v1_qualidade_ativo"),

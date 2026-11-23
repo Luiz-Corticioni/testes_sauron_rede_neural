@@ -32,6 +32,21 @@ class R7(BancoTeste):
         self.assertEqual(i.aceita_por, self.usuario)
         self.assertEqual(i.aprovada_por, segundo)
 
+    def test_aceite_vencido_reabre_e_alerta_uma_vez(self):
+        from unittest.mock import patch
+        from inventario.aplicacao.operacao import expirar_aceites
+        from inventario.models import Alerta
+        hoje = timezone.localdate()
+        segundo = get_user_model().objects.create_superuser("aprovador-expiracao", "", "senha")
+        alterar_status(self.i.pk, "ACEITA", self.usuario, "Exceção temporária", hoje)
+        alterar_status(self.i.pk, "ACEITA", segundo)
+        with patch("inventario.aplicacao.operacao.timezone.localdate", return_value=hoje + timedelta(days=1)):
+            self.assertEqual(expirar_aceites(), 1)
+            self.assertEqual(expirar_aceites(), 0)
+        self.i.refresh_from_db()
+        self.assertEqual(self.i.status, "ABERTA")
+        self.assertEqual(Alerta.objects.filter(tipo="ACEITE_VENCIDO", ativo=self.a).count(), 1)
+
     def test_correcao_evidencia_e_confirmacao(self):
         segundo = get_user_model().objects.create_superuser("segundo", "", "senha-segundo")
         for status in ("CORRIGIDA", "MITIGADA"):

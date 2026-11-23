@@ -242,6 +242,9 @@ def listar_relacoes(request, cadastro):
                 "editar": reverse(f"editar_{cadastro}", args=[o.pk]),
                 "remover": reverse(f"remover_{cadastro}", args=[o.pk]),
                 "ssvc": reverse("ssvc_incidencia", args=[o.pk]) if cadastro == "incidencia" else None,
+                "comparar_scan": reverse("comparar_correcao", args=[o.pk]) if cadastro == "incidencia" else None,
+                "emitir_vex": reverse("emitir_vex", args=[o.pk]) if cadastro == "incidencia" else None,
+                "ticket": reverse("ticket_remediacao", args=[o.pk]) if cadastro == "incidencia" else None,
             }
             for o in contexto["pagina"]
         ],

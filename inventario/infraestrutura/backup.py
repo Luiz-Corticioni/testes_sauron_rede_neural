@@ -86,6 +86,10 @@ def backup_sqlite(retencao=None):
                     "inventario.cenariofair": "0035_cenariofair",
                     "inventario.execucaofair": "0036_execucaofair",
                     "inventario.serviconegocio": "0039_serviconegocio",
+                    "inventario.observacaoimportada": "0044_observacaoimportada_revisaoobservacao_and_more",
+                    "inventario.revisaoobservacao": "0044_observacaoimportada_revisaoobservacao_and_more",
+                    "inventario.sugestaocorrecao": "0045_sugestaocorrecao",
+                    "inventario.ticketremediacao": "0046_ticketremediacao",
                 }
                 migracao = criacao_recente.get(modelo._meta.label_lower)
                 if migracao and ("inventario", migracao) not in aplicadas:
