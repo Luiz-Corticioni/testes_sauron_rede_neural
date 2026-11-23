@@ -1,0 +1,66 @@
+{
+  "formato": "sauron.backtest/1",
+  "corte": "2025-01-10",
+  "fim": "2025-02-09",
+  "fontes": {
+    "inventario": "Fixture sintética v1",
+    "cvss": "Fixture sintética v1",
+    "epss": "Fixture sintética v1",
+    "kev": "Fixture sintética v1",
+    "ssvc": "Fixture sintética v1",
+    "exploracao": "Fixture sintética v1"
+  },
+  "inventario": {
+    "observado_em": "2025-01-09",
+    "disponivel_em": "2025-01-10",
+    "modelo_sauron": {"perfil": "operacional", "kappa": 0.3},
+    "ativos": [{"id": "A", "fator_exposicao": 1.0}, {"id": "B", "fator_exposicao": 1.2}],
+    "incidencias": [
+      {"id": "I1", "ativo": "A", "cve": "CVE-2025-0001", "status": "ABERTA"},
+      {"id": "I2", "ativo": "B", "cve": "CVE-2025-0002", "status": "ABERTA"},
+      {"id": "I3", "ativo": "A", "cve": "CVE-2025-0003", "status": "ABERTA"},
+      {"id": "I4", "ativo": "B", "cve": "CVE-2025-0004", "status": "TRATAMENTO"},
+      {"id": "I5", "ativo": "A", "cve": "CVE-2025-0005", "status": "ACEITA"},
+      {"id": "I6", "ativo": "B", "cve": "CVE-2025-0006", "status": "ABERTA"}
+    ],
+    "dependencias": [{"dependente": "B", "fornecedor": "A", "peso": 0.3}]
+  },
+  "kev": {"completo": true, "disponivel_em": "2025-01-10", "cves": [{"cve": "CVE-2025-0002", "adicionada_em": "2025-01-05"}]},
+  "vulnerabilidades": [
+    {"id": "VUL-RCE-0001", "cve": "CVE-2025-0001",
+     "cvss": {"valor": 9.8, "observado_em": "2025-01-01", "disponivel_em": "2025-01-02"},
+     "cvss_ambiental": {"valor": 9.8, "observado_em": "2025-01-09", "disponivel_em": "2025-01-09"},
+     "epss": {"valor": 0.02, "observado_em": "2025-01-09", "disponivel_em": "2025-01-09"},
+     "ssvc": {"valor": "defer", "observado_em": "2025-01-09", "disponivel_em": "2025-01-09", "revisar_em": "2025-02-01", "contexto_valido": true}},
+    {"id": "VUL-RCE-0002", "cve": "CVE-2025-0002",
+     "cvss": {"valor": 8.0, "observado_em": "2025-01-01", "disponivel_em": "2025-01-02"},
+     "cvss_ambiental": {"valor": 8.0, "observado_em": "2025-01-09", "disponivel_em": "2025-01-09"},
+     "epss": {"valor": 0.9, "observado_em": "2025-01-09", "disponivel_em": "2025-01-09"},
+     "ssvc": {"valor": "immediate", "observado_em": "2025-01-09", "disponivel_em": "2025-01-09", "revisar_em": "2025-02-01", "contexto_valido": true}},
+    {"id": "VUL-RCE-0003", "cve": "CVE-2025-0003",
+     "cvss": {"valor": 7.0, "observado_em": "2025-01-01", "disponivel_em": "2025-01-02"},
+     "cvss_ambiental": {"valor": 10.0, "observado_em": "2025-01-09", "disponivel_em": "2025-01-09"},
+     "epss": {"valor": 0.7, "observado_em": "2025-01-09", "disponivel_em": "2025-01-09"},
+     "ssvc": {"valor": "scheduled", "observado_em": "2025-01-09", "disponivel_em": "2025-01-09", "revisar_em": "2025-02-01", "contexto_valido": true}},
+    {"id": "VUL-RCE-0004", "cve": "CVE-2025-0004",
+     "cvss": {"valor": 9.0, "observado_em": "2025-01-01", "disponivel_em": "2025-01-02"},
+     "cvss_ambiental": {"valor": 9.0, "observado_em": "2025-01-09", "disponivel_em": "2025-01-09"},
+     "epss": {"valor": 0.1, "observado_em": "2025-01-09", "disponivel_em": "2025-01-09"},
+     "ssvc": {"valor": "immediate", "observado_em": "2025-01-09", "disponivel_em": "2025-01-09", "revisar_em": "2025-02-01", "contexto_valido": true}},
+    {"id": "VUL-RCE-0005", "cve": "CVE-2025-0005",
+     "cvss": {"valor": 6.0, "observado_em": "2025-01-01", "disponivel_em": "2025-01-02"},
+     "cvss_ambiental": {"valor": 6.0, "observado_em": "2025-01-09", "disponivel_em": "2025-01-09"},
+     "epss": {"valor": 0.01, "observado_em": "2025-01-09", "disponivel_em": "2025-01-09"},
+     "ssvc": {"valor": "defer", "observado_em": "2025-01-09", "disponivel_em": "2025-01-09", "revisar_em": "2025-02-01", "contexto_valido": true}},
+    {"id": "VUL-RCE-0006", "cve": "CVE-2025-0006",
+     "cvss": {"valor": 5.0, "observado_em": "2025-01-01", "disponivel_em": "2025-01-02"},
+     "epss": {"valor": 0.4, "observado_em": "2025-01-11", "disponivel_em": "2025-01-11"},
+     "ssvc": {"valor": "pending", "observado_em": "2025-01-09", "disponivel_em": "2025-01-09", "revisar_em": "2025-02-01", "contexto_valido": true}}
+  ],
+  "eventos_metadados": {"cobertura_ate": "2025-02-09", "extraido_em": "2025-02-10"},
+  "eventos": [
+    {"cve": "CVE-2025-0001", "observado_em": "2025-01-20", "disponivel_em": "2025-01-21", "fonte": "Evento sintético"},
+    {"cve": "CVE-2025-0003", "observado_em": "2025-01-18", "disponivel_em": "2025-01-18", "fonte": "Evento sintético"},
+    {"cve": "CVE-2025-0005", "observado_em": "2025-02-01", "disponivel_em": "2025-02-01", "fonte": "Evento sintético"}
+  ]
+}
