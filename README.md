@@ -23,6 +23,7 @@ do ambiente.
 | Entender a licença e os componentes de terceiros | [Licença do Sauron](docs/DECISAO_LICENCA.md) |
 | Testar sensores de isca e eventos fictícios | [Guia de honeypot](docs/HONEYPOT_FASE1.md) |
 | Encontrar documentos técnicos e relatórios | [Índice da documentação](docs/README.md) |
+| Preparar visão executiva e imprimir relatório | [Visão executiva — fase 7](docs/RELATORIO_FASE_7_2026-11-24.md) |
 | Conferir as alterações recentes de instalação e TOTP | [Relatório de 11/11/2026](docs/RELATORIO_INSTALACAO_E_TOTP_2026-11-11.md) |
 | Entender o plano e as premissas da análise financeira | [Risco financeiro e contexto empresarial](docs/PLANO_RISCO_FINANCEIRO_2026-11-11.md) |
 | Entender os componentes e critérios da interface | [Sistema visual](docs/DESIGN_SISTEMA.md) |

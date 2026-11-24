@@ -14,6 +14,8 @@ from inventario.web import views_fair
 from inventario.web import views_perdas_financeiras
 from inventario.web import views_observacoes
 from inventario.web import views_remediacao
+from inventario.web import views_executivo
+from inventario.aplicacao.visao_executiva import LEITURA as LEITURA_EXECUTIVO, EXPORTACAO as EXPORTACAO_EXECUTIVO
 from inventario.aplicacao.remediacao import PERMISSOES as PERMISSOES_REMEDIACAO
 from inventario.aplicacao.vex_emissao import PERMISSOES_VEX
 from inventario.aplicacao.tickets import PERMISSOES_TICKET
@@ -49,6 +51,8 @@ PERMISSOES_RISCO = (
 
 
 urlpatterns = [
+    path("executivo/", proteger(views_executivo.painel, *LEITURA_EXECUTIVO), name="visao_executiva"),
+    path("executivo/exportar/", proteger(views_executivo.baixar, *EXPORTACAO_EXECUTIVO), name="exportar_executivo"),
     path("incidencias/<str:pk>/comparar-scan/", proteger(views_remediacao.comparar, *PERMISSOES_REMEDIACAO), name="comparar_correcao"),
     path("incidencias/<str:pk>/openvex/", proteger(views_remediacao.exportar_vex, *PERMISSOES_VEX), name="emitir_vex"),
     path("incidencias/<str:pk>/ticket/", proteger(views_remediacao.ticket_web, *PERMISSOES_TICKET), name="ticket_remediacao"),

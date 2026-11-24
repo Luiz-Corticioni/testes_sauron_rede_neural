@@ -2,6 +2,7 @@
 
 ## Não lançado — Sprint 5
 
+- Visão executiva de serviços, dados financeiros de 30 dias e evidências, com exportação HTML auditada e referências indicativas de controles.
 - Remediação: comparação revisável de scans Trivy, chamados Jira/GLPI opcionais e emissão OpenVEX validada; backup compatível com migrações anteriores.
 - Observações offline versionadas, desativadas por padrão, com prévia, importação atômica e revisão humana; perfis restritos para scanners, GLPI e regras de rede.
 - Backtest offline de cinco estratégias em snapshots históricos, com limites temporais, métricas e intervalos ilustrativos; fixture sintética separada de dados reais.
