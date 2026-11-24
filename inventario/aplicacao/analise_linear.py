@@ -22,6 +22,8 @@ def explicar_modelo(usuario, termo=None, perfil="puro", risco=None):
         raise ValueError("O perfil solicitado difere do resultado apresentado.")
     resultado = DiagnosticoLinear.analisar(risco, ativo.pk if ativo else None)
     resultado["perfil"] = perfil
+    from inventario.aplicacao.qualidade_dados import qualidade_recorte_risco
+    resultado["qualidade_dados"] = qualidade_recorte_risco(usuario)
     # Uma única interface, vários comportamentos concretos, sem if por subtipo.
     objetos = [a.para_dominio() for a in Ativo.objects.all()[:12]]
     resultado["objetos"] = [

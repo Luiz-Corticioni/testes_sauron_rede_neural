@@ -12,6 +12,7 @@ from inventario.models import Ativo, Incidencia, ServicoNegocio
 
 PERMISSOES = (*LEITURA, "inventario.view_incidencia", "inventario.view_vulnerabilidade")
 STATUS = ("ABERTA", "TRATAMENTO", "MITIGADA", "ACEITA")
+PERMISSOES_RISCO = ("inventario.view_ativo", "inventario.view_vulnerabilidade", "inventario.view_incidencia", "inventario.view_dependencia")
 
 
 def componente_epss(qs):
@@ -36,6 +37,21 @@ def componente_epss(qs):
 
 def incidencias_ativas():
     return Incidencia.objects.filter(status__in=STATUS).exclude(ativo__status__in=("BAIXADO", "INATIVO"))
+
+
+def qualidade_recorte_risco(usuario, ativos=None):
+    """Componentes do recorte observado; sem perímetro, revisão não é inferida."""
+    exigir(usuario, *PERMISSOES_RISCO)
+    qs = Incidencia.objects.filter(status__in=("ABERTA", "TRATAMENTO", "ACEITA"))
+    if ativos is not None:
+        qs = qs.filter(ativo_id__in=ativos)
+    epss = componente_epss(qs)
+    epss["origem"] = "Incidências abertas, em tratamento ou aceitas do recorte; EPSS não entra na fórmula de risco"
+    revisao = componente("revisao", "Revisão da cobertura de relações", None, None,
+        "Perímetro e camada não selecionados neste recorte",
+        motivo="Informe um perímetro e uma camada na avaliação de cobertura para examinar as revisões.")
+    return {**avaliar([epss, componente_fontes(), revisao]),
+            "escopo": "Ativos filtrados" if ativos is not None else "Todos os ativos do modelo"}
 
 
 def componente_fontes():

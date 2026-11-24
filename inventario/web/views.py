@@ -107,13 +107,14 @@ def api_ativos(request):
 @require_GET
 def api_risco(request):
     try:
+        from inventario.aplicacao.qualidade_dados import qualidade_recorte_risco
         perfil = request.GET.get("perfil")
-        return JsonResponse(
-            calcular_risco_banco(
-                usar_exposicao=request.GET.get("exposicao") == "1",
-                perfil=perfil,
-            )
-        )
+        resultado = dict(calcular_risco_banco(
+            usar_exposicao=request.GET.get("exposicao") == "1",
+            perfil=perfil,
+        ))
+        resultado["qualidade_dados"] = qualidade_recorte_risco(request.user)
+        return JsonResponse(resultado)
     except ValueError as erro:
         return JsonResponse({"erro": str(erro)}, status=422)
 
@@ -121,13 +122,16 @@ def api_risco(request):
 @require_http_methods(["POST"])
 def api_simular_risco(request):
     try:
+        from inventario.aplicacao.qualidade_dados import qualidade_recorte_risco
         dados = json.loads(request.body)
         if not isinstance(dados, dict):
             raise ValueError("Envie um objeto JSON.")
         ids = dados.get("incidencias_corrigidas")
         if not isinstance(ids, list) or len(ids) > 10000:
             raise ValueError("Envie uma lista de até 10000 IDs em incidencias_corrigidas.")
-        return JsonResponse(simular_correcao(ids, perfil=dados.get("perfil", "puro")))
+        resultado = dict(simular_correcao(ids, perfil=dados.get("perfil", "puro")))
+        resultado["qualidade_dados"] = qualidade_recorte_risco(request.user)
+        return JsonResponse(resultado)
     except (ValueError, TypeError) as erro:
         return JsonResponse({"erro": str(erro)}, status=400)
 

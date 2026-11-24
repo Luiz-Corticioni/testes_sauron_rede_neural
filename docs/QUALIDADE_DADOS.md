@@ -46,6 +46,16 @@ situação das fontes; dados de importações e iscas exigem permissões adicion
 O histórico de scanner registra tentativas de gravação, não as prévias; erros
 conservam apenas uma categoria genérica, sem armazenar o conteúdo do arquivo.
 
+## Recortes das telas de risco
+
+O painel, mapa, matrizes e prioridades mostram o componente EPSS para as
+incidências abertas, em tratamento ou aceitas incluídas no recorte. No painel,
+os filtros também limitam os ativos considerados; o estado NVD/KEV permanece
+global. Sem perímetro e camada escolhidos, a revisão das relações é indeterminada
+e o índice agregado não é calculado. Os dados também aparecem em
+`GET /api/risco/`, `POST /api/risco/simular/` e no diagnóstico linear. Esse
+campo de qualidade não muda a fórmula nem introduz EPSS como peso do risco.
+
 ## Simulação de 30 dias
 
 O resultado Monte Carlo inclui a fração de EPSS recentes e coerentes, preservando

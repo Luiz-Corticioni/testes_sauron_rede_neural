@@ -30,6 +30,9 @@ def dashboard(request: HttpRequest):
         contexto['recorte'] = recorte_painel(request.GET, contexto['risco'])
         if contexto['recorte']['ativo']:
             contexto['risco_json'] = contexto['recorte']['grafico']
+        from inventario.aplicacao.qualidade_dados import qualidade_recorte_risco
+        ativos_qualidade = contexto['recorte']['_ativos'].values('pk') if contexto['recorte']['ativo'] else None
+        contexto['qualidade_recorte'] = qualidade_recorte_risco(request.user, ativos_qualidade)
     except ValueError as erro:
         return HttpResponseBadRequest(str(erro), content_type='text/plain; charset=utf-8')
     from inventario.models import Vulnerabilidade

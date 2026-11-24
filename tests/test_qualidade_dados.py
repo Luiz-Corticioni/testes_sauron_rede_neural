@@ -23,6 +23,36 @@ class IndiceQualidade(TestCase):
 
 
 class QualidadeAplicacao(BancoTeste):
+    def test_qualidade_do_recorte_e_exposta_sem_inventar_cobertura(self):
+        from django.utils import timezone
+        from inventario.aplicacao.qualidade_dados import qualidade_recorte_risco
+        from inventario.models import ObservacaoEPSS
+
+        data = timezone.now().date()
+        observacao = ObservacaoEPSS.objects.create(cve_id=self.v.cve_id, data=data, epss=0.2,
+                                                   percentil=0.5, assinatura="c" * 64)
+        self.v.epss, self.v.epss_data, self.v.epss_observacao = 0.2, data, observacao
+        self.v.save()
+        global_ = qualidade_recorte_risco(self.usuario)
+        recorte = qualidade_recorte_risco(self.usuario, [self.a.pk])
+        self.assertEqual(global_["componentes"][0]["percentual"], 50)
+        self.assertEqual(recorte["componentes"][0]["percentual"], 100)
+        self.assertIsNone(recorte["score"])
+        self.assertIsNone(recorte["componentes"][2]["percentual"])
+        resposta = self.client.get("/api/risco/")
+        self.assertEqual(resposta.json()["qualidade_dados"]["componentes"][0]["percentual"], 50)
+        self.assertContains(self.client.get("/prioridades/"), "não entra na fórmula atual de risco")
+        pagina = self.client.get("/", {"severidade": "critica"})
+        self.assertEqual(pagina.context["qualidade_recorte"]["componentes"][0]["percentual"], 100)
+
+    def test_qualidade_recorte_exige_permissoes_de_risco(self):
+        from django.contrib.auth import get_user_model
+        from django.core.exceptions import PermissionDenied
+        from inventario.aplicacao.qualidade_dados import qualidade_recorte_risco
+        usuario = get_user_model().objects.create_user("sem-risco")
+        with self.assertRaises(PermissionDenied):
+            qualidade_recorte_risco(usuario)
+
     def test_cve_vazia_nao_conta_como_evidencia_epss(self):
         from django.utils import timezone
         from inventario.aplicacao.qualidade_dados import qualidade_ativo

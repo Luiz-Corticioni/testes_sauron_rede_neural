@@ -19,14 +19,19 @@ class Regressao(BancoTeste):
             self.assertEqual(api.status_code, 200)
             resultado = api.json()
             resultado.pop("versao_dados")  # Hash inclui timestamps, não é saída numérica.
+            qualidade = resultado.pop("qualidade_dados")  # Fontes e datas são independentes do golden matemático.
+            self.assertEqual(qualidade["versao"], "sauron.qualidade/1")
+            self.assertIsNone(qualidade["score"])
             for prioridade in resultado["prioridade_correcao"]:
                 explicacao = prioridade.pop("explicacao")
                 self.assertEqual(explicacao["reducao_total"], prioridade["reducao_total_estimada"])
             simulacao = self.client.post(reverse("api_simular_risco"),
                 data=json.dumps({"perfil": perfil, "incidencias_corrigidas": [self.i.pk]}), content_type="application/json")
             self.assertEqual(simulacao.status_code, 200)
+            simulacao_json = simulacao.json()
+            self.assertEqual(simulacao_json.pop("qualidade_dados")["versao"], "sauron.qualidade/1")
             obtido[perfil] = {"modelo": modelo.calcular(**parametros_risco(perfil)).to_dict(),
-                              "api": resultado, "simulacao": simulacao.json()}
+                              "api": resultado, "simulacao": simulacao_json}
         caminho = Path(__file__).with_name("golden_risco.json")
         self.assertEqual(obtido, json.loads(caminho.read_text(encoding="utf-8")))
 

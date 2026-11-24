@@ -11,6 +11,7 @@ from inventario.aplicacao.analise_linear import explicar_modelo
 
 
 def contexto_risco(request):
+    from inventario.aplicacao.qualidade_dados import qualidade_recorte_risco
     perfil = request.GET.get("perfil", "puro")
     contexto = {
         "perfil": perfil,
@@ -18,6 +19,7 @@ def contexto_risco(request):
         "risco_json": {},
         "erro_risco": None,
         "indice_medio": None,
+        "qualidade_recorte": qualidade_recorte_risco(request.user),
     }
     try:
         risco = calcular_risco_banco(perfil=perfil)
