@@ -3,10 +3,10 @@ from django.contrib.auth.models import Permission
 from django.urls import reverse
 
 from inventario.models import MembroPerimetro, PerimetroRelacoes, RegistroAuditoria, ServicoNegocio
-from .base import BancoTeste
+from .base import BancoTesteComBackup
 
 
-class ServicosNegocio(BancoTeste):
+class ServicosNegocio(BancoTesteComBackup):
     def setUp(self):
         super().setUp()
         self.perimetro = PerimetroRelacoes.objects.create(nome='pedidos', descricao='Loja de exemplo',

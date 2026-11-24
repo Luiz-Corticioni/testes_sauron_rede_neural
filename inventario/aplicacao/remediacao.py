@@ -31,6 +31,9 @@ def sugerir_correcao(incidencia_id, observacao_id, conteudo, observado_em, decla
         raise ValidationError("Importação de observações desativada.")
     inc = Incidencia.objects.select_related("vulnerabilidade", "ativo").get(pk=incidencia_id)
     obs = ObservacaoImportada.objects.get(pk=observacao_id)
+    from inventario.aplicacao.retencao_observacoes import corte_retencao, EXPIRADA
+    if obs.erro == EXPIRADA or obs.recebido_em <= corte_retencao():
+        raise ValidationError("Observação fora do prazo de retenção; importe evidência atual.")
     if inc.status not in {"ABERTA", "TRATAMENTO", "ACEITA", "MITIGADA"}:
         raise ValidationError("A incidência deve estar confirmada e ainda não corrigida.")
     ultima = obs.revisoes.order_by("-criada_em", "-pk").first()

@@ -3,11 +3,13 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.db import connection
 from django.test import TestCase, override_settings
 from inventario.models import Ativo, Sala, Vulnerabilidade, Incidencia, Dependencia
+from .base_transacional import BancoTransacionalTeste
 
 
-class BancoTeste(TestCase):
+class BancoFixtureMixin:
     @classmethod
     def setUpClass(cls):
         cls.diretorio = TemporaryDirectory(prefix="sauron-testes-")
@@ -60,3 +62,11 @@ class BancoTeste(TestCase):
         sessao["otp_device_id"]=dispositivo.persistent_id
         sessao["sauron_reauth_em"]=timezone.now().timestamp()
         sessao.save()
+
+
+class BancoTeste(BancoFixtureMixin, TestCase):
+    pass
+
+
+class BancoTesteComBackup(BancoFixtureMixin, BancoTransacionalTeste if connection.vendor == "postgresql" else TestCase):
+    """PostgreSQL precisa de testes sem transação externa para backup consistente."""

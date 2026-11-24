@@ -1,11 +1,22 @@
-# Sauron, meu amor!
+# Sauron — observatório de exposição cibernética
 
 O Sauron é um inventário de ativos e vulnerabilidades que ajuda equipes técnicas e
 responsáveis pelo negócio a entender dependências, acompanhar tratamentos e discutir
 prioridades de segurança. Possui uma **interface gráfica no navegador** e uma
 interface de terminal. É um protótipo de apoio à decisão: seus cálculos e sugestões
 dependem dos dados cadastrados e não comprovam, por si só, uma invasão ou a segurança
-do ambiente.
+do ambiente. Sua proposta é ajudar organizações sem SOC dedicado a priorizar
+exposições de forma explicável e auditável, com dados revisados por pessoas.
+
+## O que o Sauron não é
+
+- Não substitui EDR, SIEM, scanner de vulnerabilidades ou equipe de resposta.
+- Um mapa de dependências não prova que um ataque ocorreu ou que um caminho é explorável.
+- Cenários financeiros são simulações com premissas, não previsões de perdas reais.
+- Resultados e referências de controles não constituem certificação de segurança ou conformidade.
+- Euler, contágio, sistema imune e iscas são recursos de laboratório ou demonstração; exigem avaliação antes de qualquer uso operacional.
+
+Consulte o [roadmap atual e as pendências](docs/ROADMAP_ATUAL.md) para distinguir o que está implementado do que ainda precisa de validação.
 
 ## Comece por aqui
 

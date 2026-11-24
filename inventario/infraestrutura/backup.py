@@ -90,6 +90,7 @@ def backup_sqlite(retencao=None):
                     "inventario.revisaoobservacao": "0044_observacaoimportada_revisaoobservacao_and_more",
                     "inventario.sugestaocorrecao": "0045_sugestaocorrecao",
                     "inventario.ticketremediacao": "0046_ticketremediacao",
+                    "inventario.politicaretencaoobservacoes": "0047_sugestaocorrecao_dados_eliminados_and_more",
                 }
                 migracao = criacao_recente.get(modelo._meta.label_lower)
                 if migracao and ("inventario", migracao) not in aplicadas:
@@ -105,6 +106,9 @@ def backup_sqlite(retencao=None):
             elif modelo._meta.label_lower == "inventario.cenariofair" and ("inventario", "0038_cenariofair_esforco_da_ameaca_and_more") not in aplicadas:
                 novos = {"valor_para_ameaca", "esforco_da_ameaca", "risco_para_ameaca", "habilidades_ameaca", "recursos_ameaca"}
                 campos = [f.name for f in modelo._meta.fields if f.name not in novos]
+                itens = serializers.serialize("python", registros.only(*campos).iterator(), fields=campos)
+            elif modelo._meta.label_lower == "inventario.sugestaocorrecao" and ("inventario", "0047_sugestaocorrecao_dados_eliminados_and_more") not in aplicadas:
+                campos = [f.name for f in modelo._meta.fields if f.name != "dados_eliminados"]
                 itens = serializers.serialize("python", registros.only(*campos).iterator(), fields=campos)
             else:
                 itens=serializers.serialize("python",registros.iterator())

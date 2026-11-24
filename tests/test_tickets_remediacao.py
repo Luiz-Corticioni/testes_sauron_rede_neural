@@ -4,7 +4,8 @@ from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.test import SimpleTestCase, TransactionTestCase, override_settings
+from django.test import SimpleTestCase, override_settings
+from .base_transacional import BancoTransacionalTeste
 
 from inventario.aplicacao.tickets import criar_ticket
 from inventario.infraestrutura.tickets import GLPI, Jira
@@ -35,7 +36,7 @@ class AdaptadoresTickets(SimpleTestCase):
 
 @override_settings(SAURON_TICKETS_JIRA_ENABLED=True, SAURON_JIRA_URL="https://jira.example",
                    SAURON_JIRA_USER="synthetic", SAURON_JIRA_API_TOKEN="FAKE", SAURON_JIRA_PROJECT="SAU", SAURON_JIRA_ISSUE_TYPE="Task")
-class EnvioTicket(TransactionTestCase):
+class EnvioTicket(BancoTransacionalTeste):
     def _fixture_teardown(self):
         # O flush de TransactionTestCase precisa limpar o banco de teste SQLite;
         # a trava de exclusão de auditoria é restaurada imediatamente após o flush.

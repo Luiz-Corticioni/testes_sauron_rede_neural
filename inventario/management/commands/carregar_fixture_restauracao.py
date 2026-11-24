@@ -4,9 +4,11 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.contrib.contenttypes.models import ContentType
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models.signals import m2m_changed
+from django.db import transaction
 
 from inventario.infraestrutura.auditoria import conectar_sinais_autenticacao
 
@@ -29,6 +31,11 @@ class Command(BaseCommand):
         try:
             for relacao in relacoes:
                 m2m_changed.disconnect(sender=relacao, dispatch_uid=f'audit.m2m.{relacao.__name__}')
-            call_command('loaddata', options['arquivo'], stdout=self.stdout)
+            with transaction.atomic():
+                # As migrações criam tipos/permissões no banco novo, mas os IDs
+                # podem diferir dos IDs do backup originado em outro banco.
+                # O comando só aceita o SQLite temporário criado pelo restaurador.
+                ContentType.objects.all().delete()
+                call_command('loaddata', options['arquivo'], stdout=self.stdout)
         finally:
             conectar_sinais_autenticacao()

@@ -1,5 +1,9 @@
 # Fase 5 — conectores e observações offline
 
+**Atualização de 24/11/2026:** esta descrição registra o estado da fase em
+22/11. A política de retenção de observações foi implementada depois; consulte o
+[relatório de correções](RELATORIO_PENDENCIAS_2026-11-24.md) para o estado atual.
+
 ## O que mudou e por quê
 
 Foi acrescentada uma fila de observações `sauron.observacao/1` para registrar

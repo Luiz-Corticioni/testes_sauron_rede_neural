@@ -91,7 +91,9 @@ def comparar(request, pk):
             form.add_error(None, "Incidência não encontrada.")
         except ObservacaoImportada.DoesNotExist:
             form.add_error("observacao", "Observação não encontrada.")
-    sugestoes = SugestaoCorrecao.objects.filter(incidencia=incidencia).select_related("observacao", "criado_por").order_by("-criado_em")[:50]
+    from inventario.aplicacao.retencao_observacoes import corte_retencao
+    sugestoes = SugestaoCorrecao.objects.filter(incidencia=incidencia, criado_em__gt=corte_retencao(),
+        dados_eliminados=False).select_related("observacao", "criado_por").order_by("-criado_em")[:50]
     resposta = render(request, "inventario/remediacao_comparar.html", {"inc": incidencia, "form": form, "sugestoes": sugestoes})
     resposta["Cache-Control"] = "no-store"
     return resposta

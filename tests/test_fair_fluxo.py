@@ -7,11 +7,11 @@ from django.utils import timezone
 
 from inventario.aplicacao.fair import calcular, comparar, criar, executar
 from inventario.models import CenarioFAIR, ExecucaoFAIR, RegistroAuditoria
-from .base import BancoTeste
+from .base import BancoTesteComBackup
 from .test_fair_matematica import exemplo
 
 
-class FluxoFAIR(BancoTeste):
+class FluxoFAIR(BancoTesteComBackup):
     def test_criacao_revalida_autorizacao_apos_trava(self):
         from unittest.mock import patch
         from inventario.infraestrutura.auditoria import travar_escrita

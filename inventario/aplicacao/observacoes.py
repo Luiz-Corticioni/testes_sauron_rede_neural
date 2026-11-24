@@ -112,6 +112,9 @@ def revisar(pk, classificacao, justificativa, usuario, revisar_em=None):
     travar_escrita()
     usuario = exigir(usuario, *(PROMOVER if classificacao == "RELACAO_CRIADA" else REVISAR))
     observacao = ObservacaoImportada.objects.get(pk=pk)
+    from inventario.aplicacao.retencao_observacoes import corte_retencao, EXPIRADA
+    if observacao.erro == EXPIRADA or observacao.recebido_em <= corte_retencao():
+        raise ValidationError("Observação fora do prazo de retenção; importe evidência atual para revisar.")
     if classificacao not in dict(RevisaoObservacao.CLASSIFICACOES):
         raise ValidationError("Classificação inválida.")
     justificativa = texto(justificativa, "Justificativa", 500)

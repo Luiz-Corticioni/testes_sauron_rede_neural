@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from inventario.aplicacao.honeypot import salvar_sensor, importar_eventos, validar_lote
 from inventario.models import Alerta, EventoHoneypot, SensorHoneypot, RegistroAuditoria
-from .base import BancoTeste
+from .base import BancoTesteComBackup
 
 
 def evento(id_="exemplo-1", tipo="CONEXAO", ip="192.0.2.10"):
@@ -16,7 +16,7 @@ def arquivo(*eventos):
     return json.dumps(list(eventos)).encode()
 
 
-class HoneypotTeste(BancoTeste):
+class HoneypotTeste(BancoTesteComBackup):
     def setUp(self):
         super().setUp()
         self.sensor = salvar_sensor(SensorHoneypot(nome="Isca laboratório", responsavel="Equipe", ativo=self.a), self.usuario)

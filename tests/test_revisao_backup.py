@@ -5,10 +5,10 @@ from django.conf import settings
 from django.test import override_settings
 from cryptography.fernet import Fernet
 from inventario.infraestrutura.backup import backup_sqlite, restaurar_backup
-from .base import BancoTeste
+from .base import BancoTesteComBackup
 
 
-class PublicacaoBackup(BancoTeste):
+class PublicacaoBackup(BancoTesteComBackup):
     def test_carga_interna_recusa_banco_normal(self):
         from django.core.management import call_command, CommandError
         with self.assertRaisesMessage(CommandError, 'banco temporário isolado'):

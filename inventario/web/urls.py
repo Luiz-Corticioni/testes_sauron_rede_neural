@@ -20,6 +20,7 @@ from inventario.aplicacao.remediacao import PERMISSOES as PERMISSOES_REMEDIACAO
 from inventario.aplicacao.vex_emissao import PERMISSOES_VEX
 from inventario.aplicacao.tickets import PERMISSOES_TICKET
 from inventario.aplicacao.observacoes import LEITURA as LEITURA_OBSERVACOES, IMPORTAR as IMPORTAR_OBSERVACOES
+from inventario.aplicacao.retencao_observacoes import PERMISSOES as PERMISSOES_RETENCAO_OBSERVACOES
 from inventario.aplicacao.fair import LEITURA as LEITURA_FAIR, ESCRITA as ESCRITA_FAIR
 from inventario.web import views_documentos
 from inventario.web import views_scanner
@@ -51,6 +52,7 @@ PERMISSOES_RISCO = (
 
 
 urlpatterns = [
+    path("observacoes/retencao/", proteger(views_observacoes.retencao, *PERMISSOES_RETENCAO_OBSERVACOES), name="observacoes_retencao"),
     path("executivo/", proteger(views_executivo.painel, *LEITURA_EXECUTIVO), name="visao_executiva"),
     path("executivo/exportar/", proteger(views_executivo.baixar, *EXPORTACAO_EXECUTIVO), name="exportar_executivo"),
     path("incidencias/<str:pk>/comparar-scan/", proteger(views_remediacao.comparar, *PERMISSOES_REMEDIACAO), name="comparar_correcao"),

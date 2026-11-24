@@ -7,10 +7,10 @@ from django.test import override_settings
 from cryptography.fernet import Fernet
 from inventario.infraestrutura.backup import backup_sqlite, restaurar_backup
 from inventario.models import RegistroAuditoria
-from .base import BancoTeste
+from .base import BancoTesteComBackup
 
 
-class R17(BancoTeste):
+class R17(BancoTesteComBackup):
     def test_backup_cifrado_e_restauracao_limpa(self):
         from django.conf import settings
         from django.contrib.auth.models import Group, Permission

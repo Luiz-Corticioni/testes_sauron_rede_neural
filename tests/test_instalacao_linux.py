@@ -24,7 +24,7 @@ class ConfiguracaoLinux(BancoTeste):
 
     def test_instalacao_nova_prepara_ancora_e_verifica(self):
         banco = settings.DATA_DIR / "novo.sqlite3"
-        with patch("scripts.configurar_linux.Path.exists", return_value=False), patch("django.core.management.call_command") as comando, patch("sys.stdout", new_callable=StringIO):
+        with patch.dict(settings.DATABASES["default"], {"ENGINE": "django.db.backends.sqlite3", "NAME": str(banco)}), patch("scripts.configurar_linux.Path.exists", return_value=False), patch("django.core.management.call_command") as comando, patch("sys.stdout", new_callable=StringIO):
             preparar(self.opcoes())
         self.assertEqual([c.args[0] for c in comando.call_args_list], ["preparar_servidor", "ancorar_auditoria", "verificar_auditoria"])
         self.assertFalse(os.path.exists(banco))

@@ -18,7 +18,7 @@ from inventario.models import (
     DeclaracaoVEX,
     Incidencia,
 )
-from .base import BancoTeste
+from .base import BancoTesteComBackup
 
 PURL = "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1"
 
@@ -119,7 +119,7 @@ class PerfilDocumento(SimpleTestCase):
             carregar(dados(a))
 
 
-class DocumentosIntegrados(BancoTeste):
+class DocumentosIntegrados(BancoTesteComBackup):
     def importar(self, d=None, **opcoes):
         return importar(
             self.a.pk,

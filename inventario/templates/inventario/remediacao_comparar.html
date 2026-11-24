@@ -6,6 +6,6 @@
 <p>A ausência de uma CVE em um relatório não prova correção. Confira o alvo, a cobertura, a versão do scanner e a data; a relação do alvo com o ativo é declarada por você. Nenhuma incidência será encerrada por esta comparação.</p>
 <p>Use uma observação Trivy anterior marcada como válida em <a href="{% url 'observacoes_lista' %}">Observações</a>. O novo arquivo precisa conter o mesmo Target e uma lista explícita <code>Vulnerabilities</code>, mesmo vazia. Consulte o processo de revisão antes de solicitar a mudança de status.</p></article>
 <form method="post" enctype="multipart/form-data" class="panel">{% csrf_token %}{{ form.as_p }}<button class="button" type="submit">Registrar sugestão</button></form>
-<article class="panel"><h2>Sugestões anteriores</h2>{% for s in sugestoes %}<p>#{{ s.pk }} · observação #{{ s.observacao_id }} · scan declarado em {{ s.observado_em }} · por {{ s.criado_por }}<br>{{ s.declaracao }}<br>SHA-256: <code>{{ s.scan_sha256 }}</code></p>{% empty %}<p>Nenhuma sugestão registrada.</p>{% endfor %}
+<article class="panel"><h2>Sugestões anteriores</h2>{% for s in sugestoes %}<p>#{{ s.pk }} · observação #{{ s.observacao_id }} · scan declarado em {{ s.observado_em }} · por {{ s.criado_por }}<br>{{ s.declaracao }}{% if not s.dados_eliminados %}<br>SHA-256: <code>{{ s.scan_sha256 }}</code>{% endif %}</p>{% empty %}<p>Nenhuma sugestão registrada.</p>{% endfor %}
 <a href="{% url 'editar_incidencia' inc.pk %}">Revisar incidência e solicitar decisão</a> · <a href="{% url 'incidencias' %}">Incidências</a></article>
 {% endblock %}

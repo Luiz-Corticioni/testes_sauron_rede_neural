@@ -1,0 +1,7 @@
+{% extends "inventario/base.html" %}
+{% block title %}Retenção de observações · Sauron{% endblock %}
+{% block content %}<section class="page-heading"><div><span class="kicker">PRIVACIDADE</span><h1>Retenção de observações</h1></div></section>
+<article class="panel"><p>Prazo atual: {{ dias }} dias. O padrão é 90 dias e pode ser ajustado de 30 a 180 dias. O prazo das observações conta do recebimento; o das revisões e sugestões, da criação. Dados vencidos são ocultados e a rotina programada os processa em lotes.</p>
+<p>Após o vencimento, o conteúdo da observação e a declaração da sugestão são removidos; revisões vencidas são excluídas. <strong>Reduzir o prazo pode causar eliminação irreversível na próxima rotina.</strong> Referências mínimas permanecem para integridade. Os campos copiados para relações, auditoria imutável, backups e arquivos externos não são apagados por esta rotina e precisam de política própria.</p>
+<p>Pendentes de processamento: {{ pendencias.observacoes }} observação(ões) e {{ pendencias.revisoes }} revisão(ões). O processamento depende do agendador em funcionamento.</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button class="button">Salvar prazo</button></form><p><a href="{% url 'observacoes_lista' %}">Voltar às observações</a></p></article>{% endblock %}

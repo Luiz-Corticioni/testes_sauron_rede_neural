@@ -2,6 +2,11 @@
 
 ## Não lançado — Sprint 5
 
+- Qualidade: componentes de EPSS e fontes nos principais recortes de risco e APIs legadas; o índice permanece indeterminado sem revisão do perímetro.
+- Privacidade: retenção de observações e revisões configurável de 30 a 180 dias, com 90 dias por padrão.
+- Auditoria: PostgreSQL bloqueia UPDATE, DELETE e TRUNCATE na tabela de auditoria; restauração em SQLite evita colisões de tipos de conteúdo.
+- Documentação: limites da solução, identificação dos laboratórios e roadmap de pendências verificáveis.
+- Benchmark reproduzível da rota de ativos ordenada por risco usando banco SQLite temporário e cliente Django.
 - Visão executiva de serviços, dados financeiros de 30 dias e evidências, com exportação HTML auditada e referências indicativas de controles.
 - Remediação: comparação revisável de scans Trivy, chamados Jira/GLPI opcionais e emissão OpenVEX validada; backup compatível com migrações anteriores.
 - Observações offline versionadas, desativadas por padrão, com prévia, importação atômica e revisão humana; perfis restritos para scanners, GLPI e regras de rede.

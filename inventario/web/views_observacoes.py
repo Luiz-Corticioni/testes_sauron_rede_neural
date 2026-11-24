@@ -10,8 +10,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
 
 from inventario.aplicacao.observacoes import importar, preparar, registrar_falha, revisar
+from inventario.aplicacao.retencao_observacoes import alterar_retencao, corte_retencao, visiveis
 from inventario.dominio.observacoes import FORMATOS, LIMITE_BYTES
-from inventario.models import ObservacaoImportada, RevisaoObservacao
+from inventario.models import ObservacaoImportada, PoliticaRetencaoObservacoes, RevisaoObservacao
 from inventario.web.paginacao import paginar
 
 
@@ -68,8 +69,8 @@ def importar_web(request):
 
 @require_GET
 def lista(request):
-    ultima = RevisaoObservacao.objects.filter(observacao_id=OuterRef("pk")).order_by("-pk")
-    qs = ObservacaoImportada.objects.annotate(ultima_classificacao=Subquery(ultima.values("classificacao")[:1]))
+    ultima = RevisaoObservacao.objects.filter(observacao_id=OuterRef("pk"), criada_em__gt=corte_retencao()).order_by("-pk")
+    qs = visiveis().annotate(ultima_classificacao=Subquery(ultima.values("classificacao")[:1]))
     resposta = render(request, "inventario/observacoes_lista.html", paginar(qs, request))
     resposta["Cache-Control"] = "no-store"
     return resposta
@@ -77,7 +78,7 @@ def lista(request):
 
 @require_GET
 def api_detalhe(request, pk):
-    item = get_object_or_404(ObservacaoImportada, pk=pk)
+    item = get_object_or_404(visiveis(), pk=pk)
     resposta = JsonResponse({"versao": item.versao_contrato, "origem": item.formato, "tipo": item.tipo,
         "identidade_fonte": item.identidade_fonte, "versao_fonte": item.versao_fonte,
         "identificador": item.identificador, "observado_em": item.observado_em.isoformat(),
@@ -96,7 +97,7 @@ class RevisaoForm(forms.Form):
 
 @require_http_methods(["GET", "POST"])
 def detalhe(request, pk):
-    observacao = get_object_or_404(ObservacaoImportada, pk=pk)
+    observacao = get_object_or_404(visiveis(), pk=pk)
     form = RevisaoForm(request.POST or None)
     pode_revisar = request.user.has_perm("inventario.add_revisaoobservacao")
     if request.method == "POST":
@@ -112,6 +113,32 @@ def detalhe(request, pk):
                 messages.success(request, "Revisão registrada com auditoria.")
                 return redirect("observacao_detalhe", pk=pk)
     resposta = render(request, "inventario/observacoes_detalhe.html", {"observacao": observacao, "form": form,
-        "pode_revisar": pode_revisar, "revisoes": observacao.revisoes.select_related("autor", "relacao")[:100]})
+        "pode_revisar": pode_revisar, "revisoes": observacao.revisoes.filter(criada_em__gt=corte_retencao()).select_related("autor", "relacao")[:100]})
+    resposta["Cache-Control"] = "no-store"
+    return resposta
+
+
+class RetencaoForm(forms.Form):
+    dias = forms.IntegerField(label="Prazo em dias", min_value=30, max_value=180, initial=90)
+
+
+@require_http_methods(["GET", "POST"])
+def retencao(request):
+    politica = PoliticaRetencaoObservacoes.objects.filter(pk=1).select_related("atualizado_por").first()
+    dias = politica.dias if politica else 90
+    form = RetencaoForm(request.POST or None, initial={"dias": dias})
+    if request.method == "POST" and form.is_valid():
+        try:
+            alterar_retencao(form.cleaned_data["dias"], request.user)
+        except ValidationError as erro:
+            form.add_error(None, erro)
+        else:
+            messages.success(request, "Prazo salvo; a próxima rotina processará os registros vencidos.")
+            return redirect("observacoes_retencao")
+    corte = corte_retencao()
+    pendencias = {"observacoes": ObservacaoImportada.objects.filter(recebido_em__lte=corte).exclude(erro="RETENCAO_EXPIRADA").count(),
+                  "revisoes": RevisaoObservacao.objects.filter(criada_em__lte=corte).count()}
+    resposta = render(request, "inventario/observacoes_retencao.html", {"form": form, "politica": politica,
+        "dias": dias, "pendencias": pendencias})
     resposta["Cache-Control"] = "no-store"
     return resposta

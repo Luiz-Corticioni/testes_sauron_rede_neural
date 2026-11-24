@@ -12,11 +12,11 @@ from django.utils import timezone
 from inventario.aplicacao.epss import sincronizar_epss, situacao_epss
 from inventario.infraestrutura.cve_client import EpssClient, IntegracaoCVEError
 from inventario.models import ObservacaoEPSS
-from .base import BancoTeste
+from .base import BancoTesteComBackup
 
 
 @patch.dict(os.environ, {'SAURON_ROTINAS_SEM_REDE': '0'})
-class EPSSIntegrado(BancoTeste):
+class EPSSIntegrado(BancoTesteComBackup):
     def resposta(self, valor='0.2', percentil='0.9', dias=0):
         return {'data': [{'cve': self.v.cve_id, 'epss': valor, 'percentile': percentil,
                           'date': (timezone.now().date()-timedelta(days=dias)).isoformat()}]}

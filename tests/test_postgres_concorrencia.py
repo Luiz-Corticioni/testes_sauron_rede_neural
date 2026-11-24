@@ -9,7 +9,8 @@ from tempfile import TemporaryDirectory
 import sqlite3
 
 from django.db import close_old_connections, connection, connections, transaction
-from django.test import TestCase, TransactionTestCase, override_settings
+from django.test import TestCase, override_settings
+from .base_transacional import BancoTransacionalTeste
 from cryptography.fernet import Fernet
 
 from inventario.infraestrutura.auditoria import registrar_evento, verificar_cadeia
@@ -27,7 +28,13 @@ class BackupEmTransacaoPostgres(TestCase):
 
 
 @skipUnless(connection.vendor == "postgresql", "Teste exige PostgreSQL real.")
-class ConcorrenciaPostgres(TransactionTestCase):
+class ConcorrenciaPostgres(BancoTransacionalTeste):
+    def test_truncate_na_auditoria_e_bloqueado(self):
+        from django.db import DatabaseError
+        with self.assertRaisesMessage(DatabaseError, "Auditoria imutavel"):
+            with connection.cursor() as cursor:
+                cursor.execute("TRUNCATE inventario_registroauditoria")
+
     @override_settings(SAURON_TICKETS_JIRA_ENABLED=True, SAURON_JIRA_URL="https://jira.example",
         SAURON_JIRA_USER="sintetico", SAURON_JIRA_API_TOKEN="falso", SAURON_JIRA_PROJECT="SAU", SAURON_JIRA_ISSUE_TYPE="Task")
     def test_solicitacoes_simultaneas_de_ticket_nao_duplicam_envio(self):
@@ -204,7 +211,11 @@ class ConcorrenciaPostgres(TransactionTestCase):
                 destino = Path(pasta) / "restaurado.sqlite3"
                 arquivo = backup_sqlite()
                 self.assertNotIn(segredo.encode(), Fernet(chave).decrypt(arquivo.read_bytes()))
-                restaurar_backup(arquivo, destino)
+                try:
+                    restaurar_backup(arquivo, destino)
+                except ValueError as erro:
+                    detalhes = getattr(erro.__cause__, "stderr", "")
+                    self.fail(f"Restauração da fixture fictícia falhou: {detalhes[-3000:]}")
                 with closing(sqlite3.connect(destino)) as banco:
                     nomes = banco.execute("SELECT nome FROM inventario_sala WHERE id = ?", ("SALA-PG",)).fetchall()
                     relacao_recuperada = banco.execute("SELECT origem_id, destino_id, fonte, criada_por_id FROM inventario_relacaoativos").fetchone()

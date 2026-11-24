@@ -6,6 +6,12 @@ Este é o ponto de entrada para os documentos do projeto. Os guias de uso ajudam
 executar a versão atual; os relatórios registram decisões, testes e limitações da data
 em que foram escritos. Eles não são um certificado de que um servidor está seguro.
 
+O [roadmap atual](ROADMAP_ATUAL.md) reúne o estado das fases, limitações e
+próximas validações. Euler, contágio, sistema imune e iscas são recursos de
+laboratório ou demonstração e seus resultados não comprovam eventos reais.
+
+[Correções e validações das pendências](RELATORIO_PENDENCIAS_2026-11-24.md).
+
 ## Começar e operar
 
 | Necessidade | Documento |

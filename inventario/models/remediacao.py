@@ -7,15 +7,18 @@ class SugestaoCorrecao(models.Model):
 
     incidencia = models.ForeignKey("Incidencia", on_delete=models.PROTECT, related_name="sugestoes_correcao")
     observacao = models.ForeignKey("ObservacaoImportada", on_delete=models.PROTECT)
-    scan_sha256 = models.CharField(max_length=64)
+    scan_sha256 = models.CharField(max_length=64, null=True)
     observado_em = models.DateTimeField()
     declaracao = models.CharField(max_length=500)
+    dados_eliminados = models.BooleanField(default=False)
     criado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         default_permissions = ("view", "add")
-        constraints = [models.UniqueConstraint(fields=["incidencia", "observacao", "scan_sha256"], name="sugestao_correcao_unica")]
+        constraints = [models.UniqueConstraint(fields=["incidencia", "observacao", "scan_sha256"], name="sugestao_correcao_unica"),
+            models.CheckConstraint(condition=(models.Q(dados_eliminados=True, scan_sha256__isnull=True)
+                | models.Q(dados_eliminados=False, scan_sha256__isnull=False)), name="sugestao_retencao_coerente")]
 
 
 class TicketRemediacao(models.Model):

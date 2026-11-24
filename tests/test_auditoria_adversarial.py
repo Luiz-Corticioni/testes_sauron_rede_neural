@@ -29,7 +29,8 @@ class R15(BancoTeste):
             ancorar()
             self.assertTrue(verificar_cadeia()["integra"])
             with connection.cursor() as c:
-                c.execute("DROP TRIGGER auditoria_sem_delete")
+                sufixo = " ON inventario_registroauditoria" if connection.vendor == "postgresql" else ""
+                c.execute("DROP TRIGGER auditoria_sem_delete" + sufixo)
                 c.execute("DELETE FROM inventario_registroauditoria WHERE id=%s",[r.pk])
             self.assertFalse(verificar_cadeia()["integra"])
 
@@ -37,7 +38,8 @@ class R15(BancoTeste):
         from inventario.infraestrutura.auditoria import calcular_hash as calcular
         r=registrar_evento("TESTE","Teste","1")
         with connection.cursor() as c:
-            c.execute("DROP TRIGGER auditoria_sem_update")
+            sufixo = " ON inventario_registroauditoria" if connection.vendor == "postgresql" else ""
+            c.execute("DROP TRIGGER auditoria_sem_update" + sufixo)
             r.entidade_id="adulterado"
             with override_settings(SAURON_AUDIT_HMAC_KEY="chave-atacante"):
                 falso=calcular(r)

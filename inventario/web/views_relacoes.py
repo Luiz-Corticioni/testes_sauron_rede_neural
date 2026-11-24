@@ -17,7 +17,10 @@ def com_procedencia(qs, usuario):
     if not usuario.has_perms(("inventario.view_observacaoimportada", "inventario.view_revisaoobservacao")):
         return qs
     from inventario.models import RevisaoObservacao
-    revisoes = RevisaoObservacao.objects.filter(relacao_id=OuterRef("pk"), classificacao="RELACAO_CRIADA").order_by("-pk")
+    from inventario.aplicacao.retencao_observacoes import corte_retencao
+    corte = corte_retencao()
+    revisoes = RevisaoObservacao.objects.filter(relacao_id=OuterRef("pk"), classificacao="RELACAO_CRIADA",
+        criada_em__gt=corte, observacao__recebido_em__gt=corte).order_by("-pk")
     return qs.annotate(obs_confianca=Subquery(revisoes.values("observacao__confianca")[:1]),
         obs_data=Subquery(revisoes.values("observacao__observado_em")[:1]),
         obs_id=Subquery(revisoes.values("observacao_id")[:1]),

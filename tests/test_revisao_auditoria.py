@@ -22,7 +22,8 @@ class AuditoriaRevisada(BancoTeste):
     def test_versao_adulterada_retorna_falha_sem_excecao(self):
         pk = RegistroAuditoria.objects.first().pk
         with connection.cursor() as cursor:
-            cursor.execute("DROP TRIGGER auditoria_sem_update")
+            sufixo = " ON inventario_registroauditoria" if connection.vendor == "postgresql" else ""
+            cursor.execute("DROP TRIGGER auditoria_sem_update" + sufixo)
             cursor.execute("UPDATE inventario_registroauditoria SET cadeia_versao=99 WHERE id=%s", [pk])
         resultado = verificar_cadeia(verificar_ancora=False)
         self.assertFalse(resultado["integra"])

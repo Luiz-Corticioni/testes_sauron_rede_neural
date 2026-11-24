@@ -1,7 +1,7 @@
 {% extends "inventario/base.html" %}
 {% block title %}Modo Euler — Sauron{% endblock %}
 {% block content %}
-<section class="page-heading"><div><span class="kicker">CÁLCULO NUMÉRICO</span><h1>Modo Euler</h1><p>Funções seguras, derivadas centrais e integração por Simpson.</p></div></section>
+<section class="page-heading"><div><span class="kicker">LABORATÓRIO · CÁLCULO NUMÉRICO</span><h1>Modo Euler</h1><p>Funções seguras, derivadas centrais e integração por Simpson.</p></div></section>
 {% if perms.inventario.view_ativo and perms.inventario.view_relacaoativos and perms.inventario.view_perimetrorelacoes and perms.inventario.view_revisaocobertura %}<article class="panel"><h2>Cobertura das evidências</h2><p>Compare ativos com vínculos elegíveis e ativos com revisão completa declarada. O denominador é o perímetro escolhido; percentuais não representam probabilidade ou segurança.</p><a href="{% url 'qualidade_relacoes' %}">Consultar cobertura, validade e lacunas</a></article>{% endif %}
 {% if perms.inventario.view_ativo and perms.inventario.view_relacaoativos %}<article class="panel"><h2>Grafos do inventário</h2><p>Alcance dirigido, menor caminho em saltos, ciclos e cenário de retirada de uma relação/ativo. Cada análise usa uma única camada e escopo; não estima probabilidade de ataque.</p><a class="button" href="{% url 'grafo_relacoes' %}">Analisar relações de rede, identidade ou negócio</a></article>{% endif %}
 <section class="grid two">

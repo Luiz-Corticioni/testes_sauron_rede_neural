@@ -82,9 +82,12 @@ def analisar_relacoes(usuario, tipo, escopo, origem, destino=None, principal="",
                                for a in referencias[:200]]
     if usuario.has_perms(("inventario.view_observacaoimportada", "inventario.view_revisaoobservacao")):
         from inventario.models import RevisaoObservacao
+        from inventario.aplicacao.retencao_observacoes import corte_retencao
         procedencias = {}
+        corte = corte_retencao()
         revisoes = RevisaoObservacao.objects.filter(relacao_id__in=[r["id"] for r in referencias[:200]],
-            classificacao="RELACAO_CRIADA").select_related("observacao").order_by("-pk")
+            classificacao="RELACAO_CRIADA", criada_em__gt=corte,
+            observacao__recebido_em__gt=corte).select_related("observacao").order_by("-pk")
         for revisao in revisoes:
             procedencias.setdefault(revisao.relacao_id, revisao)
         por_id = {r["id"]: r for r in referencias[:200]}

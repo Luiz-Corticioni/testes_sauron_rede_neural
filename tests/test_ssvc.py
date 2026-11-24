@@ -11,7 +11,7 @@ from django.utils import timezone
 from inventario.dominio.ssvc import avaliar, politica, PONTOS
 from inventario.aplicacao.ssvc import contexto_atual, registrar_avaliacao, situacao
 from inventario.models import AvaliacaoSSVC, RegistroAuditoria
-from .base import BancoTeste
+from .base import BancoTesteComBackup
 
 
 class TabelaSSVC(SimpleTestCase):
@@ -48,7 +48,7 @@ class TabelaSSVC(SimpleTestCase):
             politica.cache_clear()
 
 
-class FluxoSSVC(BancoTeste):
+class FluxoSSVC(BancoTesteComBackup):
     entradas = {'exploitation': 'active', 'exposure': 'open', 'automatable': 'yes', 'human_impact': 'high'}
 
     @property

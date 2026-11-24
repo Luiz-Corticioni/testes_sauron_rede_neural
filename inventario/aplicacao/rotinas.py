@@ -36,6 +36,7 @@ def executar_rotinas(sem_rede=False):
 
     from inventario.infraestrutura.ancoras import ancorar
     from inventario.aplicacao.honeypot import aplicar_retencao
+    from inventario.aplicacao.retencao_observacoes import aplicar_retencao as reter_observacoes
     etapas = {
         "aceites": expirar_aceites,
         "kev": kev,
@@ -46,6 +47,7 @@ def executar_rotinas(sem_rede=False):
         "tendencia": alertar_tendencia,
         "imune": executar_ciclo,
         "retencao_isca": aplicar_retencao,
+        "retencao_observacoes": reter_observacoes,
         "ancora": ancorar,
     }
     # Também serializa chamadas simultâneas de cron, Docker e terminal.
