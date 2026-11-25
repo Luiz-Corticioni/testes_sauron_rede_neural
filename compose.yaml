@@ -1,6 +1,6 @@
 x-base: &base
   build: .
-  restart: unless-stopped
+  restart: always
   init: true
   read_only: true
   env_file: .env

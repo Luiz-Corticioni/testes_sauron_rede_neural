@@ -7,10 +7,11 @@ x-base: &base
     SAURON_DATA_DIR: /app/dados
   volumes: ["sauron_arquivos:/app/dados"]
   init: true
-  restart: unless-stopped
+  restart: always
 services:
   postgres:
     image: postgres:16-alpine
+    restart: always
     environment:
       POSTGRES_DB: sauron
       POSTGRES_USER: sauron

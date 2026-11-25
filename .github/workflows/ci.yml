@@ -78,6 +78,30 @@ jobs:
           done
           docker compose logs --tail=100 preparar sauron agendador
           exit 1
+      - name: Verificar recuperação e persistência após falha
+        run: |
+          docker compose exec -T sauron python -c "from pathlib import Path; Path('/app/dados/teste-reinicio-ci').write_text('persistido')"
+          container=$(docker compose ps -q sauron)
+          reinicios_antes=$(docker inspect --format '{{.RestartCount}}' "$container")
+          # Encerra o filho principal do docker-init; docker kill seria parada manual.
+          docker compose exec -T sauron python -c "import os, signal; from pathlib import Path; os.kill(int(Path('/proc/1/task/1/children').read_text().split()[0]), signal.SIGKILL)" || true
+          for tentativa in $(seq 1 90); do
+            reinicios=$(docker inspect --format '{{.RestartCount}}' "$container")
+            if [ "$reinicios" -gt "$reinicios_antes" ] && curl -fsS http://127.0.0.1:2228/api/saude/ && docker compose exec -T sauron python -c "from pathlib import Path; assert Path('/app/dados/teste-reinicio-ci').read_text() == 'persistido'"; then break; fi
+            if [ "$tentativa" -eq 90 ]; then docker compose logs --tail=100 sauron agendador; exit 1; fi
+            sleep 2
+          done
+          agendador=$(docker compose ps -q agendador)
+          reinicios_antes=$(docker inspect --format '{{.RestartCount}}' "$agendador")
+          docker compose exec -T agendador python -c "import os, signal; from pathlib import Path; os.kill(int(Path('/proc/1/task/1/children').read_text().split()[0]), signal.SIGKILL)" || true
+          for tentativa in $(seq 1 90); do
+            reinicios=$(docker inspect --format '{{.RestartCount}}' "$agendador")
+            estado=$(docker inspect --format '{{.State.Status}}' "$agendador")
+            if [ "$reinicios" -gt "$reinicios_antes" ] && [ "$estado" = running ]; then exit 0; fi
+            sleep 2
+          done
+          docker compose logs --tail=100 agendador
+          exit 1
       - if: always()
         run: docker compose down
       - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0

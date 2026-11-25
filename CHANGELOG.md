@@ -2,6 +2,7 @@
 
 ## Não lançado — Sprint 5
 
+- Docker: serviços web e agendador usam `restart: always`; CI testa recuperação após falha dos processos e persistência de arquivo. Reinício real do servidor e ensaio de 24 horas continuam sujeitos a verificação no ambiente do docente.
 - Qualidade: componentes de EPSS e fontes nos principais recortes de risco e APIs legadas; o índice permanece indeterminado sem revisão do perímetro.
 - Privacidade: retenção de observações e revisões configurável de 30 a 180 dias, com 90 dias por padrão.
 - Auditoria: PostgreSQL bloqueia UPDATE, DELETE e TRUNCATE na tabela de auditoria; restauração em SQLite evita colisões de tipos de conteúdo.

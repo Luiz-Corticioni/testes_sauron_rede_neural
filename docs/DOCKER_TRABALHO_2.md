@@ -113,6 +113,25 @@ para recriar os containers; reiniciá-los não recarrega o `.env`.
 
 ## Verificar persistência e reinício
 
+Os serviços contínuos usam `restart: always`; `preparar` permanece tarefa única,
+sem reinício automático. Após o primeiro `up`, o Docker pode reiniciar os
+contêineres existentes após falha ou reinício do daemon. No Linux, o responsável
+pelo servidor deve conferir que o serviço Docker inicia no boot, por exemplo
+com `systemctl is-enabled docker` e `systemctl is-active docker`; habilitá-lo
+exige autorização administrativa. Em ambientes rootless ou com outra forma de
+gerenciamento, consulte o responsável. Sem Docker ativo, energia, armazenamento
+e rede disponíveis, não há retomada automática garantida.
+
+`docker compose stop` para os contêineres e eles podem voltar quando o daemon
+reiniciar, pois a política é `always`. `docker compose down` remove os
+contêineres: nesse caso é necessário executar `docker compose up -d` novamente.
+O volume permanece com `down` sem `-v`; após atualização, execute o fluxo normal
+de preparação, backup e migrações. Políticas de restart não substituem backup e
+não reiniciam, por si só, um processo que permanece ativo, mas `unhealthy`.
+O `depends_on` coordena a preparação quando o Compose sobe os serviços; não
+comprova que ela será executada novamente quando o daemon reiniciar contêineres
+existentes. Teste o boot real e as dependências no servidor de destino.
+
 Use uma base de demonstração autorizada. Cadastre um ativo identificável, exporte os
 JSONs, registre seu ID e verifique o volume com `docker volume ls`. Depois execute:
 

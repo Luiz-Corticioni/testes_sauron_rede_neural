@@ -9,7 +9,7 @@ services:
       - proxy_interno
   proxy:
     image: caddy:2.11.9-alpine
-    restart: unless-stopped
+    restart: always
     init: true
     command: ["caddy", "reverse-proxy", "--from", "${SAURON_PUBLIC_HOST:?Defina SAURON_PUBLIC_HOST no .env}", "--to", "sauron:8000"]
     ports:
