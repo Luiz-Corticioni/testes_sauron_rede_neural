@@ -139,6 +139,13 @@ e-mail, recuperação de TOTP e diagnóstico de envio, consulte [e-mail e MFA](d
 
 ## Usar o inventário
 
+Para uma demonstração isolada, use um banco vazio e escolha **Carregar empresa Aurora** no painel,
+ou execute `python manage.py seed_demo --empresa-realista`. O cenário cria 30 ativos simulados,
+oito CVEs reais e relações hipotéticas; não altera inventários preenchidos. A fotografia EPSS da
+FIRST tem data de 27/11/2026 e fica desatualizada após dois dias. Na página de simulação financeira,
+use **Consultar FIRST e atualizar EPSS** para obter dados recentes; isso depende de rede e permissões.
+Produtos e CVEs são reais, mas configuração, ocorrências e impactos são hipóteses, não detecções.
+
 Um percurso para conhecer o sistema com dados fictícios:
 
 1. Em **Salas e subsetores** e **Ativos**, registre uma localização e um equipamento,

@@ -68,18 +68,19 @@ class CenarioOperacional(TestCase):
         from inventario.web.visualizacao import grafo_dependencias
 
         call_command('seed_demo', empresa=True, stdout=StringIO())
-        self.assertEqual(Ativo.objects.count(), 31)
-        self.assertEqual(Ativo.objects.values('tipo').distinct().count(), 9)
-        self.assertGreaterEqual(Vulnerabilidade.objects.count(), 9)
-        self.assertGreater(Dependencia.objects.count(), 50)
+        self.assertEqual(Ativo.objects.count(), 30)
+        self.assertGreaterEqual(Ativo.objects.values('tipo').distinct().count(), 6)
+        self.assertEqual(Vulnerabilidade.objects.count(), 8)
+        self.assertEqual(Ativo.objects.filter(ip__isnull=False).count(), 30)
+        self.assertGreater(Dependencia.objects.count(), 40)
         risco = calcular_risco_banco()
         grafo = grafo_dependencias(risco, {})
-        self.assertEqual(len(grafo['nos']), 31)
+        self.assertEqual(len(grafo['nos']), 30)
         self.assertEqual(len(grafo['arestas']), Dependencia.objects.count())
         self.assertTrue(all(0 <= n['x'] <= grafo['largura'] and 0 <= n['y'] <= grafo['altura'] for n in grafo['nos']))
         self.assertGreater(len({n['x'] for n in grafo['nos']}), 5)
         call_command('seed_demo', empresa=True, stdout=StringIO())
-        self.assertEqual(Ativo.objects.count(), 31)
+        self.assertEqual(Ativo.objects.count(), 30)
 
     def test_empresa_exige_superusuario_mfa_e_post(self):
         from django.contrib.auth.models import Permission
@@ -103,7 +104,7 @@ class CenarioOperacional(TestCase):
         autenticar(admin)
         self.assertEqual(self.client.get('/demonstracao/empresa/').status_code, 405)
         self.assertEqual(self.client.post('/demonstracao/empresa/').status_code, 302)
-        self.assertEqual(Ativo.objects.count(), 31)
+        self.assertEqual(Ativo.objects.count(), 30)
         self.assertContains(self.client.get('/'), 'EMPRESA AURORA · DADOS FICTÍCIOS')
 
     def test_empresa_realista_mantem_fontes_e_associacoes_especificas(self):
@@ -111,8 +112,8 @@ class CenarioOperacional(TestCase):
         from inventario.aplicacao.servicos import calcular_risco_banco
         from inventario.models import Vulnerabilidade
         call_command('seed_demo', empresa_realista=True, stdout=StringIO())
-        self.assertEqual(Ativo.objects.count(), 31)
-        self.assertEqual(Vulnerabilidade.objects.filter(fonte=FONTE).count(), 4)
+        self.assertEqual(Ativo.objects.count(), 30)
+        self.assertEqual(Vulnerabilidade.objects.filter(fonte=FONTE).count(), 8)
         for cve, _, cvss, versao, _, _, fonte, _ in AVISOS:
             vulnerabilidade = Vulnerabilidade.objects.get(cve_id=cve)
             self.assertEqual((vulnerabilidade.cvss, vulnerabilidade.cvss_versao), (cvss, versao))
@@ -122,9 +123,9 @@ class CenarioOperacional(TestCase):
             self.assertTrue(all('SIMULAÇÃO' in i.observacoes for i in ocorrencias))
         self.assertEqual(set(Incidencia.objects.filter(vulnerabilidade__cve_id='CVE-2019-5285').values_list('ativo__modelo', flat=True)), {'S12700'})
         self.assertEqual(set(Incidencia.objects.filter(vulnerabilidade__cve_id='CVE-2024-3400').values_list('ativo__versao', flat=True)), {'10.2.8'})
-        self.assertEqual(len(calcular_risco_banco()['ids_ativos']), 31)
+        self.assertEqual(len(calcular_risco_banco()['ids_ativos']), 30)
         call_command('seed_demo', empresa_realista=True, stdout=StringIO())
-        self.assertEqual(Ativo.objects.count(), 31)
+        self.assertEqual(Ativo.objects.count(), 30)
 
     def test_opcao_realista_web_respeita_escolha_e_recusa_inventario_preenchido(self):
         from django_otp.plugins.otp_totp.models import TOTPDevice
@@ -139,8 +140,47 @@ class CenarioOperacional(TestCase):
         sessao.save()
         self.assertEqual(self.client.post('/demonstracao/empresa/', {'cenario': 'outro'}).status_code, 400)
         self.assertEqual(self.client.post('/demonstracao/empresa/', {'cenario': 'realista'}).status_code, 302)
-        self.assertEqual(Ativo.objects.count(), 31)
-        self.assertEqual(Vulnerabilidade.objects.filter(fonte=FONTE).count(), 4)
+        self.assertEqual(Ativo.objects.count(), 30)
+        self.assertEqual(Vulnerabilidade.objects.filter(fonte=FONTE).count(), 8)
         self.assertContains(self.client.get('/'), 'Produtos e CVEs são reais')
         self.assertEqual(self.client.post('/demonstracao/empresa/', {'cenario': 'realista'}).status_code, 302)
-        self.assertEqual(Ativo.objects.count(), 31)
+        self.assertEqual(Ativo.objects.count(), 30)
+
+    def test_aurora_epss_atualizavel_e_simulacao_disponivel(self):
+        from inventario.aplicacao.epss import sincronizar_epss
+        from inventario.aplicacao.montecarlo import calcular_montecarlo
+        from inventario.models import ObservacaoEPSS, Vulnerabilidade
+        call_command('seed_demo', empresa_realista=True, stdout=StringIO())
+        cves = list(Vulnerabilidade.objects.values_list('cve_id', flat=True))
+        hoje = timezone.now().date().isoformat()
+        dados = {cve: {'epss': .2, 'percentil': .8, 'data': hoje, 'modelo': ''} for cve in cves}
+        with patch('inventario.aplicacao.epss.EpssClient.buscar', return_value=dados):
+            sincronizar_epss()
+        self.assertEqual(Vulnerabilidade.objects.filter(epss_observacao__isnull=False).count(), 8)
+        self.assertGreaterEqual(ObservacaoEPSS.objects.count(), 8)
+        resultado = calcular_montecarlo({'n': 100})
+        self.assertTrue(resultado['disponivel'])
+        self.assertEqual(resultado['quantidade_incidencias'], 32)
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+        usuario = get_user_model().objects.create_superuser('aurora', 'aurora@example.org', 'senha-teste')
+        self.client.force_login(usuario)
+        dispositivo = TOTPDevice.objects.create(user=usuario, name='teste', confirmed=True)
+        sessao = self.client.session
+        sessao['otp_device_id'] = dispositivo.persistent_id
+        sessao['sauron_reauth_em'] = timezone.now().timestamp()
+        sessao.save()
+        pagina = self.client.get('/montecarlo/')
+        self.assertContains(pagina, 'CVE-2024-3400')
+        resposta = self.client.post('/api/montecarlo/', data='{"n":100}', content_type='application/json')
+        self.assertEqual(resposta.status_code, 200)
+        self.assertTrue(resposta.json()['disponivel'])
+
+    def test_fotografia_antiga_nao_e_tratada_como_epss_recente(self):
+        from datetime import timedelta
+        from inventario.aplicacao.montecarlo import calcular_montecarlo
+        from inventario.models import Vulnerabilidade
+        call_command('seed_demo', empresa_realista=True, stdout=StringIO())
+        Vulnerabilidade.objects.update(epss_data=timezone.now().date() - timedelta(days=3))
+        resultado = calcular_montecarlo({'n': 100})
+        self.assertFalse(resultado['disponivel'])
+        self.assertEqual(resultado['pendencias_total'], 32)

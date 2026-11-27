@@ -40,10 +40,10 @@ class Command(BaseCommand):
         if any(modelo.objects.exists() for modelo in modelos):
             self.stdout.write("Seed ignorado: o banco já contém dados do inventário.")
             return
-        if options['empresa_realista']:
+        if options['empresa'] or options['empresa_realista']:
             from inventario.aplicacao.demo_realista import criar_empresa
             criar_empresa()
-            self.stdout.write('Empresa fictícia criada com produtos e avisos reais; ocorrências e rede são simuladas.')
+            self.stdout.write('Aurora criada: 30 ativos simulados, CVEs reais e fotografia EPSS datada. Atualize EPSS quando necessário.')
             return
         salas = {
             "SALA-TI-001": (
@@ -241,11 +241,6 @@ class Command(BaseCommand):
                 self.stdout.write(
                     self.style.WARNING("Administrador criado a partir das variáveis de ambiente.")
                 )
-
-        if options['empresa']:
-            from inventario.aplicacao.demo_empresa import ampliar_empresa
-            ampliar_empresa()
-            self.stdout.write(self.style.WARNING('Empresa Aurora FICTÍCIA: inventário e valores são apenas demonstrativos.'))
 
         if options["operacional"]:
             from inventario.aplicacao.demo_operacional import preparar_demo_operacional
